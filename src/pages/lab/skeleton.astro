@@ -1,0 +1,125 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import DepthDial from '~/components/depth/DepthDial.astro';
+import Peek from '~/components/depth/Peek.astro';
+import Unfold from '~/components/depth/Unfold.astro';
+import CodePanel from '~/components/lab/CodePanel.svelte';
+import SpectrumScene from '~/components/lab/SpectrumScene.svelte';
+import Eq from '~/components/math/Eq.astro';
+import RingScene from '~/components/three/RingScene.svelte';
+import { withBase } from '~/lib/url';
+
+const datasets = [
+  {
+    id: 'toy-chirp',
+    label: 'Toy chirp in simulated noise',
+    url: withBase('data/synthetic/toy-chirp/'),
+    channel: 'strain',
+    signalChannel: 'injection',
+    listenAt: 20.3,
+  },
+  {
+    id: 'gw150914-h1',
+    label: 'GW150914, LIGO Hanford (H1)',
+    url: withBase('data/events/GW150914/'),
+    channel: 'H1',
+    listenAt: 16.4,
+  },
+  {
+    id: 'gw150914-l1',
+    label: 'GW150914, LIGO Livingston (L1)',
+    url: withBase('data/events/GW150914/'),
+    channel: 'L1',
+    listenAt: 16.4,
+  },
+];
+
+const welch = String.raw`\htmlData{term=psd}{\hat S(f)} = \frac{2}{f_s \sum_n w_n^2}\;\frac{1}{K}\sum_{k=1}^{K}\left|\,\sum_{n=0}^{N-1} w_n\,\htmlData{term=segment}{x_k[n]}\,e^{-2\pi i f n/f_s}\right|^2`;
+---
+
+<BaseLayout
+  title="Walking skeleton"
+  description="Every layer of GRWU working together on real detector data."
+  noindex
+>
+  <article class="skeleton prose">
+    <h1>Walking skeleton</h1>
+    <p class="lede">
+      Every layer of the site working together on real data: a figure computed in your browser, a
+      linked equation, three depths of explanation, Python running in the page, sound and 3D. This
+      is a workbench, not an article.
+    </p>
+
+    <DepthDial />
+
+    <h2>How loud is the noise?</h2>
+    <Peek target="math-welch" layer="math" text="Ŝ(f) = mean over k of |DFT(w·xₖ)|²">
+      <p>
+        A detector's noise is described by its power spectral density: how much the data wiggles at
+        each frequency. To estimate it, the data is cut into segments, each segment's spectrum is
+        taken, and the spectra are averaged. That is Welch's method, and it runs here in a
+        background thread every time you change a setting.
+      </p>
+    </Peek>
+
+    <SpectrumScene client:visible datasets={datasets} />
+
+    <Unfold id="math-welch" layer="math" summary="Welch's estimate">
+      <p>
+        Each segment{' '}
+        <em>
+          x<sub>k</sub>
+        </em>{' '}
+        is multiplied by a Hann window <em>w</em>, transformed, and squared; the results are
+        averaged over the <em>K</em> segments and scaled so the area under the curve is the variance
+        of the data.
+      </p>
+      <Eq
+        tex={welch}
+        terms={[
+          { id: 'psd', label: 'Ŝ(f), the estimate plotted above', concept: 'data' },
+          { id: 'segment', label: 'xₖ, one segment of data', concept: 'data' },
+        ]}
+      />
+      <p>
+        Longer segments resolve finer frequencies (the resolution is one over the segment length)
+        but leave fewer segments to average, so the curve gets noisier. Try it with the slider.
+      </p>
+    </Unfold>
+
+    <Unfold id="code-welch" layer="code" summary="The same estimate in Python">
+      <CodePanel client:visible />
+    </Unfold>
+
+    <h2>What a passing wave does</h2>
+    <p>
+      A gravitational wave stretches space in one direction while squeezing it in the other. This
+      ring of free particles is drawn with WebGPU where your browser has it, and WebGL otherwise.
+    </p>
+    <RingScene client:visible />
+
+    <p class="credit">
+      GW150914 data: this research has made use of data or software obtained from the Gravitational
+      Wave Open Science Center (<a href="https://gwosc.org/">gwosc.org</a>), a service of the LIGO
+      Scientific Collaboration, the Virgo Collaboration, and KAGRA.
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .skeleton {
+    position: relative;
+    padding: var(--space-12) var(--gutter) 0;
+  }
+
+  .lede {
+    font-size: var(--text-lg);
+    color: var(--ink-2);
+  }
+
+  .credit {
+    margin-top: var(--space-12);
+    font-size: var(--text-sm);
+    color: var(--ink-2);
+  }
+</style>

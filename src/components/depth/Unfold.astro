@@ -1,0 +1,73 @@
+---
+/** A deeper layer that unfolds in place. Opened by the reader, the depth dial, or a link. */
+interface Props {
+  id: string;
+  layer: 'math' | 'code';
+  summary: string;
+}
+
+const { id, layer, summary } = Astro.props;
+---
+
+<grwu-unfold class="unfold">
+  <details id={id} data-layer={layer} style={`view-transition-name: unfold-${id}`}>
+    <summary>
+      <span class="unfold__layer">{layer === 'math' ? 'Math' : 'Code'}</span>
+      {summary}
+    </summary>
+    <div class="unfold__body">
+      <slot />
+    </div>
+  </details>
+</grwu-unfold>
+
+<script>
+  import '~/elements/unfold';
+</script>
+
+<style>
+  .unfold {
+    display: block;
+    margin: var(--space-4) 0;
+  }
+
+  details {
+    border-inline-start: 2px solid var(--border);
+    padding-inline-start: var(--space-4);
+  }
+
+  details[open] {
+    border-inline-start-color: var(--ink-muted);
+  }
+
+  summary {
+    cursor: pointer;
+    color: var(--ink-2);
+  }
+
+  summary:hover {
+    color: var(--ink-1);
+  }
+
+  .unfold__layer {
+    display: inline-block;
+    margin-inline-end: var(--space-2);
+    padding: 0 var(--space-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-1);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--ink-1);
+  }
+
+  .unfold__body {
+    padding-block: var(--space-2);
+  }
+</style>
+
+<style is:global>
+  ::view-transition-group(*) {
+    animation-duration: var(--dur);
+    animation-timing-function: var(--ease);
+  }
+</style>

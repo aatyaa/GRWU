@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import IslandCheck from '~/components/lab/IslandCheck.svelte';
+import { withBase } from '~/lib/url';
 
 const concepts = ['data', 'signal', 'template', 'snr', 'glitch', 'noise'] as const;
 ---
@@ -11,6 +12,16 @@ const concepts = ['data', 'signal', 'template', 'snr', 'glitch', 'noise'] as con
     <p class="lede">
       A workbench for the building blocks of GRWU articles. Nothing here is published content.
     </p>
+
+    <section aria-labelledby="pages-heading">
+      <h2 id="pages-heading">Pages</h2>
+      <ul>
+        <li>
+          <a href={withBase('lab/skeleton/')}>Walking skeleton</a>: every layer working together on
+          real data.
+        </li>
+      </ul>
+    </section>
 
     <section aria-labelledby="islands-heading">
       <h2 id="islands-heading">Islands</h2>

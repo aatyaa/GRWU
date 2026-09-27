@@ -14,7 +14,10 @@ import numpy as np
 import scipy
 from scipy import signal
 
+from .noise import aligo_design_psd
+
 SEED = 20150914
+DESIGN_FREQS = [10.0, 15.0, 20.0, 50.0, 100.0, 215.0, 500.0, 1000.0, 2000.0]
 
 
 def _floats(values: np.ndarray) -> list[float]:
@@ -47,6 +50,10 @@ def build() -> dict[str, Any]:
             "n": 16,
             "hann_periodic": _floats(signal.get_window("hann", 16, fftbins=True)),
             "hann_symmetric": _floats(signal.windows.hann(16, sym=True)),
+        },
+        "aligo_design_psd": {
+            "freqs": DESIGN_FREQS,
+            "psd": _floats(aligo_design_psd(np.array(DESIGN_FREQS))),
         },
         "welch": {
             "sample_rate": fs,

@@ -1,0 +1,116 @@
+---
+/**
+ * A display equation rendered by KaTeX at build time (no client JS for the maths itself),
+ * with MathML for screen readers. Terms tagged with \htmlData{term=<id>}{...} are linked to
+ * figures through the shared `highlightedTerm` store; each tagged term needs an entry in
+ * `terms`, which also renders a keyboard-accessible legend.
+ */
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
+
+type Concept = 'data' | 'signal' | 'template' | 'snr' | 'glitch' | 'noise';
+
+export interface Term {
+  id: string;
+  label: string;
+  concept: Concept;
+}
+
+interface Props {
+  tex: string;
+  terms?: Term[];
+}
+
+const { tex, terms = [] } = Astro.props;
+
+let html = katex.renderToString(tex, {
+  displayMode: true,
+  output: 'htmlAndMathml',
+  throwOnError: true,
+  trust: ({ command }) => command === '\\htmlData',
+  strict: (code: string) => (code === 'htmlExtension' ? 'ignore' : 'error'),
+});
+
+for (const term of terms) {
+  const tagged = `data-term="${term.id}"`;
+  if (!html.includes(tagged)) throw new Error(`Eq: no \\htmlData{term=${term.id}} in ${tex}`);
+  html = html.replaceAll(tagged, `${tagged} style="--term-color: var(--c-${term.concept})"`);
+}
+---
+
+<grwu-eq class="eq">
+  {/* Focusable so a wide equation can be scrolled from the keyboard on a narrow screen. */}
+  <div class="eq__math" tabindex="0" set:html={html} />
+  {terms.length > 0 && (
+    <ul class="eq__terms" aria-label="Terms in this equation">
+      {terms.map((term) => (
+        <li>
+          <button
+            type="button"
+            data-term={term.id}
+            style={`--term-color: var(--c-${term.concept})`}
+          >
+            {term.label}
+          </button>
+        </li>
+      ))}
+    </ul>
+  )}
+</grwu-eq>
+
+<script>
+  import '~/elements/eq';
+</script>
+
+<style is:global>
+  .eq {
+    display: block;
+    margin: var(--space-6) 0;
+  }
+
+  .eq__math {
+    overflow-x: auto;
+    padding-block: var(--space-1);
+  }
+
+  .eq .katex-display {
+    margin: 0;
+  }
+
+  /* Glyphs stay in ink; the concept colour is a marker under the term. */
+  .eq [data-term] {
+    border-bottom: 2px solid var(--term-color);
+    border-radius: 2px;
+    transition: background-color var(--dur-fast) var(--ease);
+  }
+
+  .eq .katex [data-term] {
+    padding-bottom: 1px;
+  }
+
+  .eq [data-term].is-highlighted {
+    background: color-mix(in srgb, var(--term-color) 22%, transparent);
+  }
+
+  .eq__terms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+    justify-content: center;
+  }
+
+  .eq__terms button {
+    padding: var(--space-1) var(--space-2);
+    border: 0;
+    border-bottom: 2px solid var(--term-color);
+    border-radius: 2px;
+    background: none;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: var(--text-sm);
+    cursor: help;
+  }
+</style>

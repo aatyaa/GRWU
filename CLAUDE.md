@@ -33,6 +33,8 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
   Run the **Data** workflow on GitHub instead; it pushes a `data/<event>-<run>` branch.
 - `BASE_PATH=/GRWU/pr-preview/pr-3/ pnpm build` builds for a PR preview; `SHOW_DRAFTS=1`
   includes draft articles.
+- `PLAYWRIGHT_NETWORK=1 pnpm test:e2e` also runs the tests that fetch Pyodide from jsDelivr.
+  jsDelivr is blocked in Claude Code on the web, so these run in CI.
 - Astro 7 detaches `astro preview` into the background when it detects an AI agent. Use
   `pnpm exec astro preview --ignore-lock` to keep it in the foreground (Playwright does).
 
@@ -43,6 +45,14 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
 - `src/pages/`: routes. `lab/` is a noindex workbench for components.
 - `src/components/`: Astro and Svelte components. `src/elements/`: framework-free custom
   elements for lightweight in-prose interactions.
+  - `depth/`: the Depth Lens (ADR 0005). `<Unfold layer="math|code">` is a native
+    `<details data-layer>`; `<DepthDial>` opens every layer at the chosen depth and
+    remembers it; `<Peek>` previews a layer in the margin (anchor positioning, inline
+    fallback).
+  - `math/Eq.astro`: KaTeX at build time. Tag terms with `\htmlData{term=<id>}{...}` and list
+    them in `terms` with a concept colour; they link to figures through `highlightedTerm`.
+  - `three/`: Threlte scenes from `@threlte/core/webgpu` (WebGPU, WebGL2 fallback).
+  - `lab/`: figures of the `/lab/skeleton` workbench, the models for article figures.
 - `src/lib/`: shared TypeScript.
   - `dsp/`: `rfft`/`irfft` (fft.js, power-of-two lengths), `hann`, `welch` (scipy defaults,
     mean or median). Tested against `tests/fixtures/dsp.json`.
@@ -53,6 +63,8 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
     use. The Pyodide npm version pins the runtime version; keep them equal.
   - `state/`: nanostores shared by islands (`depth`, `highlightedTerm`, `reducedMotion`,
     `createParams`). `gpu/detect.ts`: WebGPU, else WebGL2.
+  - `dsp/models.ts`: analytic noise models (Advanced LIGO design PSD). `audio/play.ts`:
+    plays 4096 Hz data through Web Audio. `format.ts`: `8.0 × 10⁻²⁴`-style numbers.
 - `src/styles/tokens.css`: design tokens, including the concept colour grammar.
 - `tests/unit/` (Vitest), `tests/e2e/` (Playwright + axe), `tests/fixtures/` (scipy
   reference outputs, generated).
@@ -70,7 +82,10 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
   listed in `tokens.css`; do not add concept colours without re-running that check.
 - Any DSP function must be tested against scipy/gwpy reference output before it is used.
 - Every page must pass axe (checked in e2e, light and dark) and respect
-  `prefers-reduced-motion`.
+  `prefers-reduced-motion`. In Playwright emulate it with `page.emulateMedia()`: the
+  `reducedMotion` test option does not take effect with the pinned Chromium.
+- Figures expose their state as `data-*` attributes (`data-state="ready"`, `data-segments`,
+  `data-highlight`) so tests wait on state, not on timing.
 - Keep article pages light: text is static HTML, figures are islands loaded with
   `client:visible`, and heavy libraries (Three.js, Pyodide) load only where needed.
 - TypeScript is pinned to 6.x because Astro/Svelte tooling and typescript-eslint do not

@@ -1,0 +1,65 @@
+---
+/**
+ * A paragraph with a one-line peek at its deeper layer. On wide screens that support CSS
+ * anchor positioning the peek sits in the margin beside the paragraph; elsewhere it follows
+ * the paragraph. It links to the <Unfold> it previews, which opens when targeted.
+ */
+interface Props {
+  target: string;
+  layer: 'math' | 'code';
+  text: string;
+}
+
+const { target, layer, text } = Astro.props;
+const anchor = `--peek-${target}`;
+---
+
+<div class="peek-row">
+  <div class="peek-row__text" style={`anchor-name: ${anchor}`}>
+    <slot />
+  </div>
+  <a class="peek" href={`#${target}`} style={`position-anchor: ${anchor}`}>
+    <span class="peek__layer">{layer === 'math' ? 'Math' : 'Code'}</span>
+    <span class="peek__text">{text}</span>
+  </a>
+</div>
+
+<style>
+  .peek {
+    display: flex;
+    gap: var(--space-2);
+    align-items: baseline;
+    margin: calc(-1 * var(--space-2)) 0 var(--space-4);
+    padding-inline-start: var(--space-3);
+    border-inline-start: 2px solid var(--border);
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+    text-decoration: none;
+  }
+
+  .peek:hover .peek__text {
+    color: var(--ink-1);
+    text-decoration: underline;
+  }
+
+  .peek__layer {
+    font-weight: 600;
+    color: var(--ink-1);
+  }
+
+  .peek__text {
+    font-family: var(--font-mono);
+  }
+
+  @supports (anchor-name: --a) {
+    @media (min-width: 80rem) {
+      .peek {
+        position: absolute;
+        top: anchor(top);
+        left: calc(anchor(right) + var(--space-8));
+        width: 15rem;
+        margin: 0;
+      }
+    }
+  }
+</style>

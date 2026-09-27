@@ -28,6 +28,9 @@ pnpm dev          # http://localhost:4321/GRWU/
 | `pnpm format`   | Format the code with Prettier                                |
 | `pnpm build`    | Production build into `dist/`                                |
 
+`/lab/skeleton/` shows every layer working together on real data: a spectrum computed
+in the browser, an equation linked to it, three depths, Python (Pyodide), sound and 3D.
+
 Articles live in `src/content/articles/`. Architecture decisions are recorded in
 [`docs/adr/`](docs/adr/). The Python data pipeline that prepares the datasets in
 `public/data/` lives in [`pipeline/`](pipeline/).
