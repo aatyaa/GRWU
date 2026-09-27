@@ -33,8 +33,8 @@ test('the home page lists the articles as cards', async ({ page }) => {
   await expect(cards).toHaveCount(4);
   await expect(cards.getByRole('link', { name: /The Shape of Error/ })).toBeVisible();
   // Planned articles are named but not linked.
-  await expect(cards.getByText('What the Wrong Model Knows')).toBeVisible();
-  await expect(cards.getByRole('link', { name: /What the Wrong Model Knows/ })).toHaveCount(0);
+  await expect(cards.getByText('From Strain to Source')).toBeVisible();
+  await expect(cards.getByRole('link', { name: /From Strain to Source/ })).toHaveCount(0);
 });
 
 test('the signal under the scene is a map of the articles', async ({ page }) => {

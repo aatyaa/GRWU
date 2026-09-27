@@ -1,0 +1,189 @@
+---
+title: What the Wrong Model Knows
+emphasis: Wrong
+headline: What happens when the template is almost right?
+summary: An incomplete template does not fail. It fits well, reports a small error bar, and quietly moves the error into the answer.
+track: inference
+order: 1
+status: review
+minutes: 20
+prerequisites:
+  - hidden-in-the-noise
+objectives:
+  - Explain why an almost-right model is more dangerous than a wrong one.
+  - Follow a missing piece of the signal into the fitted parameters.
+  - Use a control with a known answer to measure a method's own bias.
+updated: 2026-09-27
+sources:
+  - title: 'C. Cutler and M. Vallisneri, LISA detections of massive black hole inspirals: parameter extraction errors due to inaccurate template waveforms, Phys. Rev. D 76, 104018 (2007)'
+    url: https://arxiv.org/abs/0707.2982
+  - title: 'M. Giesler, M. Isi, M. A. Scheel and S. A. Teukolsky, Black hole ringdown: the importance of overtones, Phys. Rev. X 9, 041060 (2019)'
+    url: https://arxiv.org/abs/1903.08284
+  - title: 'E. Berti, V. Cardoso and C. M. Will, On gravitational-wave spectroscopy of massive black holes with LISA, Phys. Rev. D 73, 064030 (2006)'
+    url: https://arxiv.org/abs/gr-qc/0512160
+  - title: 'H. White, Maximum likelihood estimation of misspecified models, Econometrica 50, 1 (1982)'
+    url: https://doi.org/10.2307/1912526
+---
+
+import Card from '~/components/editorial/Card.astro';
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import Scrolly from '~/components/editorial/Scrolly.astro';
+import FitVsTruth from '~/components/figures/FitVsTruth.astro';
+import RingLab from '~/components/figures/RingLab.astro';
+import RingScrolly from '~/components/figures/RingScrolly.astro';
+import Claim from '~/components/math/Claim.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+
+Everything in [Hidden in the Noise](../hidden-in-the-noise/) assumed you already had the right template. It is worth asking what happens when you do not.
+
+A badly wrong template is harmless. It fails to match, the score stays flat, and you notice at once. The dangerous case is a template that is **almost right**: close enough to match strongly and return a confident answer, incomplete enough that the answer is wrong.
+
+And almost right is the normal condition of physics. Models are simplified on purpose. You drop the small term, the second mode, the higher-order correction, because including it is expensive and it looked negligible.
+
+<Pull>
+  The question is never whether your model is incomplete. <em>It is what the incompleteness does to your answer.</em>
+</Pull>
+
+## A ringing black hole
+
+On 14 January 2025 the LIGO detectors recorded GW250114: two black holes of about 34 and 32 solar masses, merging into one. For a few milliseconds after the merger the new black hole rings, like a struck bell. Every tone of that ring, its pitch and how fast it fades, is fixed by just two numbers: the black hole's mass and its spin. Hear the tones and you can weigh the black hole.
+
+But a bell never rings at one frequency. It rings at several at once, and the sharp ones fade first. Below is a ring built the same way, from two tones. The quantity we want, call it the mass, is read from the slow tone's pitch. Its true value is **60**, and it never changes.
+
+<Scrolly id="ring">
+  <RingScrolly slot="figure" />
+  <div data-step>
+
+  This is what arrives: one ring, fading, with a little noise on top.
+
+  </div>
+  <div data-step>
+
+  Inside it is a **slow tone**. It is the one the template knows about, and it is still going at the end.
+
+  </div>
+  <div data-step>
+
+  And a **fast tone**, struck at the same instant. It is the piece the template does not have, and within about three milliseconds it is gone.
+
+  </div>
+  <div data-step>
+
+  Fit a template with one tone, starting at the peak. It matches the ring closely, and it answers far above 60. It is not a bad fit. It is a confident wrong one.
+
+  </div>
+  <div data-step>
+
+  Start the same fit four milliseconds later, after the fast tone has left, and the answer comes back to 60. Nothing about the ring changed. Only where the fit began.
+
+  </div>
+</Scrolly>
+
+## Where the missing piece goes
+
+A fit has no way to say "there is something here I do not model". That sentence is not in its vocabulary. Least squares takes the template, turns the knobs it was given, and reports the setting with the smallest total miss.
+
+So when part of the signal is not in the template, the fit bends the knobs it does have until they soak up as much of the missing piece as they can reach. The error does not stay in the residuals, where you would see it. It moves into the parameters: into the pitch, the mass, the number you are about to publish.
+
+<Pull>
+  The residual gets smaller <em>and the answer gets worse.</em>
+</Pull>
+
+## Watch the answer move
+
+Drag the start of the fit and read what the one-tone template returns. Then give it the second tone and watch the answer settle on the truth from the very first millisecond.
+
+<Figure kind="control" width="wide">
+  <RingLab />
+  <Fragment slot="caption">
+    Every point below is a complete fit to the same ring, started at a different time. The bars
+    are one-sigma error bars. The truth is 60 throughout.
+  </Fragment>
+</Figure>
+
+The answer walks down as the start moves later, and settles at about three milliseconds, exactly when the fast tone finished dying. That is the whole mechanism. The template was wrong for as long as there was something in the data it could not represent, and it became right the moment that thing left on its own.
+
+## The fit stopped complaining
+
+Here is the part that should worry you. Put the two checks side by side: the goodness of fit you would report, and the distance from the truth that you cannot see in real data.
+
+<Figure kind="control">
+  <FitVsTruth />
+  <Fragment slot="caption">
+    In the shaded band the goodness of fit is a textbook value, and the answer is still many error
+    bars from the truth.
+  </Fragment>
+</Figure>
+
+The goodness of fit reaches one, the value you would put in a paper to show the model describes the data, while the answer is still several error bars away. Anyone checking the residuals would pass it. Nothing inside the calculation can catch this: it answered exactly the question it was asked, and the question contained the mistake.
+
+<Pull>
+  An error bar measures the noise. <em>It does not measure whether your model was right.</em>
+</Pull>
+
+<MathLayer id="m-bias" title="the bias is the missing piece, projected onto the knobs you have">
+  <Claim>
+    If the signal contains something the template cannot produce, the fit slides its parameters
+    until it has absorbed as much of the missing piece as the model can imitate.
+  </Claim>
+  <Given>
+    a true signal *h*<sub>TR</sub>, an approximate model *h*<sub>AP</sub>, and their difference δ*h*.
+  </Given>
+  <Steps>
+    <Step tex="(\partial_i h \,|\, d - h(\hat\theta)) = 0">
+      The best fit leaves a residual orthogonal to every direction the model can move in.
+    </Step>
+    <Step tex="d = h_{AP} + \delta h + n">What is actually in the data: the model, what it is missing, and noise.</Step>
+    <Step tex="(\partial_i h \,|\, \delta h) = \Gamma_{ij}\,\Delta\theta^j" hinge>
+      Substitute and average over the noise, to first order. The missing piece on the left, the
+      parameter shift on the right, through the Fisher matrix Γ.
+    </Step>
+    <Step tex="\Delta\theta^i = (\Gamma^{-1})^{ij}\,(\partial_j h \,|\, \delta h)">
+      Project what you got wrong onto the directions you are allowed to move in, and read off how
+      far you moved (Cutler and Vallisneri, 2007).
+    </Step>
+  </Steps>
+  <Means>
+    A large modelling error can cause almost no bias, and a small one can cause a great deal. What
+    matters is how much of δh lies along what the model can already do, which is exactly when you
+    are least likely to notice.
+  </Means>
+</MathLayer>
+
+<MathLayer id="m-louder" title="why a louder signal makes a wrong model look better">
+  <Given>a signal of amplitude *A*, and a model wrong by a fixed fraction ε of it.</Given>
+  <Steps>
+    <Step tex="h \sim A,\qquad \delta h \sim \varepsilon A">The model is wrong by the same proportion however loud the source.</Step>
+    <Step tex="\Gamma \sim A^2,\qquad (\partial h \,|\, \delta h) \sim \varepsilon A^2">Each inner product carries two powers of the amplitude.</Step>
+    <Step tex="\Delta\theta \sim \varepsilon,\qquad \sigma \sim \Gamma^{-1/2} \sim 1/A" hinge>
+      The bias does not shrink with loudness. The error bar does.
+    </Step>
+    <Step tex="\Delta\theta / \sigma \sim \varepsilon A">So the louder the signal, the more error bars the bias spans.</Step>
+  </Steps>
+  <Means>
+    The clearest events are where an incomplete model is most confidently wrong. GW250114, the
+    loudest signal yet, is exactly where this matters.
+  </Means>
+</MathLayer>
+
+## Feed it an answer you already know
+
+If the mathematics cannot warn you, something outside it has to. Build a fake signal whose answer you chose yourself, push it through the identical analysis, and see whether the analysis hands that answer back. This is a **control**, and no internal check can do what it does: you are no longer asking whether the fit looks good, but whether it is right, against a truth you are holding.
+
+This is not only a toy. Start a standard one-tone ringdown fit to GW250114 at the peak and the remnant comes out about 20% heavier than the estimate from the full signal: heavier than the two black holes that formed it, which is impossible. The data are real and the code is correct. In the author's work with Zi-Kui Liu, a simulated merger whose final mass is fixed by construction, pushed through the same analysis, starts about 22% high as well. The excess belongs to the template, not to the black hole.
+
+<Card tone="caveat" label="What a control proves">
+  A control that comes back right shows the method works on that kind of signal. It cannot show
+  the real signal is that kind. And a control that comes back wrong has not failed: it has measured
+  your method's own bias.
+</Card>
+
+<Card label="Coming next: From Strain to Source">
+  The whole route in one place: from a detector shaking in Louisiana to masses, spins and a
+  distance, with every uncertainty you can defend.
+</Card>
