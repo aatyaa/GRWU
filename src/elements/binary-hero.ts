@@ -1,6 +1,8 @@
 /**
  * <grwu-binary-hero data-src="...json">: loads the GW250114 scene only when it is about to be
- * seen, runs it while it is on screen and stops it (and the GPU) when it is not.
+ * seen, runs it while it is on screen and stops it (and the GPU) when it is not. Pointing at
+ * a part of the signal map ([data-seg][data-at]) marks the stage with data-seg, which lights
+ * that stretch of the signal, and takes the scene to that moment.
  */
 import type { HeroScene } from '~/lib/hero/engine.js';
 
@@ -18,6 +20,22 @@ class BinaryHero extends HTMLElement {
       { rootMargin: '120px 0px' },
     );
     this.observer.observe(this);
+
+    const stage = this.querySelector<HTMLElement>('.ovh');
+    if (!stage) return;
+    for (const link of this.querySelectorAll<HTMLElement>('[data-seg][data-at]')) {
+      const enter = () => {
+        stage.dataset.seg = link.dataset.seg;
+        this.scene?.jump(Number(link.dataset.at));
+      };
+      const leave = () => {
+        if (stage.dataset.seg === link.dataset.seg) delete stage.dataset.seg;
+      };
+      link.addEventListener('pointerenter', enter);
+      link.addEventListener('focus', enter);
+      link.addEventListener('pointerleave', leave);
+      link.addEventListener('blur', leave);
+    }
   }
 
   disconnectedCallback(): void {

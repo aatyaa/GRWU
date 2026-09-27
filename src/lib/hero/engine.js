@@ -408,7 +408,7 @@ export function mountHero(stage, D) {
     if (this.pauseBtn) this.pauseBtn.addEventListener('click', function () { self.togglePause(); });
     function local(ev) { var r = st.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top, w: r.width, h: r.height }; }
     st.addEventListener('pointerdown', function (ev) {
-      if (ev.button !== 0 || (ev.target.closest && ev.target.closest('button'))) return;
+      if (ev.button !== 0 || (ev.target.closest && ev.target.closest('button, a'))) return;
       self.drag = { x: ev.clientX, y: ev.clientY, az: self.user.az, el: self.user.el, at: performance.now(), moved: false };
       try { st.setPointerCapture(ev.pointerId); } catch (e) { /* not capturable */ }
     });

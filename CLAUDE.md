@@ -48,7 +48,9 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
   - `hero/BinaryHero.astro`: the home page's GW250114 black-hole scene (ADR 0006).
     `<grwu-binary-hero>` loads `lib/hero/engine.js` (vendored WebGL1 lensing engine with a
     2D fallback) and `public/data/gw250114-overture.json` only near the viewport, and stops
-    rendering off screen. State is exposed as `data-hero-*`; `?hero=<seconds>` freezes it.
+    rendering off screen. State is exposed as `data-hero-*`; `?hero=<seconds>` freezes it. The
+    recorded signal under it is a map of the articles (`segments`: noise, inspiral, merger,
+    ringdown); pointing at a part sets `data-seg` and jumps the scene there.
   - `editorial/`: `Pull`, `Card` (`tone="caveat"`), `Figure` (small centred caption;
     `width="text|medium|wide"`), `Scrolly` (sticky figure driven by the steps beside it;
     the figure island reads `scrollySteps[id]`).

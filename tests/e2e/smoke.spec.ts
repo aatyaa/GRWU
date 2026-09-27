@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { expectNoA11yViolations } from './helpers';
 
 const pages = [
-  { path: '', heading: 'Gravitational-wave data analysis, explained visually' },
+  { path: '', heading: 'How do we know this was two black holes?' },
   { path: 'about/', heading: 'About GRWU' },
   { path: 'lab/', heading: 'Lab' },
 ];
@@ -27,22 +27,48 @@ test('unknown pages show the 404 page', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
 });
 
-test('the home page lists the essays in review or published', async ({ page }) => {
+test('the home page lists the articles as cards', async ({ page }) => {
   await page.goto('');
-  await expect(
-    page.locator('.cards').getByRole('link', { name: /The Shape of Error/ }),
-  ).toBeVisible();
-  // Planned essays are named but not linked.
-  await expect(page.getByText('Hidden in the Noise')).toBeVisible();
-  await expect(page.getByRole('link', { name: /Hidden in the Noise/ })).toHaveCount(0);
+  const cards = page.locator('#articles .card');
+  await expect(cards).toHaveCount(4);
+  await expect(cards.getByRole('link', { name: /The Shape of Error/ })).toBeVisible();
+  // Planned articles are named but not linked.
+  await expect(cards.getByText('Hidden in the Noise')).toBeVisible();
+  await expect(cards.getByRole('link', { name: /Hidden in the Noise/ })).toHaveCount(0);
 });
 
-test('the home page runs the GW250114 scene', async ({ page }) => {
+test('the signal under the scene is a map of the articles', async ({ page }) => {
   await page.goto('');
   const stage = page.locator('grwu-binary-hero .ovh');
   await expect(stage).toHaveAttribute('data-hero-ready', /.*/);
   await expect(stage).not.toHaveAttribute('data-hero-error', /.*/);
-  await expect(page.getByRole('button', { name: 'Scientific' })).toBeVisible();
+  const map = page.getByRole('navigation', { name: 'The signal, part by part' });
+  await expect(map.getByRole('link')).toHaveCount(4);
+  await map.getByRole('link', { name: /The merger/ }).focus();
+  await expect(stage).toHaveAttribute('data-seg', 'merger');
+  await map.getByRole('link', { name: /The noise/ }).click();
+  await expect(page).toHaveURL(/articles\/the-shape-of-error\/$/);
+});
+
+test('the home page lets the reader try each move', async ({ page }) => {
+  await page.goto('');
+  const scroll = page.locator('.demo.scroll');
+  await scroll.scrollIntoViewIfNeeded();
+  await expect(scroll).toHaveAttribute('data-hydrated', 'true');
+  await expect(scroll).toHaveAttribute('data-step', '0');
+  await scroll.locator('.demo-steps').evaluate((el) => (el.scrollTop = el.scrollHeight));
+  await expect(scroll).toHaveAttribute('data-step', '2');
+
+  const drag = page.locator('.demo.drag');
+  await expect(drag).toHaveAttribute('data-hydrated', 'true');
+  const before = await drag.getAttribute('data-slope');
+  await drag.getByRole('slider', { name: 'The movable point' }).focus();
+  await page.keyboard.press('Home');
+  await expect(drag).not.toHaveAttribute('data-slope', before ?? '');
+
+  const math = page.locator('details.how__math');
+  await math.locator('summary').click();
+  await expect(math).toHaveAttribute('open', '');
 });
 
 test('Svelte islands hydrate', async ({ page }) => {

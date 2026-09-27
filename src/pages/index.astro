@@ -1,114 +1,249 @@
 ---
+import 'katex/dist/katex.min.css';
 import BaseLayout from '~/layouts/BaseLayout.astro';
-import BinaryHero from '~/components/hero/BinaryHero.astro';
+import BinaryHero, { type Segment } from '~/components/hero/BinaryHero.astro';
+import HowToDemo from '~/components/figures/HowToDemo.svelte';
 import Thumb from '~/components/site/Thumb.astro';
+import { tex } from '~/components/math/tex';
 import { getArticles } from '~/lib/content';
 import { withBase } from '~/lib/url';
 
-const articles = await getArticles();
+type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum';
 
-const thumbs: Record<string, 'squares' | 'chirp' | 'ringdown' | 'spectrum'> = {
-  'the-shape-of-error': 'squares',
+interface Card {
+  id: string;
+  title: string;
+  question: string;
+  summary: string;
+  thumb: Kind;
+  /** Set when the article is published; otherwise the card says it is coming. */
+  href?: string;
+  minutes?: number;
+  /** The part of the GW250114 signal the article explains (the hero's map). */
+  part: { id: string; name: string; from: number; to: number; at: number };
+}
+
+const articles = await getArticles();
+const published = new Map(articles.map((a) => [a.id, a]));
+const parts = {
+  noise: { id: 'noise', name: 'The noise', from: -0.264, to: -0.16, at: -0.26 },
+  inspiral: { id: 'inspiral', name: 'The inspiral', from: -0.16, to: -0.006, at: -0.12 },
+  merger: { id: 'merger', name: 'The merger', from: -0.006, to: 0.006, at: -0.004 },
+  ringdown: { id: 'ringdown', name: 'The ringdown', from: 0.006, to: 0.059, at: 0.008 },
 };
 
-const upcoming = [
+const planned: Omit<Card, 'href' | 'minutes'>[] = [
   {
+    id: 'the-shape-of-error',
+    title: 'The Shape of Error',
+    question: 'How do you find what you cannot see?',
+    summary: 'Why every measurement misses, and how least squares finds the truth anyway.',
+    thumb: 'squares',
+    part: parts.noise,
+  },
+  {
+    id: 'hidden-in-the-noise',
     title: 'Hidden in the Noise',
-    summary:
-      'Why the first gravitational wave was invisible in the raw data, and how whitening and a matched filter found it.',
-    thumb: 'chirp' as const,
+    question: 'How do you find a signal buried in noise?',
+    summary: 'Whitening and the matched filter: how a chirp is pulled out of the detector data.',
+    thumb: 'chirp',
+    part: parts.inspiral,
   },
   {
+    id: 'what-the-wrong-model-knows',
     title: 'What the Wrong Model Knows',
-    summary:
-      'An incomplete template does not fail. It quietly moves the error into the answer. How to catch it.',
-    thumb: 'ringdown' as const,
+    question: 'What does a fit that looks right hide?',
+    summary: 'An incomplete template does not fail. It moves the error into the answer.',
+    thumb: 'ringdown',
+    part: parts.ringdown,
   },
   {
+    id: 'from-strain-to-source',
     title: 'From Strain to Source',
-    summary:
-      'The whole route: from a detector shaking in Louisiana to a measurement you can defend.',
-    thumb: 'spectrum' as const,
+    question: 'How does a wiggle become two black holes?',
+    summary: 'The whole route, from a detector shaking to a measurement you can defend.',
+    thumb: 'spectrum',
+    part: parts.merger,
   },
 ];
+
+const cards: Card[] = planned.map((card) => {
+  const article = published.get(card.id);
+  return article
+    ? {
+        ...card,
+        title: article.data.title,
+        question: article.data.headline ?? card.question,
+        href: withBase(`articles/${article.id}/`),
+        minutes: article.data.minutes,
+      }
+    : card;
+});
+
+// The hero's map follows the signal in time, not the order of the cards.
+const order = ['noise', 'inspiral', 'merger', 'ringdown'];
+const segments: Segment[] = [...cards]
+  .sort((a, b) => order.indexOf(a.part.id) - order.indexOf(b.part.id))
+  .map((card) => ({
+    id: card.part.id,
+    part: card.part.name,
+    title: card.title,
+    href: card.href ?? `#${card.id}`,
+    from: card.part.from,
+    to: card.part.to,
+    at: card.part.at,
+  }));
+
+const first = cards.find((card) => card.href);
 ---
 
 <BaseLayout>
-  <BinaryHero>
-    <p class="hero__kicker">GW250114 · two black holes, 1.3 billion light-years away</p>
-    <h1>
-      Gravitational-wave data analysis, <em>explained visually</em>
-    </h1>
+  <BinaryHero segments={segments}>
+    <p class="hero__kicker">Gravitational-wave data analysis, explained visually</p>
+    <h1>How do we know this was two black holes?</h1>
     <p class="hero__text">
-      Interactive essays on how the signals of colliding black holes are pulled out of detector
-      noise, measured and checked. The scene behind this text is driven by the real recording.
+      On 14 January 2025 the LIGO detectors recorded GW250114, the clearest signal yet of two black
+      holes merging. The scene behind this text is driven by that recording. These interactive
+      articles teach how such signals are found in the noise, measured and checked, with the real
+      data.
     </p>
-    <a class="hero__cta" href={withBase(`articles/${articles[0]?.id ?? ''}/`)}>
-      Start with {articles[0]?.data.title ?? 'the first essay'} →
-    </a>
+    <div class="hero__actions">
+      {first && (
+        <a class="hero__cta" href={first.href}>
+          Start with {first.title} →
+        </a>
+      )}
+      <a class="hero__more" href="#articles">
+        All articles
+      </a>
+    </div>
   </BinaryHero>
 
-  <section class="container articles-head">
-    <h2>Articles</h2>
-  </section>
-
-  <section class="container" aria-label="Articles">
+  <section class="container section" id="articles" aria-labelledby="articles-title">
+    <header class="section__head">
+      <h2 id="articles-title">Articles</h2>
+      <p>Each article takes one part of the signal and one idea, and lets you work it out.</p>
+    </header>
     <ul class="cards">
-      {articles.map((article) => (
-        <li class="card">
-          <a href={withBase(`articles/${article.id}/`)}>
-            <div class="card__image">
-              <Thumb kind={thumbs[article.id] ?? 'squares'} />
+      {cards.map((card) => (
+        <li class:list={['card', 'thumb-host', { upcoming: !card.href }]} id={card.id}>
+          {card.href ? (
+            <a href={card.href}>
+              <div class="card__image">
+                <Thumb kind={card.thumb} />
+              </div>
+              <div class="card__body">
+                <p class="card__part">{card.part.name}</p>
+                <h3>{card.title}</h3>
+                <p class="card__question">{card.question}</p>
+                <p class="card__summary">{card.summary}</p>
+                <p class="card__meta">
+                  {card.minutes && <span>{card.minutes} min read</span>}
+                  <span class="card__cta">Read →</span>
+                </p>
+              </div>
+            </a>
+          ) : (
+            <div>
+              <div class="card__image">
+                <Thumb kind={card.thumb} />
+              </div>
+              <div class="card__body">
+                <p class="card__part">{card.part.name}</p>
+                <h3>{card.title}</h3>
+                <p class="card__question">{card.question}</p>
+                <p class="card__summary">{card.summary}</p>
+                <p class="card__meta">
+                  <span class="card__soon">Coming soon</span>
+                </p>
+              </div>
             </div>
-            <div class="card__body">
-              <h2>{article.data.title}</h2>
-              <p>{article.data.summary}</p>
-              <span class="card__cta">Read the article →</span>
-            </div>
-          </a>
-        </li>
-      ))}
-      {upcoming.map((essay) => (
-        <li class="card upcoming">
-          <div class="card__image">
-            <Thumb kind={essay.thumb} />
-          </div>
-          <div class="card__body">
-            <h2>{essay.title}</h2>
-            <p>{essay.summary}</p>
-            <span class="card__cta">Coming soon</span>
-          </div>
+          )}
         </li>
       ))}
     </ul>
+  </section>
+
+  <section class="container section" aria-labelledby="how-title">
+    <header class="section__head">
+      <h2 id="how-title">How to read them</h2>
+      <p>Every article is built from three moves. Try them here.</p>
+    </header>
+    <div class="how">
+      <div class="how__item">
+        <h3>Scroll</h3>
+        <p>The text drives the figure beside it.</p>
+        <HowToDemo client:visible kind="scroll" />
+      </div>
+      <div class="how__item">
+        <h3>Drag</h3>
+        <p>Move the data yourself and watch the answer follow.</p>
+        <HowToDemo client:visible kind="drag" />
+      </div>
+      <div class="how__item">
+        <h3>Open the math</h3>
+        <p>Under each idea is its derivation, closed until you want it.</p>
+        <details class="how__math">
+          <summary>The math: the best line</summary>
+          <div
+            class="how__eq"
+            set:html={tex('\\hat\\theta = \\arg\\min_\\theta \\sum_i (y_i - a - b\\,x_i)^2')}
+          />
+          <p>The best line is the one whose misses have the smallest total of squares.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="container section trust" aria-label="Why you can trust it">
+    <div>
+      <h3>Real data</h3>
+      <p>
+        Signals come from the{' '}
+        <a href="https://gwosc.org/">Gravitational Wave Open Science Center</a>: LIGO, Virgo and
+        KAGRA recordings, analysed in your browser.
+      </p>
+    </div>
+    <div>
+      <h3>Checked computations</h3>
+      <p>
+        Every signal-processing function is tested against scipy and gwpy before an article uses it.
+      </p>
+    </div>
+    <div>
+      <h3>Sources you can follow</h3>
+      <p>Written by Attia A. Gadallah. Every article ends with the papers and books it rests on.</p>
+    </div>
   </section>
 </BaseLayout>
 
 <style>
   .hero__kicker {
-    margin: 0 0 1rem;
-    font-family: var(--f-mono);
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
+    margin: 0 0 0.9rem;
+    font-size: 0.95rem;
+    font-weight: 600;
     color: #e5a343;
   }
 
   h1 {
-    margin: 0 0 1.1rem;
-    font-size: clamp(2.4rem, 5vw, 4.2rem);
+    margin: 0 0 1rem;
+    font-size: clamp(2.3rem, 4.6vw, 3.9rem);
     color: #e7edf5;
-  }
-
-  h1 em {
-    color: #e5a343;
   }
 
   .hero__text {
     max-width: 34rem;
-    margin: 0 0 1.6rem;
-    font-size: 1.1rem;
+    margin: 0 0 1.5rem;
+    font-size: 1.05rem;
     line-height: 1.6;
     color: #b4c0d0;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    align-items: center;
   }
 
   .hero__cta {
@@ -116,31 +251,45 @@ const upcoming = [
     padding: 0.7rem 1.2rem;
     border: 1px solid #e5a343;
     border-radius: 999px;
-    background: rgb(229 163 67 / 0.12);
+    background: rgb(229 163 67 / 0.14);
     font-weight: 600;
     color: #f2be6a;
   }
 
   .hero__cta:hover {
-    background: rgb(229 163 67 / 0.24);
+    background: rgb(229 163 67 / 0.26);
     color: #fff;
   }
 
-  .articles-head h2 {
-    margin: var(--space-16) 0 var(--space-6);
-    font-size: clamp(2rem, 4vw, 2.8rem);
+  .hero__more {
+    border-bottom: 1px solid rgb(231 237 245 / 0.4);
+    font-weight: 500;
+    color: #e7edf5;
   }
 
-  @media (max-width: 760px) {
-    .hero__text {
-      font-size: 1rem;
-    }
+  .section {
+    margin-top: var(--space-16);
+  }
+
+  .section__head {
+    margin-bottom: var(--space-8);
+  }
+
+  .section__head h2 {
+    margin: 0 0 0.4rem;
+    font-size: clamp(2rem, 4vw, 2.7rem);
+  }
+
+  .section__head p {
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--ink-soft);
   }
 
   .cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
-    gap: 1.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: 1.5rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -152,6 +301,7 @@ const upcoming = [
     border-radius: 12px;
     background: var(--surface);
     box-shadow: var(--shadow);
+    scroll-margin-top: 5rem;
     transition:
       transform var(--dur-fast) var(--ease),
       box-shadow var(--dur-fast) var(--ease);
@@ -161,8 +311,10 @@ const upcoming = [
     transform: translateY(-3px);
   }
 
-  .card a {
-    display: block;
+  .card > a,
+  .card > div {
+    display: flex;
+    flex-direction: column;
     height: 100%;
     border: 0;
     padding: 0;
@@ -170,41 +322,145 @@ const upcoming = [
   }
 
   .card__image {
-    padding: 1.4rem 1.4rem 0.6rem;
-    background: var(--surface-2);
+    padding: 1.1rem 1.1rem 0.4rem;
     border-bottom: 1px solid var(--rule-soft);
+    background: var(--surface-2);
   }
 
   .card__body {
-    padding: 1.2rem 1.4rem 1.4rem;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    padding: 1.1rem 1.2rem 1.2rem;
   }
 
-  .card h2 {
-    margin: 0 0 0.5rem;
-    font-size: 1.75rem;
+  .card__part {
+    margin: 0 0 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+
+  .card h3 {
+    margin: 0 0 0.45rem;
+    font-size: 1.6rem;
     line-height: 1.1;
     color: var(--ink);
   }
 
-  .card p {
+  .card__question {
+    margin: 0 0 0.6rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+
+  .card__summary {
     margin: 0 0 1rem;
+    font-size: 0.93rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+
+  .card__meta {
+    display: flex;
+    justify-content: space-between;
+    margin: auto 0 0;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+  }
+
+  .card__cta {
+    font-weight: 600;
+    color: var(--signal);
+  }
+
+  .card__soon {
+    color: var(--ink-faint);
+  }
+
+  .upcoming .card__image {
+    opacity: 0.8;
+  }
+
+  .how {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+    gap: 1.5rem;
+  }
+
+  .how__item {
+    padding: 1.3rem;
+    border: 1px solid var(--rule-soft);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  .how__item h3 {
+    margin: 0 0 0.2rem;
+    font-size: 1.5rem;
+  }
+
+  .how__item > p {
+    margin: 0 0 1rem;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+
+  .how__math {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .how__math summary {
+    padding: 0.8rem 0;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .how__math summary::marker {
+    color: var(--signal);
+  }
+
+  .how__eq {
+    overflow-x: auto;
+    padding: 0.4rem 0;
+  }
+
+  .how__math p {
+    margin: 0.4rem 0 0.9rem;
+    font-size: 0.93rem;
+    color: var(--ink-soft);
+  }
+
+  .trust {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: 1.5rem 2.5rem;
+    margin-bottom: var(--space-16);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--rule);
+  }
+
+  .trust h3 {
+    margin: 0 0 0.35rem;
+    font-family: var(--f-body);
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .trust p {
+    margin: 0;
     font-size: 0.95rem;
     line-height: 1.55;
     color: var(--ink-soft);
   }
 
-  .card__cta {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--signal);
-  }
-
-  .upcoming .card__cta {
-    color: var(--ink-faint);
-    font-weight: 500;
-  }
-
-  .upcoming .card__image {
-    opacity: 0.75;
+  @media (max-width: 760px) {
+    .hero__text {
+      font-size: 0.98rem;
+    }
   }
 </style>
