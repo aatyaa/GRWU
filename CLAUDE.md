@@ -43,7 +43,16 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
 - `src/pages/`: routes. `lab/` is a noindex workbench for components.
 - `src/components/`: Astro and Svelte components. `src/elements/`: framework-free custom
   elements for lightweight in-prose interactions.
-- `src/lib/`: shared TypeScript (content helpers, URL helpers; later DSP, data, workers).
+- `src/lib/`: shared TypeScript.
+  - `dsp/`: `rfft`/`irfft` (fft.js, power-of-two lengths), `hann`, `welch` (scipy defaults,
+    mean or median). Tested against `tests/fixtures/dsp.json`.
+  - `data/dataset.ts`: `loadDataset(withBase('data/...'))` fetches meta.json and channels and
+    checks SHA-256; `toPhysical()` multiplies by `scale`.
+  - `workers/`: `dspWorker()` (Comlink) runs DSP off the main thread; `python/`'s
+    `pythonWorker()` runs Pyodide in a worker, loading the runtime from jsDelivr on first
+    use. The Pyodide npm version pins the runtime version; keep them equal.
+  - `state/`: nanostores shared by islands (`depth`, `highlightedTerm`, `reducedMotion`,
+    `createParams`). `gpu/detect.ts`: WebGPU, else WebGL2.
 - `src/styles/tokens.css`: design tokens, including the concept colour grammar.
 - `tests/unit/` (Vitest), `tests/e2e/` (Playwright + axe), `tests/fixtures/` (scipy
   reference outputs, generated).
