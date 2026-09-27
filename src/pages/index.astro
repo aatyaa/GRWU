@@ -8,7 +8,7 @@ import { tex } from '~/components/math/tex';
 import { getArticles } from '~/lib/content';
 import { withBase } from '~/lib/url';
 
-type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum';
+type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map';
 
 interface Card {
   id: string;
@@ -95,6 +95,10 @@ const segments: Segment[] = [...cards]
   }));
 
 const first = cards.find((card) => card.href);
+
+// Published articles beyond the four on the signal map.
+const moreThumbs: Record<string, Kind> = { 'almost-none-of-it': 'map' };
+const more = articles.filter((a) => !planned.some((p) => p.id === a.id));
 ---
 
 <BaseLayout>
@@ -163,6 +167,35 @@ const first = cards.find((card) => card.href);
       ))}
     </ul>
   </section>
+
+  {more.length > 0 && (
+    <section class="container section" aria-labelledby="more-title">
+      <header class="section__head">
+        <h2 id="more-title">More articles</h2>
+        <p>Beyond the signal: the rest of the material, and what the work is made of.</p>
+      </header>
+      <ul class="cards">
+        {more.map((article) => (
+          <li class="card thumb-host" id={article.id}>
+            <a href={withBase(`articles/${article.id}/`)}>
+              <div class="card__image">
+                <Thumb kind={moreThumbs[article.id] ?? 'spectrum'} />
+              </div>
+              <div class="card__body">
+                <h3>{article.data.title}</h3>
+                <p class="card__question">{article.data.headline ?? article.data.summary}</p>
+                <p class="card__summary">{article.data.summary}</p>
+                <p class="card__meta">
+                  {article.data.minutes && <span>{article.data.minutes} min read</span>}
+                  <span class="card__cta">Read →</span>
+                </p>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 
   <section class="container section" aria-labelledby="how-title">
     <header class="section__head">

@@ -4,7 +4,7 @@
  * pointing at the host replays it: the main curve draws itself and the squares grow.
  */
 interface Props {
-  kind: 'squares' | 'chirp' | 'ringdown' | 'spectrum';
+  kind: 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map';
 }
 
 const { kind } = Astro.props;
@@ -90,6 +90,40 @@ const points = [
       <line x1="140" y1="40" x2="140" y2="160" class="thumb-signal" />
     </g>
   )}
+  {kind === 'map' && (
+    <g>
+      {[
+        [70, 50],
+        [250, 50],
+        [70, 130],
+        [250, 130],
+      ].map(([bx, by]) => (
+        <line x1="160" y1="90" x2={bx} y2={by} class="thumb-ink thumb-draw" pathLength="1" />
+      ))}
+      {[
+        [40, 30],
+        [100, 28],
+        [40, 70],
+        [220, 28],
+        [280, 30],
+        [280, 70],
+        [40, 150],
+        [100, 152],
+        [40, 110],
+        [220, 152],
+        [280, 150],
+        [280, 110],
+      ].map(([lx, ly], i) => (
+        <circle
+          cx={lx}
+          cy={ly}
+          r={i === 5 || i === 9 ? 9 : 6}
+          class={i === 5 || i === 9 ? 'thumb-dot' : 'thumb-leaf'}
+        />
+      ))}
+      <circle cx="160" cy="90" r="14" class="thumb-hub" />
+    </g>
+  )}
 </svg>
 
 <style>
@@ -165,6 +199,18 @@ const points = [
     to {
       transform: scale(1);
     }
+  }
+
+  .thumb :global(.thumb-leaf) {
+    fill: var(--surface);
+    stroke: var(--ink-soft);
+    stroke-width: 1.5;
+  }
+
+  .thumb :global(.thumb-hub) {
+    fill: var(--surface);
+    stroke: var(--ink);
+    stroke-width: 2.5;
   }
 
   .thumb :global(.thumb-bias) {

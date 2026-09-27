@@ -41,6 +41,12 @@ test('the home page lists the articles as cards', async ({ page }) => {
   }
 });
 
+test('the home page lists the further articles', async ({ page }) => {
+  await page.goto('');
+  const more = page.locator('section[aria-labelledby="more-title"] .card');
+  await expect(more.getByRole('link', { name: /Almost None of It/ })).toBeVisible();
+});
+
 test('the signal under the scene is a map of the articles', async ({ page }) => {
   await page.goto('');
   const stage = page.locator('grwu-binary-hero .ovh');
