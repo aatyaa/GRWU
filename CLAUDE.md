@@ -74,6 +74,11 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
     sample, and the estimators the essays compare (`mean`, `median`, `midrange`,
     `fitLine`, `fitLinear`, `normalPdf`, `diceTotals`).
   - `figure/pointer.ts`: dragging in SVG units, arrow-key stepping, tweens.
+  - `articles/`: build-time computations behind each article's figures (Node only, cached):
+    `hidden.ts` (GW150914 whitening, the toy-chirp matched filter), `wrong.ts` (two-tone
+    ringdown fits at every start time), `route.ts` (noise budget, H1/L1 alignment, chirp-mass
+    scan). Figures that only switch states read the scrolly's `data-active` in CSS, no JS.
+  - `dsp/chirp.ts`: the pipeline's Newtonian chirp, ported and checked against its injection.
   - `dsp/models.ts`: analytic noise models (Advanced LIGO design PSD). `audio/play.ts`:
     plays 4096 Hz data through Web Audio. `format.ts`: `8.0 × 10⁻²⁴`-style numbers.
 - `src/styles/tokens.css`: design tokens, including the concept colour grammar.

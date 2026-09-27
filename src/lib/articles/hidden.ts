@@ -34,6 +34,37 @@ function bucketMax(x: (i: number) => number, from: number, to: number, buckets: 
   return out;
 }
 
+/** Log-spaced bins from fMin to fMax, keeping the largest value in each so narrow lines survive. */
+export function logBins(
+  f: ArrayLike<number>,
+  v: ArrayLike<number>,
+  map: (p: number) => number,
+  fMin: number,
+  fMax = 1500,
+  edges = 360,
+) {
+  const fOut: number[] = [];
+  const vOut: number[] = [];
+  let k = 1;
+  for (let b = 0; b < edges; b++) {
+    const hiF = fMin * (fMax / fMin) ** ((b + 1) / edges);
+    let best = -Infinity;
+    let bestF = 0;
+    for (; k < f.length && f[k] < hiF; k++) {
+      if (f[k] < fMin) continue;
+      if (v[k] > best) {
+        best = v[k];
+        bestF = f[k];
+      }
+    }
+    if (best > -Infinity) {
+      fOut.push(round(bestF, 5));
+      vOut.push(round(map(best)));
+    }
+  }
+  return { f: fOut, v: vOut };
+}
+
 export interface Gw150914Figure {
   /** Seconds after the start of the 32 s file, and the event time in them. */
   event: number;
@@ -69,31 +100,6 @@ export function gw150914(): Gw150914Figure {
   const mean = shown.reduce((s, v) => s + v, 0) / shown.length;
   const centred = Float64Array.from(h1, (v) => v - mean);
 
-  // Log-spaced bins, keeping the largest value in each so the narrow lines survive.
-  const logBins = (f: Float64Array, v: Float64Array, map: (p: number) => number, fMin: number) => {
-    const edges = 360;
-    const fMax = 1500;
-    const fOut: number[] = [];
-    const vOut: number[] = [];
-    let k = 1;
-    for (let b = 0; b < edges; b++) {
-      const hiF = fMin * (fMax / fMin) ** ((b + 1) / edges);
-      let best = -Infinity;
-      let bestF = 0;
-      for (; k < f.length && f[k] < hiF; k++) {
-        if (f[k] < fMin) continue;
-        if (v[k] > best) {
-          best = v[k];
-          bestF = f[k];
-        }
-      }
-      if (best > -Infinity) {
-        fOut.push(round(bestF, 5));
-        vOut.push(round(map(best)));
-      }
-    }
-    return { f: fOut, v: vOut };
-  };
   const whitePsd = welch(white, { sampleRate: fs, nperseg: 4 * fs });
   const level = Math.sqrt(2 / fs);
 
