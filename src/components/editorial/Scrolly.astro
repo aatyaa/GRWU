@@ -62,14 +62,21 @@ const { id, flip = false } = Astro.props;
     padding-top: 12vh;
   }
 
-  /* Without scripts every step is simply readable; with them, the others recede. */
+  /*
+   * Without scripts every step is simply readable; with them, the others recede to the faint
+   * ink (still AA contrast, unlike an opacity fade).
+   */
   :global(.js) .scrolly__steps > :global([data-step]) {
-    opacity: 0.38;
-    transition: opacity var(--dur) var(--ease);
+    color: var(--ink-faint);
+    transition: color var(--dur) var(--ease);
+  }
+
+  :global(.js) .scrolly__steps > :global([data-step]) :global(strong) {
+    color: inherit;
   }
 
   :global(.js) .scrolly__steps > :global([data-step].is-active) {
-    opacity: 1;
+    color: var(--ink);
   }
 
   @media (max-width: 54rem) {
@@ -102,7 +109,7 @@ const { id, flip = false } = Astro.props;
     }
 
     :global(.js) .scrolly__steps > :global([data-step]) {
-      opacity: 1;
+      color: var(--ink);
     }
   }
 </style>

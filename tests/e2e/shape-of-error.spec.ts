@@ -15,11 +15,20 @@ test.beforeEach(async ({ page }) => {
   await page.goto(PATH);
 });
 
-test('opens with the question and the byline', async ({ page }) => {
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'How do you find what you cannot see?',
-  );
+test('opens with the title, the question and the byline', async ({ page }) => {
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('The Shape of Error');
+  await expect(page.getByText('How do you find what you cannot see?')).toBeVisible();
   await expect(page.getByText('Attia A. Gadallah').first()).toBeVisible();
+});
+
+test('the scrollytelling figure follows the story to the best fit', async ({ page }) => {
+  const steps = page.locator('grwu-scrolly .scrolly__steps > [data-step]');
+  await steps.first().scrollIntoViewIfNeeded();
+  const figure = page.locator('.gauss');
+  await expect(figure).toHaveAttribute('data-step', '0');
+  await steps.last().scrollIntoViewIfNeeded();
+  await expect(figure).toHaveAttribute('data-step', '4');
+  await expect(figure.getByText('the smallest possible')).toBeVisible();
 });
 
 test('least squares: the reader can move the line, and Gauss finds the minimum', async ({
@@ -77,27 +86,22 @@ test('residuals show what the model is missing', async ({ page }) => {
   await expect(figure.getByText(/no shape left/)).toBeVisible();
 });
 
-test('a margin note opens its mathematical layer', async ({ page }) => {
-  await page.locator('a.peek[href="#m1"]').click();
-  await expect(page.locator('details#m1')).toHaveAttribute('open', '');
-  await expect(page.locator('details#m1 .hinge')).toBeVisible();
-});
-
-test('the depth control opens every mathematical layer and is remembered', async ({ page }) => {
-  const layers = page.locator('details[data-layer="math"]');
-  await expect(layers.first()).not.toHaveAttribute('open');
-  await page.getByRole('radio', { name: 'With the mathematics' }).check();
-  for (const layer of await layers.all()) await expect(layer).toHaveAttribute('open', '');
-  await page.reload();
-  await expect(page.getByRole('radio', { name: 'With the mathematics' })).toBeChecked();
-  await expect(layers.first()).toHaveAttribute('open', '');
+test('a mathematical layer opens to its derivation', async ({ page }) => {
+  const layer = page.locator('details#m1');
+  await expect(layer).not.toHaveAttribute('open');
+  await layer.locator('summary').click();
+  await expect(layer).toHaveAttribute('open', '');
+  await expect(layer.locator('.hinge')).toBeVisible();
 });
 
 for (const colorScheme of ['light', 'dark'] as const) {
   test(`passes axe in ${colorScheme} mode with the mathematics open`, async ({ page }) => {
     await page.emulateMedia({ colorScheme });
-    await page.getByRole('radio', { name: 'With the mathematics' }).check();
+    for (const layer of await page.locator('details[data-layer="math"]').all()) {
+      await layer.evaluate((details: HTMLDetailsElement) => (details.open = true));
+    }
     for (const selector of [
+      '.gauss',
       '.least-squares',
       '.norms',
       '.error-shape',

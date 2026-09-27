@@ -32,8 +32,7 @@ const html = tex(source);
   .step::before {
     content: counter(step);
     padding-top: 0.6rem;
-    font-family: var(--f-mono);
-    font-size: 0.66rem;
+    font-size: 0.8rem;
     color: var(--ink-faint);
     font-variant-numeric: tabular-nums;
   }
@@ -61,10 +60,9 @@ const html = tex(source);
     grid-column: 2;
     max-width: 56ch;
     margin: 0.1rem 0 0;
-    font-family: var(--f-mono);
-    font-size: 0.72rem;
-    line-height: 1.6;
-    color: var(--ink-faint);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
   }
 
   .hinge {
@@ -77,17 +75,6 @@ const html = tex(source);
 
   .hinge::before,
   .hinge .step__why {
-    color: var(--signal);
-  }
-
-  .hinge::after {
-    content: 'the hinge';
-    grid-column: 2;
-    justify-self: end;
-    font-family: var(--f-mono);
-    font-size: 0.58rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
     color: var(--signal);
   }
 </style>

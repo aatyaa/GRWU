@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { expectNoA11yViolations } from './helpers';
 
 const pages = [
-  { path: '', heading: 'The signal is in there somewhere.' },
+  { path: '', heading: 'Gravitational-wave data analysis, explained visually' },
   { path: 'about/', heading: 'About GRWU' },
   { path: 'lab/', heading: 'Lab' },
 ];
@@ -29,10 +29,20 @@ test('unknown pages show the 404 page', async ({ page }) => {
 
 test('the home page lists the essays in review or published', async ({ page }) => {
   await page.goto('');
-  await expect(page.getByRole('link', { name: /The Shape of Error/ })).toBeVisible();
+  await expect(
+    page.locator('.cards').getByRole('link', { name: /The Shape of Error/ }),
+  ).toBeVisible();
   // Planned essays are named but not linked.
   await expect(page.getByText('Hidden in the Noise')).toBeVisible();
   await expect(page.getByRole('link', { name: /Hidden in the Noise/ })).toHaveCount(0);
+});
+
+test('the home page runs the GW250114 scene', async ({ page }) => {
+  await page.goto('');
+  const stage = page.locator('grwu-binary-hero .ovh');
+  await expect(stage).toHaveAttribute('data-hero-ready', /.*/);
+  await expect(stage).not.toHaveAttribute('data-hero-error', /.*/);
+  await expect(page.getByRole('button', { name: 'Scientific' })).toBeVisible();
 });
 
 test('Svelte islands hydrate', async ({ page }) => {

@@ -1,9 +1,5 @@
 ---
 import BaseLayout from './BaseLayout.astro';
-import Signature from '~/components/brand/Signature.astro';
-import DepthDial from '~/components/depth/DepthDial.astro';
-import Eyebrow from '~/components/editorial/Eyebrow.astro';
-import Title from '~/components/site/Title.astro';
 import type { Article } from '~/lib/content';
 
 interface Props {
@@ -11,8 +7,7 @@ interface Props {
 }
 
 const { article } = Astro.props;
-const { title, emphasis, headline, eyebrow, byline, summary, status, minutes, updated, sources } =
-  article.data;
+const { title, headline, summary, status, minutes, updated, sources } = article.data;
 
 const updatedLabel = updated.toLocaleDateString('en-GB', {
   day: 'numeric',
@@ -22,30 +17,29 @@ const updatedLabel = updated.toLocaleDateString('en-GB', {
 });
 ---
 
-<BaseLayout title={title} description={summary} running={title}>
+<BaseLayout title={title} description={summary}>
   <article class="article">
-    <header class="article__header container">
-      {status !== 'published' && (
-        <p class="status" role="note">
-          {status === 'draft' ? 'Draft' : 'In review'} · not published yet
-        </p>
-      )}
-      {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-      <h1>{headline ?? <Title text={title} emphasis={emphasis} />}</h1>
-      <p class="lead">{summary}</p>
-      <slot name="hero" />
-      <div class="article__byline">
-        {byline && <p class="label">{byline}</p>}
-        <Signature />
-        <div class="article__meta">
-          <p class="label">
-            {minutes && <span>{minutes} min read · </span>}
-            Updated <time datetime={updated.toISOString()}>{updatedLabel}</time>
-          </p>
-          <DepthDial />
-        </div>
-      </div>
+    <header class="article__header">
+      <h1>{title}</h1>
+      {headline && <p class="article__headline">{headline}</p>}
+      <p class="article__byline">
+        By <strong>Attia A. Gadallah</strong>
+        <span aria-hidden="true">·</span>
+        <time datetime={updated.toISOString()}>{updatedLabel}</time>
+        {minutes && (
+          <>
+            <span aria-hidden="true">·</span> {minutes} min read
+          </>
+        )}
+        {status !== 'published' && (
+          <>
+            <span aria-hidden="true">·</span> <em>preview</em>
+          </>
+        )}
+      </p>
     </header>
+
+    <slot name="hero" />
 
     <div class="article__body">
       <slot />
@@ -53,7 +47,7 @@ const updatedLabel = updated.toLocaleDateString('en-GB', {
 
     {sources.length > 0 && (
       <footer class="article__footer">
-        <Eyebrow tone="faint">Sources</Eyebrow>
+        <h2>References</h2>
         <ol>
           {sources.map((source) => (
             <li>
@@ -68,48 +62,38 @@ const updatedLabel = updated.toLocaleDateString('en-GB', {
 
 <style>
   .article__header {
-    padding-top: clamp(2.5rem, 7vh, 5rem);
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 8vh, 5rem) var(--gutter) 0;
+    text-align: center;
   }
 
   .article__header h1 {
-    max-width: 16ch;
+    margin-bottom: 1rem;
+    font-size: clamp(3rem, 8vw, 5.5rem);
   }
 
-  .article__header .lead {
-    max-width: 58ch;
-  }
-
-  .status {
-    display: inline-block;
-    margin: 0 0 var(--space-6);
-    padding: 0.2rem 0.6rem;
-    border: 1px solid var(--signal);
-    border-radius: 3px;
-    background: var(--signal-bg);
-    font-family: var(--f-mono);
-    font-size: 0.66rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--signal);
+  .article__headline {
+    margin: 0 auto 1.4rem;
+    max-width: 34ch;
+    font-family: var(--f-display);
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    line-height: 1.2;
+    color: var(--ink-soft);
   }
 
   .article__byline {
-    margin-top: var(--space-8);
-    padding-top: 1.2rem;
-    border-top: 1px solid var(--rule);
-  }
-
-  .article__byline .label {
-    margin: 0;
-  }
-
-  .article__meta {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    margin-top: var(--space-6);
+    justify-content: center;
+    gap: 0.45rem;
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+
+  .article__byline strong {
+    font-weight: 600;
   }
 
   /* The text column; wide figures and scrolly sections break out of it themselves. */
@@ -122,21 +106,20 @@ const updatedLabel = updated.toLocaleDateString('en-GB', {
   }
 
   .article__body {
-    margin-top: var(--space-16);
-    color: var(--ink-soft);
-  }
-
-  .article__body :global(h2) {
+    margin-top: var(--space-12);
+    font-size: 1.1rem;
+    line-height: 1.7;
     color: var(--ink);
   }
 
-  .article__body :global(.eyebrow + h2) {
-    margin-top: 0;
+  .article__body :global(h2) {
+    margin-top: var(--space-16);
+    font-size: clamp(2rem, 4vw, 2.8rem);
   }
 
   .article__body :global(ul),
   .article__body :global(ol) {
-    padding-inline-start: 1.2rem;
+    padding-inline-start: 1.3rem;
   }
 
   .article__footer {
@@ -145,12 +128,16 @@ const updatedLabel = updated.toLocaleDateString('en-GB', {
     border-top: 1px solid var(--rule);
   }
 
+  .article__footer h2 {
+    margin: 0 0 1rem;
+    font-size: 1.6rem;
+  }
+
   .article__footer ol {
     margin: 0;
     padding-inline-start: 1.2rem;
-    font-family: var(--f-mono);
-    font-size: 0.75rem;
+    font-size: 0.92rem;
     line-height: 1.7;
-    color: var(--ink-faint);
+    color: var(--ink-soft);
   }
 </style>

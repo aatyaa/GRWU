@@ -2,12 +2,6 @@
 import Mark from '~/components/brand/Mark.astro';
 import { withBase } from '~/lib/url';
 
-interface Props {
-  /** Shown next to the brand on article pages, like a talk's running title. */
-  running?: string;
-}
-
-const { running } = Astro.props;
 const current = Astro.url.pathname;
 const links = [
   { href: withBase(), label: 'Articles' },
@@ -15,12 +9,11 @@ const links = [
 ];
 ---
 
-<header class="rail">
+<header class="site-header">
   <a class="brand" href={withBase()}>
-    <Mark size={23} />
-    <span class="brand__name">GRWU</span>
+    <Mark size={26} />
+    <span>GRWU</span>
   </a>
-  {running && <span class="rail__running">{running}</span>}
   <nav aria-label="Main">
     <ul>
       {links.map((link) => (
@@ -32,7 +25,7 @@ const links = [
       ))}
       <li>
         <grwu-theme-toggle>
-          <button type="button" class="rail__button">
+          <button type="button" class="theme">
             Theme: auto
           </button>
         </grwu-theme-toggle>
@@ -46,45 +39,24 @@ const links = [
 </script>
 
 <style>
-  .rail {
-    position: sticky;
-    top: 0;
-    z-index: 40;
+  .site-header {
     display: flex;
     align-items: center;
-    gap: 1.1rem;
-    padding: 0.8rem var(--gutter);
-    background: color-mix(in srgb, var(--ground) 92%, transparent);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--rule-soft);
+    gap: 1rem;
+    padding: 1rem var(--gutter);
   }
 
   .brand {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.55rem;
     border: 0;
     padding: 0;
     color: var(--ink);
-  }
-
-  .brand__name {
-    font-family: var(--f-display);
-    font-size: 1.3rem;
-    line-height: 1;
-    letter-spacing: 0.02em;
-  }
-
-  .rail__running {
-    overflow: hidden;
-    padding-inline-start: 1.1rem;
-    border-inline-start: 1px solid var(--rule);
-    font-family: var(--f-display);
-    font-size: 1.15rem;
-    line-height: 1;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    color: var(--ink-soft);
+    font-family: var(--f-body);
+    font-weight: 600;
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
   }
 
   nav {
@@ -94,45 +66,31 @@ const links = [
   ul {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    align-items: center;
+    gap: 1.25rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   nav a,
-  .rail__button {
-    display: inline-block;
-    padding: 5px 9px;
-    border: 1px solid transparent;
-    border-radius: 3px;
+  .theme {
+    border: 0;
+    padding: 0;
     background: none;
-    font-family: var(--f-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
+    font: inherit;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
     cursor: pointer;
-    transition:
-      color var(--dur-fast) var(--ease),
-      border-color var(--dur-fast) var(--ease);
   }
 
   nav a:hover,
-  .rail__button:hover {
+  .theme:hover,
+  nav a[aria-current='page'] {
     color: var(--ink);
-    border-color: var(--rule);
   }
 
   nav a[aria-current='page'] {
-    color: var(--signal);
-    border-color: var(--signal);
-    background: var(--signal-bg);
-  }
-
-  @media (max-width: 40rem) {
-    .rail__running {
-      display: none;
-    }
+    font-weight: 600;
   }
 </style>

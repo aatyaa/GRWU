@@ -1,6 +1,6 @@
 /**
  * <grwu-scrolly id="..."> drives a sticky figure from the text beside it. Each child with
- * [data-step] is a step; the step crossing the middle of the viewport becomes active. The
+ * [data-step] in the steps column is a step; the step crossing the middle of the viewport becomes active. The
  * active index is written to `scrollySteps` (keyed by the element's id) and mirrored on the
  * element as data-active, so islands and CSS can both follow it. Without JavaScript every
  * step is plain text and the figure shows its first state.
@@ -11,7 +11,7 @@ class Scrolly extends HTMLElement {
   private observer?: IntersectionObserver;
 
   connectedCallback(): void {
-    const steps = Array.from(this.querySelectorAll<HTMLElement>('[data-step]'));
+    const steps = Array.from(this.querySelectorAll<HTMLElement>('.scrolly__steps > [data-step]'));
     const key = this.id;
     const activate = (index: number) => {
       this.dataset.active = String(index);

@@ -1,46 +1,45 @@
 ---
-import Signature from '~/components/brand/Signature.astro';
+import Mark from '~/components/brand/Mark.astro';
 ---
 
 <footer class="site-footer">
   <div class="container site-footer__inner">
-    <Signature />
-    <div class="site-footer__notes">
-      <p>
-        Strain data from the <a href="https://gwosc.org/">Gravitational Wave Open Science Center</a>
-        , a service of the LIGO Scientific Collaboration, the Virgo Collaboration and KAGRA.
-      </p>
-      <p>
-        <a href="https://github.com/aatyaa/GRWU">Source on GitHub</a>
-      </p>
-    </div>
+    <p class="site-footer__by">
+      <Mark size={22} />
+      <span>GRWU · visual essays by Attia A. Gadallah</span>
+    </p>
+    <p>
+      Strain data from the <a href="https://gwosc.org/">Gravitational Wave Open Science Center</a> ·{' '}
+      <a href="https://github.com/aatyaa/GRWU">Source on GitHub</a>
+    </p>
   </div>
 </footer>
 
 <style>
   .site-footer {
     margin-top: var(--space-24);
-    padding-block: var(--space-8) var(--space-12);
+    padding-block: var(--space-8);
     border-top: 1px solid var(--rule);
+    font-size: 0.9rem;
+    color: var(--ink-soft);
   }
 
   .site-footer__inner {
     display: flex;
     flex-wrap: wrap;
-    align-items: end;
+    align-items: center;
     justify-content: space-between;
-    gap: var(--space-6);
+    gap: var(--space-4);
   }
 
-  .site-footer__notes {
-    max-width: 30rem;
-    font-family: var(--f-mono);
-    font-size: 0.72rem;
-    line-height: 1.6;
-    color: var(--ink-faint);
+  .site-footer p {
+    margin: 0;
   }
 
-  .site-footer__notes p {
-    margin: 0 0 var(--space-2);
+  .site-footer__by {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--ink);
   }
 </style>

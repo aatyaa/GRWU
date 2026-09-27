@@ -1,8 +1,10 @@
 # GRWU
 
 Interactive articles that teach gravitational-wave data analysis, in the spirit of
-MLU-Explain. Real LIGO/Virgo data is analysed in the browser; each idea is offered at
-three depths (intuition, math, code). The site is English-only; conversations with the
+MLU-Explain: web articles with scrollytelling and figures the reader moves, not slides.
+Real LIGO/Virgo data drives the figures; each idea has an optional mathematical layer that
+opens in place. The talks by Attia A. Gadallah are the guide for what an article covers and
+how deep it goes, not for its layout. The site is English-only; conversations with the
 project owner are in Egyptian Arabic.
 
 ## Stack
@@ -43,17 +45,19 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
 - `src/pages/`: routes. `lab/` is a noindex workbench for components.
 - `src/components/`: Astro and Svelte components. `src/elements/`: framework-free custom
   elements for lightweight in-prose interactions.
-  - `editorial/`: the talks' vocabulary (ADR 0006): `Eyebrow`, `Pull`, `Facts`, `Card`
-    (`tone="caveat"` for the warnings nobody writes down), `Figure` (evidence label:
-    measured, model, schematic, control; `width="text|medium|wide"`), `Scrolly`.
+  - `hero/BinaryHero.astro`: the home page's GW250114 black-hole scene (ADR 0006).
+    `<grwu-binary-hero>` loads `lib/hero/engine.js` (vendored WebGL1 lensing engine with a
+    2D fallback) and `public/data/gw250114-overture.json` only near the viewport, and stops
+    rendering off screen. State is exposed as `data-hero-*`; `?hero=<seconds>` freezes it.
+  - `editorial/`: `Pull`, `Card` (`tone="caveat"`), `Figure` (small centred caption;
+    `width="text|medium|wide"`), `Scrolly` (sticky figure driven by the steps beside it;
+    the figure island reads `scrollySteps[id]`).
   - `math/`: `Eq` (KaTeX at build time; tagged terms defined underneath and linked to
     figures through `highlightedTerm`), and the mathematical layer: `MathLayer` with
     `Claim`, `Given`, `Steps`/`Step` (`hinge` marks the step the argument turns on), `Means`.
-  - `depth/`: `DepthDial` (story only / with the mathematics) and `Peek` (margin note that
-    opens a layer). ADR 0005.
   - `figures/`: the essays' figures. Astro components are static SVG computed at build
     time; Svelte ones are interactive islands (`client:visible`).
-  - `brand/`: the AG monogram and the signature. `site/`: header rail, footer, `Title`.
+  - `brand/`: the AG monogram and the signature. `site/`: header, footer, card `Thumb`s.
   - `three/`: Threlte scenes from `@threlte/core/webgpu` (WebGPU, WebGL2 fallback).
   - `lab/`: work in progress for later figures (the spectrum figure).
 - `src/lib/`: shared TypeScript.
@@ -85,9 +89,10 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
   blue-grey `--noise`/`--model` is noise, models and schematics (models dashed); red
   `--bias` is bias and disagreement, always labelled; green `--ok` is agreement. Text stays
   in ink. Do not add colours; small text must pass AA on `--ground` and `--surface`.
-- Essays are written in the talks' voice: short declarative headings, a pull line per idea,
-  history before formalism, and honest limits (a `Card tone="caveat"`). Every figure gets
-  an evidence label and a mono caption that says what to look at.
+- Articles read like MLU-Explain, not like a deck: plain section headings, prose that
+  walks the reader through a scrollytelling figure or a figure they move, a short caption
+  that says what to look at. No eyebrows, act numbers, fact rows or mono labels on prose.
+  Keep the talks' substance: history before formalism and honest limits.
 - Interactive figures: draw at real pixel size (`bind:clientWidth`), every draggable handle
   is also a keyboard slider (`stepKey`), and state is exposed as `data-*` attributes.
 - Any DSP function must be tested against scipy/gwpy reference output before it is used.

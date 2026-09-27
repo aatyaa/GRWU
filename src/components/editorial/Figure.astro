@@ -19,7 +19,6 @@ const { kind, width = 'text', id } = Astro.props;
 <figure class:list={['figure', width]} id={id} data-kind={kind} data-reveal>
   <slot />
   <figcaption>
-    <span class="figure__kind">{kind}</span>
     <slot name="caption" />
   </figcaption>
 </figure>
@@ -40,29 +39,11 @@ const { kind, width = 'text', id } = Astro.props;
   }
 
   figcaption {
-    max-width: 58ch;
-    margin-top: 0.8rem;
-    font-family: var(--f-mono);
-    font-size: 0.72rem;
-    line-height: 1.6;
-    color: var(--ink-faint);
-  }
-
-  .figure__kind {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 0.62rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-  }
-
-  [data-kind='measured'] .figure__kind,
-  [data-kind='control'] .figure__kind {
-    color: var(--signal);
-  }
-
-  [data-kind='model'] .figure__kind,
-  [data-kind='schematic'] .figure__kind {
-    color: var(--ink-faint);
+    max-width: 40rem;
+    margin: 0.9rem auto 0;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    text-align: center;
+    color: var(--ink-soft);
   }
 </style>

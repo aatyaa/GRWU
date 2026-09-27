@@ -5,7 +5,7 @@ interface Props {
 }
 
 const { kind = 'claim' } = Astro.props;
-const heading = { claim: 'The claim', given: 'What we may assume', means: 'What it means' }[kind];
+const heading = { claim: 'The claim.', given: 'Assume', means: 'What it means.' }[kind];
 ---
 
 <div class:list={['box', kind]}>
@@ -14,47 +14,28 @@ const heading = { claim: 'The claim', given: 'What we may assume', means: 'What 
 </div>
 
 <style>
-  .box {
-    margin: 0 0 0.9rem;
-    padding: 0.8rem 1rem;
-    border: 1px solid var(--rule-soft);
-    border-radius: 5px;
-    background: var(--surface);
-    font-size: 0.98rem;
+  <style > .box {
+    margin: 0 0 0.8rem;
+    font-size: 1rem;
     color: var(--ink);
   }
 
-  .box :global(p:last-child) {
-    margin-bottom: 0;
-  }
-
-  .claim {
-    border-left: 2px solid var(--signal);
+  .box :global(p) {
+    display: inline;
   }
 
   .given {
-    border-left: 2px solid var(--noise);
-    background: none;
-    font-size: 0.9rem;
     color: var(--ink-soft);
   }
 
   .means {
     margin-top: 1rem;
-    border-left: 2px solid var(--signal);
-    box-shadow: var(--shadow);
-    font-size: 0.92rem;
     color: var(--ink-soft);
   }
 
   b {
-    display: block;
-    margin-bottom: 7px;
-    font-family: var(--f-mono);
-    font-size: 0.6rem;
-    font-weight: 500;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
+    margin-inline-end: 0.35rem;
+    font-weight: 600;
+    color: var(--ink);
   }
 </style>

@@ -6,7 +6,8 @@ Each essay takes one idea, tells the story of how it came to be needed, and lets
 move the figures until the idea is theirs: why errors have a shape, how a template pulls a
 merger out of noise a hundred times louder, and how a confident fit can be wrong. Every idea
 has a mathematical layer underneath that opens in place. The figures run on real LIGO and
-Virgo data in the browser, and the look and voice come from the author's talks (see
+Virgo data in the browser. The layout follows MLU-Explain; the home page opens on the
+GW250114 black-hole scene from the author's talk What the Wrong Model Knows (see
 [ADR 0006](docs/adr/0006-visual-identity.md)).
 
 The site is under construction. It will be published at

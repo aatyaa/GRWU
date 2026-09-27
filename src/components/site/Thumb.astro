@@ -1,0 +1,133 @@
+---
+/** A small illustration for an article card, in the site's colours. */
+interface Props {
+  kind: 'squares' | 'chirp' | 'ringdown' | 'spectrum';
+}
+
+const { kind } = Astro.props;
+const W = 320;
+const H = 180;
+
+function path(f: (x: number) => number, n = 240) {
+  return Array.from({ length: n + 1 }, (_, i) => {
+    const x = (i / n) * W;
+    return `${i ? 'L' : 'M'}${x.toFixed(1)},${f(x).toFixed(1)}`;
+  }).join('');
+}
+
+// Deterministic "noise" so the thumbnails are the same on every build.
+const noise = (x: number) =>
+  Math.sin(x * 0.9) * 5 +
+  Math.sin(x * 2.3 + 1) * 4 +
+  Math.sin(x * 5.1 + 2) * 3 +
+  Math.sin(x * 11.7) * 2;
+const points = [
+  [40, 128],
+  [80, 112],
+  [120, 118],
+  [160, 92],
+  [200, 96],
+  [240, 70],
+  [280, 66],
+];
+---
+
+<svg class="thumb" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+  {kind === 'squares' && (
+    <g>
+      <line x1="20" y1="138" x2="300" y2="56" class="thumb-ink" />
+      {points.map(([x, y]) => {
+        const line = 138 + ((56 - 138) * (x - 20)) / 280;
+        const side = Math.abs(y - line);
+        return <rect x={x} y={Math.min(y, line)} width={side} height={side} class="thumb-area" />;
+      })}
+      {points.map(([x, y]) => (
+        <circle cx={x} cy={y} r="5" class="thumb-dot" />
+      ))}
+    </g>
+  )}
+  {kind === 'chirp' && (
+    <g>
+      <path d={path((x) => 90 + noise(x) * 2.2)} class="thumb-noise" />
+      <path
+        d={path((x) => {
+          const u = x / W;
+          const amp =
+            u < 0.25
+              ? 0
+              : 34 * ((u - 0.25) / 0.6) ** 1.4 * (u > 0.85 ? Math.exp(-(u - 0.85) * 30) : 1);
+          return 90 - amp * Math.sin(2 * Math.PI * (u * 3 + 14 * u * u * u));
+        })}
+        class="thumb-signal"
+      />
+    </g>
+  )}
+  {kind === 'ringdown' && (
+    <g>
+      <path d={path((x) => 90 - 60 * Math.exp(-x / 90) * Math.cos(x / 9))} class="thumb-signal" />
+      <path d={path((x) => 90 - 60 * Math.exp(-x / 90) * Math.cos(x / 9.8))} class="thumb-model" />
+      <line x1="70" y1="20" x2="70" y2="160" class="thumb-bias" />
+    </g>
+  )}
+  {kind === 'spectrum' && (
+    <g>
+      <path
+        d={path((x) => {
+          const f = 10 ** (1 + (x / W) * 2.3);
+          return 150 - 90 / (1 + (40 / f) ** 4) + 45 * (f / 900) ** 1.2 + noise(x) * 0.8;
+        })}
+        class="thumb-ink"
+      />
+      <line x1="140" y1="40" x2="140" y2="160" class="thumb-signal" />
+    </g>
+  )}
+</svg>
+
+<style>
+  .thumb {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .thumb :global(.thumb-ink) {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2.5;
+  }
+
+  .thumb :global(.thumb-area) {
+    fill: var(--signal-bg);
+    stroke: var(--signal);
+    stroke-width: 1;
+  }
+
+  .thumb :global(.thumb-dot) {
+    fill: var(--signal);
+  }
+
+  .thumb :global(.thumb-noise) {
+    fill: none;
+    stroke: var(--noise);
+    stroke-width: 1.2;
+  }
+
+  .thumb :global(.thumb-signal) {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 3;
+  }
+
+  .thumb :global(.thumb-model) {
+    fill: none;
+    stroke: var(--model);
+    stroke-width: 2;
+    stroke-dasharray: 6 5;
+  }
+
+  .thumb :global(.thumb-bias) {
+    stroke: var(--bias);
+    stroke-width: 2;
+    stroke-dasharray: 3 4;
+  }
+</style>

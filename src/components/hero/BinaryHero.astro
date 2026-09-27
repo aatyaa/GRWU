@@ -1,0 +1,327 @@
+---
+/**
+ * Full-bleed GW250114 scene (see lib/hero/engine.js), with the page's own title laid over it.
+ * The slot is the overlay copy.
+ */
+import { withBase } from '~/lib/url';
+---
+
+<grwu-binary-hero class="hero" data-src={withBase('data/gw250114-overture.json')}>
+  <div class="ovh" data-mode="cinematic" data-phase="inspiral" data-paused="false">
+    <canvas
+      class="ovh-gl"
+      role="img"
+      aria-label="GW250114 rendered from its recorded signal: two black holes, to scale with their measured masses, orbit faster and faster, merge into one and ring down, while gravitational waves spread across the orbital plane and starlight bends around the horizons. Drag to turn it; click to pause."
+    ></canvas>
+    <div class="ovh-scrim" aria-hidden="true"></div>
+    <div class="ovh-copy">
+      <slot />
+    </div>
+    <div class="ovh-controls">
+      <div class="ovh-modes" role="group" aria-label="View">
+        <button type="button" data-mode="cinematic" aria-pressed="true">
+          Cinematic
+        </button>
+        <button type="button" data-mode="scientific" aria-pressed="false">
+          Scientific
+        </button>
+      </div>
+      <button type="button" class="ovh-pause" aria-pressed="false" aria-label="Pause the animation">
+        Pause
+      </button>
+    </div>
+    <div class="ovh-hud" aria-hidden="true">
+      <div>
+        <span>
+          t − t<sub>peak</sub>
+        </span>
+        <b data-k="t">−0.260 s</b>
+      </div>
+      <div>
+        <span>
+          f<sub>GW</sub>
+        </span>
+        <b data-k="f">—</b>
+      </div>
+      <div class="ovh-opt">
+        <span>separation</span>
+        <b data-k="r">—</b>
+      </div>
+      <div class="ovh-opt">
+        <span>v/c</span>
+        <b data-k="v">—</b>
+      </div>
+      <div>
+        <span>phase</span>
+        <b data-k="phase" class="ovh-phase">
+          inspiral
+        </b>
+      </div>
+      <div class="ovh-sci">
+        <span>slowed</span>
+        <b data-k="slow">—</b>
+      </div>
+    </div>
+    <div class="ovh-labels" aria-hidden="true">
+      <span data-r="10">10 M</span>
+      <span data-r="20">20 M</span>
+      <span data-r="40">40 M · 3900 km</span>
+    </div>
+    <div class="ovh-wave">
+      <p class="ovh-wave-cap">
+        <span>GW250114 · LIGO Livingston</span> · the recorded signal drives the scene
+      </p>
+      <canvas aria-hidden="true"></canvas>
+    </div>
+    <div class="ovh-tip" role="status" hidden></div>
+  </div>
+</grwu-binary-hero>
+
+<script>
+  import '~/elements/binary-hero';
+</script>
+
+<style>
+  .hero {
+    display: block;
+  }
+
+  .ovh {
+    --ovh-pad: var(--gutter);
+    --wave-h: 56px;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    height: min(calc(100svh - 4rem), 56rem);
+    min-height: 34rem;
+    background: #05070b;
+    color: #e7edf5;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  .ovh-gl {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+
+  .ovh:global(.dragging) .ovh-gl {
+    cursor: grabbing;
+  }
+
+  .ovh-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, rgb(5 7 11 / 0.86) 0%, rgb(5 7 11 / 0.55) 30%, rgb(5 7 11 / 0) 52%),
+      linear-gradient(0deg, rgb(5 7 11 / 0.8) 0%, rgb(5 7 11 / 0) 24%);
+  }
+
+  .ovh-copy {
+    position: absolute;
+    z-index: 2;
+    left: var(--ovh-pad);
+    top: 50%;
+    width: min(44%, 36rem);
+    transform: translateY(-58%);
+  }
+
+  .ovh-controls {
+    position: absolute;
+    z-index: 3;
+    top: 1rem;
+    right: var(--ovh-pad);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .ovh-modes {
+    display: inline-flex;
+    padding: 2px;
+    border: 1px solid rgb(231 237 245 / 0.14);
+    border-radius: 999px;
+    background: rgb(10 14 21 / 0.45);
+  }
+
+  .ovh-modes button,
+  .ovh-pause {
+    padding: 5px 12px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: #9aa9bc;
+    cursor: pointer;
+  }
+
+  .ovh-modes button:hover,
+  .ovh-pause:hover {
+    color: #e7edf5;
+  }
+
+  .ovh-modes button[aria-pressed='true'] {
+    color: #e5a343;
+    background: rgb(229 163 67 / 0.12);
+  }
+
+  .ovh-pause {
+    min-width: 64px;
+    border: 1px solid rgb(231 237 245 / 0.14);
+    background: rgb(10 14 21 / 0.45);
+  }
+
+  .ovh-modes button:focus-visible,
+  .ovh-pause:focus-visible {
+    outline: 2px solid #e5a343;
+    outline-offset: 2px;
+  }
+
+  .ovh-hud {
+    position: absolute;
+    z-index: 2;
+    right: var(--ovh-pad);
+    bottom: calc(var(--wave-h) + 52px);
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 2px 18px;
+    align-items: baseline;
+    pointer-events: none;
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    font-variant-numeric: tabular-nums;
+    color: #7a8da3;
+  }
+
+  .ovh-hud div {
+    display: contents;
+  }
+
+  .ovh-hud b {
+    min-width: 9ch;
+    text-align: right;
+    font-weight: 500;
+    color: #e7edf5;
+  }
+
+  .ovh-hud b.ovh-phase {
+    color: #e5a343;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  .ovh-hud .ovh-sci span,
+  .ovh-hud .ovh-sci b {
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .ovh[data-mode='scientific'] .ovh-hud .ovh-sci span,
+  .ovh[data-mode='scientific'] .ovh-hud .ovh-sci b {
+    opacity: 1;
+  }
+
+  .ovh-wave {
+    position: absolute;
+    z-index: 2;
+    left: var(--ovh-pad);
+    right: var(--ovh-pad);
+    bottom: 26px;
+    height: var(--wave-h);
+    pointer-events: none;
+  }
+
+  .ovh-wave canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ovh-wave-cap {
+    position: absolute;
+    left: 0;
+    top: -18px;
+    margin: 0;
+    font-family: var(--f-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    color: #7a8da3;
+  }
+
+  .ovh-wave-cap span {
+    color: #9aa9bc;
+  }
+
+  .ovh-labels span {
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    pointer-events: none;
+    font-family: var(--f-mono);
+    font-size: 0.62rem;
+    color: rgb(229 163 67 / 0.9);
+  }
+
+  .ovh-tip {
+    position: absolute;
+    z-index: 4;
+    max-width: 280px;
+    padding: 7px 10px;
+    border: 1px solid rgb(231 237 245 / 0.14);
+    border-radius: 4px;
+    background: rgb(10 14 21 / 0.88);
+    font-family: var(--f-mono);
+    font-size: 0.68rem;
+    line-height: 1.5;
+    color: #9aa9bc;
+    pointer-events: none;
+  }
+
+  @media (max-width: 760px) {
+    .ovh {
+      --wave-h: 42px;
+      min-height: 36rem;
+    }
+
+    .ovh-scrim {
+      background:
+        linear-gradient(180deg, rgb(5 7 11 / 0.9) 0%, rgb(5 7 11 / 0.55) 34%, rgb(5 7 11 / 0) 52%),
+        linear-gradient(0deg, rgb(5 7 11 / 0.82) 0%, rgb(5 7 11 / 0) 30%);
+    }
+
+    .ovh-copy {
+      top: 1.2rem;
+      right: var(--ovh-pad);
+      width: auto;
+      transform: none;
+    }
+
+    .ovh-controls {
+      top: auto;
+      left: var(--ovh-pad);
+      right: auto;
+      bottom: calc(var(--wave-h) + 44px);
+    }
+
+    .ovh-hud .ovh-opt,
+    .ovh-hud .ovh-sci,
+    .ovh-wave-cap {
+      display: none;
+    }
+
+    .ovh-hud {
+      bottom: calc(var(--wave-h) + 48px);
+    }
+  }
+</style>
