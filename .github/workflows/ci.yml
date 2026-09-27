@@ -56,3 +56,28 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  pipeline:
+    name: Data pipeline
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          working-directory: pipeline
+          enable-cache: true
+          cache-dependency-glob: pipeline/uv.lock
+
+      - run: uv sync --frozen
+
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Tests (including committed data and fixtures being current)
+        run: uv run pytest

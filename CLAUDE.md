@@ -20,6 +20,17 @@ pnpm test:e2e     # Playwright + axe against the production build (run `pnpm bui
 pnpm format       # Prettier
 ```
 
+Data pipeline (Python, uv), run from `pipeline/`:
+
+```sh
+uv run pytest                     # tests, including "committed outputs are current"
+uv run ruff check . && uv run ruff format --check .
+uv run grwu-pipeline synthetic    # regenerate public/data/synthetic/toy-chirp/
+uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
+```
+
+- `grwu-pipeline fetch` needs gwosc.org, which Claude Code on the web blocks by default.
+  Run the **Data** workflow on GitHub instead; it pushes a `data/<event>-<run>` branch.
 - `BASE_PATH=/GRWU/pr-preview/pr-3/ pnpm build` builds for a PR preview; `SHOW_DRAFTS=1`
   includes draft articles.
 - Astro 7 detaches `astro preview` into the background when it detects an AI agent. Use
@@ -34,7 +45,11 @@ pnpm format       # Prettier
   elements for lightweight in-prose interactions.
 - `src/lib/`: shared TypeScript (content helpers, URL helpers; later DSP, data, workers).
 - `src/styles/tokens.css`: design tokens, including the concept colour grammar.
-- `tests/unit/` (Vitest), `tests/e2e/` (Playwright + axe).
+- `tests/unit/` (Vitest), `tests/e2e/` (Playwright + axe), `tests/fixtures/` (scipy
+  reference outputs, generated).
+- `public/data/`: datasets as `<channel>.f32` (little-endian float32, stored as
+  physical / `scale`) plus `meta.json`; see `docs/adr/0004-data-format.md`.
+- `pipeline/`: the Python data pipeline (`grwu_pipeline/`, tests in `pipeline/tests/`).
 
 ## Conventions
 

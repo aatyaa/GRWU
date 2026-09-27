@@ -29,9 +29,13 @@ pnpm dev          # http://localhost:4321/GRWU/
 | `pnpm build`    | Production build into `dist/`                                |
 
 Articles live in `src/content/articles/`. Architecture decisions are recorded in
-[`docs/adr/`](docs/adr/).
+[`docs/adr/`](docs/adr/). The Python data pipeline that prepares the datasets in
+`public/data/` lives in [`pipeline/`](pipeline/).
 
 ## Data
 
 Strain data and event catalogues come from the
-[Gravitational Wave Open Science Center](https://gwosc.org/).
+[Gravitational Wave Open Science Center](https://gwosc.org/). GWOSC data is released under
+CC BY 4.0: this research has made use of data or software obtained from the Gravitational
+Wave Open Science Center (gwosc.org), a service of the LIGO Scientific Collaboration, the
+Virgo Collaboration, and KAGRA.
