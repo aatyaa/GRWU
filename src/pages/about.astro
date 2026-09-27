@@ -1,0 +1,39 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="About" description="What GRWU is, who it is for, and where its data comes from.">
+  <div class="prose about">
+    <h1>About GRWU</h1>
+    <p>
+      GRWU is a visual on-ramp to gravitational-wave data analysis. Each article takes one step of
+      the analysis pipeline, from reading detector data to measuring a merger, and builds intuition
+      for it on real data before handing you the tools researchers use.
+    </p>
+    <p>
+      The articles follow the same path as the{' '}
+      <a href="https://gwosc.org/workshops/">Gravitational Wave Open Data Workshop</a>. The goal is
+      that a reader who finishes the core track is ready for the workshop's data challenges.
+    </p>
+
+    <h2>Three levels of depth</h2>
+    <p>
+      Every idea starts with intuition: figures you can move and signals you can hear. You can open
+      the mathematics behind it, and then the Python code that computes it, without losing your
+      place in the article.
+    </p>
+
+    <h2>Data</h2>
+    <p>
+      Strain data and event catalogues come from the{' '}
+      <a href="https://gwosc.org/">Gravitational Wave Open Science Center</a>, which publishes data
+      from the LIGO, Virgo and KAGRA observatories.
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .about {
+    padding: var(--space-12) var(--gutter) 0;
+  }
+</style>

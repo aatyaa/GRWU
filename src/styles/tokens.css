@@ -1,0 +1,103 @@
+/*
+ * GRWU design tokens.
+ *
+ * The visual identity (type, surfaces, accent) is a placeholder until the design
+ * step; the concept colour grammar below is intended to stay.
+ *
+ * Theming: every colour is a light-dark() pair. :root follows the OS setting;
+ * the theme toggle pins [data-theme] to light or dark, which switches color-scheme.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces and ink */
+  --surface-page: light-dark(#f9f9f7, #0d0d0d);
+  --surface-1: light-dark(#fcfcfb, #1a1a19); /* figure surface */
+  --surface-2: light-dark(#f0efec, #242422); /* raised panels, code */
+  --ink-1: light-dark(#0b0b0b, #ffffff);
+  --ink-2: light-dark(#52514e, #c3c2b7);
+  --ink-muted: #898781;
+  --grid: light-dark(#e1e0d9, #2c2c2a);
+  --axis: light-dark(#c3c2b7, #383835);
+  --border: light-dark(rgb(11 11 11 / 0.1), rgb(255 255 255 / 0.1));
+
+  /* UI accent: links, focus, controls. Deliberately not a concept colour. */
+  --accent: light-dark(#4a3aa7, #9085e9);
+
+  /*
+   * Concept colour grammar: a concept keeps its colour on every page, in prose
+   * markers, equations and figures. Prose text stays in ink; the colour rides on
+   * a marker next to it.
+   *
+   * Checked with the dataviz palette validator (all pairs, surfaces above):
+   *   data + signal + template  pass, light and dark
+   *   data + snr + signal       pass, light and dark
+   *   data + signal + glitch    CVD warn: a glitch always carries a label or texture
+   * Never tell template apart from snr or glitch by colour alone.
+   * Noise is neutral on purpose: it is the background every signal sits in.
+   */
+  --c-data: light-dark(#2a78d6, #3987e5);
+  --c-signal: light-dark(#1baf7a, #199e70);
+  --c-template: light-dark(#eb6834, #d95926);
+  --c-snr: light-dark(#eda100, #c98500);
+  --c-glitch: light-dark(#e34948, #e66767);
+  --c-noise: #898781;
+
+  /* Sequential ramp (magnitude: spectrograms, posteriors). Low end recedes into the surface. */
+  --seq-low: light-dark(#cde2fb, #104281);
+  --seq-mid: light-dark(#3987e5, #3987e5);
+  --seq-high: light-dark(#0d366b, #cde2fb);
+
+  /* Diverging (signed quantities) with a neutral midpoint. */
+  --div-neg: light-dark(#2a78d6, #3987e5);
+  --div-mid: light-dark(#f0efec, #383835);
+  --div-pos: light-dark(#e34948, #e66767);
+
+  /* Status: reserved meaning, always paired with an icon and a label. */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+
+  /* Type */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --text-sm: 0.875rem;
+  --text-base: 1.0625rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.6rem;
+  --text-2xl: clamp(1.8rem, 4vw, 2.4rem);
+  --text-3xl: clamp(2.2rem, 6vw, 3.4rem);
+  --leading: 1.65;
+  --leading-tight: 1.2;
+
+  /* Space */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Layout */
+  --measure: 40rem; /* ~68 characters of body text; rem so smaller text keeps the column */
+  --wide: 72rem;
+  --gutter: 1rem;
+  --radius-1: 4px;
+  --radius-2: 8px;
+
+  /* Motion (base.css zeroes these under prefers-reduced-motion) */
+  --dur-fast: 120ms;
+  --dur: 220ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}

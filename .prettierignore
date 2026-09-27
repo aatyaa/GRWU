@@ -1,0 +1,11 @@
+dist/
+.astro/
+node_modules/
+pnpm-lock.yaml
+public/
+pipeline/
+playwright-report/
+test-results/
+coverage/
+# Prettier only understands MDX 1; Astro uses MDX 3.
+*.mdx

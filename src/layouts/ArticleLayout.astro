@@ -1,0 +1,131 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import type { Article } from '~/lib/content';
+
+interface Props {
+  article: Article;
+}
+
+const { article } = Astro.props;
+const { title, summary, status, odw, minutes, updated, objectives, sources, reviewers } =
+  article.data;
+
+const updatedLabel = updated.toLocaleDateString('en-GB', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+---
+
+<BaseLayout title={title} description={summary}>
+  <article class="article">
+    <header class="article__header prose">
+      {status !== 'published' && (
+        <p class="status-banner" role="note">
+          {status === 'draft' ? 'Draft' : 'In review'}: this article is not published yet.
+        </p>
+      )}
+      <h1>{title}</h1>
+      <p class="article__summary">{summary}</p>
+      <p class="article__meta">
+        {minutes && <span>{minutes} min</span>}
+        {odw && <span>GW Open Data Workshop tutorial {odw}</span>}
+        <span>
+          Updated <time datetime={updated.toISOString()}>{updatedLabel}</time>
+        </span>
+      </p>
+      <section class="objectives" aria-labelledby="objectives-heading">
+        <h2 id="objectives-heading">You will learn</h2>
+        <ul>
+          {objectives.map((objective) => (
+            <li>{objective}</li>
+          ))}
+        </ul>
+      </section>
+    </header>
+
+    <div class="article__body prose">
+      <slot />
+    </div>
+
+    {(sources.length > 0 || reviewers.length > 0) && (
+      <footer class="article__footer prose">
+        {reviewers.length > 0 && <p>Scientific review: {reviewers.join(', ')}</p>}
+        {sources.length > 0 && (
+          <section aria-labelledby="sources-heading">
+            <h2 id="sources-heading">Sources</h2>
+            <ul>
+              {sources.map((source) => (
+                <li>
+                  <a href={source.url}>{source.title}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </footer>
+    )}
+  </article>
+</BaseLayout>
+
+<style>
+  .article {
+    padding-inline: var(--gutter);
+    padding-top: var(--space-12);
+  }
+
+  .article__header h1 {
+    font-size: var(--text-3xl);
+    margin: var(--space-4) 0;
+  }
+
+  .article__summary {
+    font-size: var(--text-lg);
+    color: var(--ink-2);
+  }
+
+  .article__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+
+  .status-banner {
+    display: inline-block;
+    margin: 0;
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-1);
+    background: var(--surface-2);
+    font-size: var(--text-sm);
+  }
+
+  .objectives {
+    margin-block: var(--space-8);
+    padding: var(--space-4) var(--space-6);
+    border-radius: var(--radius-2);
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+  }
+
+  .objectives h2 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-base);
+  }
+
+  .objectives ul {
+    margin: 0;
+    padding-inline-start: var(--space-6);
+  }
+
+  .article__footer {
+    margin-top: var(--space-12);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border);
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+</style>

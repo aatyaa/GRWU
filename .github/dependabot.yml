@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Pinned on purpose, see CLAUDE.md: tooling does not support TypeScript 7 yet,
+      # and Playwright must match the Chromium preinstalled in Claude Code on the web.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      - dependency-name: '@playwright/test'
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

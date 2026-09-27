@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Astro
+dist/
+.astro/
+
+# Tests
+playwright-report/
+test-results/
+coverage/
+
+# Python data pipeline
+pipeline/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS / editors
+.DS_Store
+*.log
+
+# Claude Code local settings
+.claude/settings.local.json
