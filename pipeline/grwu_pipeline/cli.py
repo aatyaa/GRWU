@@ -25,7 +25,10 @@ def main(argv: list[str] | None = None) -> None:
     fetch.add_argument("--event", default="GW150914")
     fetch.add_argument("--detectors", nargs="+", default=["H1", "L1"])
     fetch.add_argument("--sample-rate", type=int, default=4096)
-    fetch.add_argument("--duration", type=int, default=32)
+    fetch.add_argument("--duration", type=int, default=32, help="window length in seconds")
+    fetch.add_argument(
+        "--before", type=int, default=16, help="seconds of data before the event (default 16)"
+    )
     fetch.add_argument(
         "--cache-dir",
         type=Path,
@@ -49,6 +52,7 @@ def main(argv: list[str] | None = None) -> None:
             args.cache_dir,
             sample_rate=args.sample_rate,
             duration=args.duration,
+            before=args.before,
         )
         print(f"{args.event}: {', '.join(meta['channels'])} from GPS {meta['gps_start']}")
     elif args.command == "fixtures":
