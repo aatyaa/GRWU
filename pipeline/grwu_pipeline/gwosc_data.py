@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+import re
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
@@ -30,16 +32,32 @@ class Strain:
     source: str
 
 
-def locate(event: str, detector: str, sample_rate: int = 4096, duration: int = 32) -> str:
-    """URL of the GWOSC HDF5 strain file around ``event`` for one detector."""
+_FILE_SPAN = re.compile(r"-(\d+)-(\d+)\.hdf5$")
+
+
+def file_span(url: str) -> tuple[int, int]:
+    """(GPS start, duration) from a GWOSC file name like ``L-L1_LOSC_4_V1-1126256640-4096.hdf5``."""
+    match = _FILE_SPAN.search(url)
+    if match is None:
+        raise ValueError(f"not a GWOSC strain file name: {url}")
+    return int(match.group(1)), int(match.group(2))
+
+
+def locate(event: str, detector: str, start: float, end: float, sample_rate: int = 4096) -> str:
+    """URL of the shortest GWOSC HDF5 file for ``detector`` that covers [start, end).
+
+    Older events have 32 s files; newer releases only have 4096 s bulk files, which gwosc
+    returns as a fallback. Either works, because only the window is read.
+    """
     from gwosc.locate import get_event_urls
 
-    urls = get_event_urls(
-        event, detector=detector, sample_rate=sample_rate, format="hdf5", duration=duration
-    )
-    if not urls:
-        raise LookupError(f"GWOSC has no {duration} s {sample_rate} Hz file for {event} {detector}")
-    return urls[0]
+    urls = get_event_urls(event, detector=detector, sample_rate=sample_rate, format="hdf5")
+    covering = [url for url in urls if file_span(url)[0] <= start and end <= sum(file_span(url))]
+    if not covering:
+        raise LookupError(
+            f"no GWOSC {sample_rate} Hz file for {event} {detector} covers GPS {start}-{end}"
+        )
+    return min(covering, key=lambda url: file_span(url)[1])
 
 
 def download(url: str, cache_dir: Path) -> Path:
@@ -55,19 +73,29 @@ def download(url: str, cache_dir: Path) -> Path:
     return target
 
 
-def read_hdf5(path: Path, source: str | None = None) -> Strain:
-    """Reads a GWOSC strain file (``strain/Strain`` with Xstart/Xspacing attributes)."""
+def read_hdf5(
+    path: Path, source: str | None = None, start: float | None = None, end: float | None = None
+) -> Strain:
+    """Reads GWOSC strain (``strain/Strain`` with Xstart/Xspacing), optionally only [start, end).
+
+    Bulk files can contain NaNs where the detector was not observing, so only the requested
+    window has to be free of them.
+    """
     with h5py.File(path, "r") as f:
         dataset = f["strain/Strain"]
-        data = np.asarray(dataset[()], dtype=np.float64)
-        gps_start = float(dataset.attrs["Xstart"])
-        spacing = float(dataset.attrs["Xspacing"])
+        file_start = float(dataset.attrs["Xstart"])
+        sample_rate = round(1.0 / float(dataset.attrs["Xspacing"]))
+        first = 0 if start is None else round((start - file_start) * sample_rate)
+        last = len(dataset) if end is None else round((end - file_start) * sample_rate)
+        if first < 0 or last > len(dataset) or first >= last:
+            raise ValueError(f"{path.name} does not cover GPS {start}-{end}")
+        data = np.asarray(dataset[first:last], dtype=np.float64)
     if not np.all(np.isfinite(data)):
-        raise ValueError(f"{path.name} contains NaNs (data-quality gaps); pick another segment")
+        raise ValueError(f"{path.name} has NaNs (data-quality gaps) in the requested window")
     return Strain(
         data=data,
-        gps_start=gps_start,
-        sample_rate=round(1.0 / spacing),
+        gps_start=file_start + first / sample_rate,
+        sample_rate=sample_rate,
         source=source or path.name,
     )
 
@@ -105,6 +133,12 @@ def write_event(
     )
 
 
+def event_window(gps_event: float, duration: int = 32, before: int = 16) -> tuple[int, int]:
+    """Whole-second GPS window [start, end) of ``duration`` s with the event ``before`` s in."""
+    start = math.floor(gps_event) - before
+    return start, start + duration
+
+
 def fetch_event(
     out_root: Path,
     event: str,
@@ -112,12 +146,16 @@ def fetch_event(
     cache_dir: Path,
     sample_rate: int = 4096,
     duration: int = 32,
+    before: int = 16,
 ) -> dict[str, Any]:
     """Downloads and exports ``event`` for ``detectors`` (needs network access to gwosc.org)."""
     from gwosc.datasets import event_gps
 
+    gps_event = float(event_gps(event))
+    start, end = event_window(gps_event, duration, before)
     strains = {}
     for detector in detectors:
-        url = locate(event, detector, sample_rate, duration)
-        strains[detector] = read_hdf5(download(url, cache_dir), source=url)
-    return write_event(out_root, event, strains, float(event_gps(event)))
+        url = locate(event, detector, start, end, sample_rate)
+        path = download(url, cache_dir)
+        strains[detector] = read_hdf5(path, source=url, start=start, end=end)
+    return write_event(out_root, event, strains, gps_event)
