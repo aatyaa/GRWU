@@ -3,11 +3,13 @@ import { expectNoA11yViolations } from './helpers';
 
 const PATH = 'articles/the-shape-of-error/';
 
-// Islands hydrate when they scroll into view.
+// Islands hydrate when they scroll into view. The server-rendered SVG is visible before that,
+// so wait for Astro to drop the island's `ssr` attribute before pressing keys or buttons.
 async function island(page: Page, selector: string) {
   const element = page.locator(selector);
   await element.scrollIntoViewIfNeeded();
   await expect(element.locator('svg')).toBeVisible();
+  await expect(page.locator('astro-island', { has: element })).not.toHaveAttribute('ssr', /.*/);
   return element;
 }
 

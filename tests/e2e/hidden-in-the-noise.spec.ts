@@ -22,6 +22,8 @@ test('whitening GW150914: the scrolly reaches the chirp', async ({ page }) => {
 test('dividing by the noise takes the vote away from the noisy frequency', async ({ page }) => {
   const figure = page.locator('.noise-weights');
   await figure.scrollIntoViewIfNeeded();
+  // The server-rendered figure shows the same share; wait for the island to hydrate.
+  await expect(page.locator('astro-island', { has: figure })).not.toHaveAttribute('ssr', /.*/);
   await expect(figure).toHaveAttribute('data-share', '89');
   await figure.getByRole('button', { name: 'Divide each miss by its noise' }).click();
   await expect(figure).toHaveAttribute('data-share', '19');
