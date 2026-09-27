@@ -1,0 +1,20 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { withBase } from '~/lib/url';
+---
+
+<BaseLayout title="Page not found" noindex>
+  <div class="prose not-found">
+    <h1>Page not found</h1>
+    <p>This page does not exist. It may have moved while the site is being built.</p>
+    <p>
+      <a href={withBase()}>Go to the articles</a>
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .not-found {
+    padding: var(--space-16) var(--gutter) 0;
+  }
+</style>
