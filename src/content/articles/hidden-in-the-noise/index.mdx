@@ -1,0 +1,193 @@
+---
+title: Hidden in the Noise
+emphasis: Noise
+headline: How do you find a signal hundreds of times smaller than the noise?
+summary: The first gravitational wave was invisible in the raw data. Whitening the noise and sliding a known shape along it found it anyway.
+track: detection
+order: 1
+status: review
+minutes: 20
+prerequisites:
+  - the-shape-of-error
+objectives:
+  - Say what a noise spectrum is, and why a detector's is anything but flat.
+  - Explain whitening as measuring the data in units of its own noise.
+  - Use a matched filter, and read its score against what noise alone produces.
+updated: 2026-09-27
+sources:
+  - title: 'LIGO and Virgo, Observation of Gravitational Waves from a Binary Black Hole Merger, Phys. Rev. Lett. 116, 061102 (2016)'
+    url: https://doi.org/10.1103/PhysRevLett.116.061102
+  - title: A guide to LIGO–Virgo detector noise and extraction of transient gravitational-wave signals, Class. Quantum Grav. 37, 055002 (2020)
+    url: https://doi.org/10.1088/1361-6382/ab685e
+  - title: Gravitational Wave Open Science Center, GW150914 data release
+    url: https://gwosc.org/eventapi/html/GWTC-1-confident/GW150914/
+  - title: 'A. C. Aitken, On least squares and linear combinations of observations (1935)'
+    url: https://doi.org/10.1017/S0370164600014346
+---
+
+import Card from '~/components/editorial/Card.astro';
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import Scrolly from '~/components/editorial/Scrolly.astro';
+import NoiseWeights from '~/components/figures/NoiseWeights.svelte';
+import TemplateSlide from '~/components/figures/TemplateSlide.astro';
+import WhiteningScrolly from '~/components/figures/WhiteningScrolly.astro';
+import Claim from '~/components/math/Claim.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+
+On 14 September 2015 both LIGO detectors recorded a gravitational wave for the first time. It stretched and squeezed their four-kilometre arms by about one part in 10²¹: a change in length near 10⁻¹⁸ metres, a few thousandths of the width of a proton.
+
+Against that, the instrument shakes. The ground rumbles, the mirrors jitter with heat, and the laser light arrives one photon at a time. In the raw record the noise is hundreds of times larger than the signal. This article shows how the signal was found anyway, with two ideas: measure the data in units of its own noise, and look for a shape you already know.
+
+## The raw record
+
+Scroll through what happens to the real data from LIGO Hanford, the half second around the event.
+
+<Scrolly id="whiten">
+  <WhiteningScrolly slot="figure" />
+  <div data-step>
+
+  This is what the detector recorded. The trace wanders slowly up and down. The signal is in there, at its true size, and you cannot see it.
+
+  </div>
+  <div data-step>
+
+  The wandering has causes, and they live at different frequencies. Split the noise into frequencies and measure how loud each one is. At low frequencies **the ground** shakes the mirrors. In a middle band the detector is quiet. At a few narrow frequencies **the machine sings**: the power mains, and the wires the mirrors hang from.
+
+  </div>
+  <div data-step>
+
+  Now divide the data, frequency by frequency, by how noisy that frequency is. This is **whitening**. The noise spectrum comes out flat: every frequency now carries the same amount of noise.
+
+  </div>
+  <div data-step>
+
+  Back in time, the whitened data no longer wanders. It is still noise, but noise measured in its own units, where one unit means the same thing at every frequency.
+
+  </div>
+  <div data-step>
+
+  Keep only the band where the detector hears best, 35 to 350 Hz, and the signal stands out: a wave that rises in pitch and dies away within a fifth of a second. Two black holes, about 36 and 29 times the mass of the Sun, merging 1.3 billion light-years away.
+
+  </div>
+</Scrolly>
+
+This event was unusually loud. Most signals stay invisible even after whitening, and the rest of this article is about finding those.
+
+## Why divide by the noise?
+
+Whitening can look like a trick for making a pretty picture. It is more than that: it is the step that makes least squares valid on a real instrument.
+
+Least squares adds up squared misses on equal terms, which quietly assumes every measurement carries the same size of error. A detector breaks that assumption by orders of magnitude from one frequency to the next. Here are eight frequencies, with a comparable miss in each and very different noise. See what the noisy one does to the total.
+
+<Figure kind="schematic" width="medium">
+  <NoiseWeights client:visible />
+  <Fragment slot="caption">
+    The red bar is the same measurement in both views. Only the weighting changes, and with it
+    which frequency decides the answer.
+  </Fragment>
+</Figure>
+
+Added up as they are, one noisy frequency makes nearly the whole total, and the fit is judged by the one place the detector knows least. Divide each miss by the noise expected there, and every frequency gets a say in proportion to what it actually knows.
+
+<Pull>
+  Whitening does not change the data. <em>It changes the ruler.</em>
+</Pull>
+
+<MathLayer id="m-whiten" title="whitening is a change of ruler">
+  <Claim>
+    Dividing by the noise spectrum re-measures the data in units of its own noise, and in those
+    units every frequency carries an error of exactly one: the situation least squares assumed.
+  </Claim>
+  <Given>noise that is Gaussian and **stationary**: its statistics do not change while you watch.</Given>
+  <Steps>
+    <Step tex="\langle \tilde n(f)\,\tilde n^*(f') \rangle = \tfrac12 S_n(f)\,\delta(f - f')" hinge>
+      Stationarity makes different frequencies independent. The covariance is diagonal, and the
+      noise spectrum S<sub>n</sub> sits on the diagonal.
+    </Step>
+    <Step tex="\tilde n_w(f) = \tilde n(f) \big/ \sqrt{S_n(f)/2}">
+      Divide each frequency by the square root of its own noise power: amplitude, not power.
+    </Step>
+    <Step tex="\langle \tilde n_w(f)\,\tilde n_w^*(f') \rangle = \delta(f - f')">
+      The covariance is now the identity. Every frequency carries an error of size one.
+    </Step>
+    <Step tex="(a\,|\,b) = 4\,\mathrm{Re} \int_0^\infty \frac{\tilde a(f)\,\tilde b^*(f)}{S_n(f)}\,df">
+      The ordinary dot product, written in these units. It is Σ aᵢbᵢ after the change of ruler.
+    </Step>
+  </Steps>
+  <Means>
+    This is Aitken's generalised least squares (1935), renamed. Every result from The Shape of
+    Error survives; only the unit of error changed. It works only while the noise is stationary:
+    if the spectrum drifts, the analysis has to be redone on shorter stretches.
+  </Means>
+</MathLayer>
+
+## You know what it looks like
+
+Stand in a crowded room. You cannot follow any one conversation; it is all one wash of sound. Then someone across the room says your name, and you hear it at once. Nothing got louder. You were carrying a **template**.
+
+Einstein's equations predict the shape two merging black holes write into the data: a wave that climbs in pitch and loudness as they spiral together, then rings and fades. So slide that known shape along the whitened data, and at each position ask how much the data looks like it. Where they disagree, positive and negative products cancel. Where they line up, every cycle adds to every other, and the score leaps.
+
+Below is a practice case whose answer is known in advance: a chirp hidden in simulated detector noise. Slide the template and find it.
+
+<Figure kind="control" width="wide">
+  <TemplateSlide />
+  <Fragment slot="caption">
+    The template is drawn at its true size against the whitened data. Drag the slider, or use the
+    arrow keys; the score curve fills in wherever you have looked.
+  </Fragment>
+</Figure>
+
+The signal never becomes visible in the data. It becomes visible in the score, and that is enough. This is the **matched filter**, and every search for merging black holes and neutron stars is built on it.
+
+Now compare with noise alone: the same template slid across the same noise without the chirp never scores above about 4. A score of 20 is not something noise does by chance.
+
+<MathLayer id="m-matched" title="the best filter is the signal itself">
+  <Claim>
+    Of all the linear filters you could run over the data, the one with the largest
+    signal-to-noise ratio is the template itself, weighted by the inverse noise.
+  </Claim>
+  <Given>a known signal shape *h* in stationary Gaussian noise, and any linear filter *q*.</Given>
+  <Steps>
+    <Step tex="\rho^2 = \frac{(q\,|\,h)^2}{(q\,|\,q)}">
+      The signal-to-noise ratio of a filter: how much of the signal it picks up, against how much
+      noise it lets through.
+    </Step>
+    <Step tex="(q\,|\,h)^2 \le (q\,|\,q)\,(h\,|\,h)" hinge>
+      Cauchy–Schwarz: a projection is never longer than the thing projected.
+    </Step>
+    <Step tex="\rho^2 \le (h\,|\,h), \quad\text{with equality only for } q \propto h">
+      No filter beats this ceiling, and the only one that reaches it is the template.
+    </Step>
+    <Step tex="\tilde q(f) \propto \tilde h(f) \big/ S_n(f)">
+      In frequency: the template, divided by the noise. Loud frequencies are discounted, quiet
+      ones trusted.
+    </Step>
+  </Steps>
+  <Means>
+    The largest score possible, √(h|h), is set by the signal and the detector, not by cleverness.
+    And it is reached only when the template matches the signal, a promise that quietly assumes you
+    know what the signal looks like.
+  </Means>
+</MathLayer>
+
+## Loud is not the same as real
+
+Real detectors do not only have well-behaved Gaussian noise. They have **glitches**: short bursts from the instrument or its surroundings that can be briefly enormous and score high against almost any template. A search therefore asks a second question of every candidate: does its power arrive across frequencies the way the template says it should? A chirp passes this χ² test. A glitch fails it badly.
+
+And a search measures how often noise alone produces a given score, by analysing the data with one detector shifted in time against the other, so that no real signal can line up. For GW150914, nothing in the equivalent of more than 200,000 years of shifted data was as loud.
+
+<Card tone="caveat" label="Found is not measured">
+  The matched filter finds a signal and says roughly which template fits. It does not measure the
+  masses, spins or distance, or how uncertain they are. That takes a comparison with every
+  template the data allows, and it is where the next question starts.
+</Card>
+
+<Card label="Coming next: What the Wrong Model Knows">
+  Everything here assumed the template was right. When it is not, the fit does not fail. It
+  quietly moves the error into the answer.
+</Card>

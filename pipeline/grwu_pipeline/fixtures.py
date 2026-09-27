@@ -39,6 +39,29 @@ def build() -> dict[str, Any]:
     freqs, psd_mean = signal.welch(welch_input, average="mean", **welch_args)
     _, psd_median = signal.welch(welch_input, average="median", **welch_args)
 
+    # Whitening and the matched filter, written independently of the TypeScript: a complex
+    # inverse FFT here where the site uses two real ones, one per quadrature.
+    ffs = 256.0
+    fn = 1024
+    dt = 1.0 / ffs
+    df = ffs / fn
+    ft = np.arange(fn) / ffs
+    band = (8.0, 100.0)
+    rfreqs = np.fft.rfftfreq(fn, dt)
+    filter_psd = 0.01 * (1.0 + (20.0 / np.maximum(rfreqs, 1.0)) ** 4)
+    mask = (rfreqs >= band[0]) & (rfreqs <= band[1]) & (rfreqs > 0) & (rfreqs < ffs / 2)
+    template = np.exp(-(((ft - 1.0) / 0.1) ** 2)) * np.cos(2 * np.pi * 40.0 * (ft - 1.0))
+    data = 3.0 * np.roll(template, 512) + rng.standard_normal(fn)
+    spec = np.fft.rfft(data)
+    white_spec = np.where(mask, spec / np.sqrt(filter_psd * ffs / 2), 0)
+    whitened = np.fft.irfft(white_spec, fn)
+    h_tilde = np.fft.rfft(template)
+    sigma = np.sqrt(4.0 * np.sum(np.abs(h_tilde[mask]) ** 2 / filter_psd[mask]) * dt * dt * df)
+    full = np.zeros(fn, dtype=complex)
+    full[: len(rfreqs)] = np.where(mask, spec * np.conj(h_tilde) / filter_psd, 0)
+    z = 4.0 * dt * dt * df * fn * np.fft.ifft(full)
+    snr = np.abs(z) / sigma
+
     return {
         "generator": f"numpy {np.__version__}, scipy {scipy.__version__}",
         "rfft": {
@@ -66,6 +89,18 @@ def build() -> dict[str, Any]:
             "freqs": _floats(freqs),
             "psd_mean": _floats(psd_mean),
             "psd_median": _floats(psd_median),
+        },
+        "filter": {
+            "sample_rate": ffs,
+            "f_low": band[0],
+            "f_high": band[1],
+            "freqs": _floats(rfreqs),
+            "psd": _floats(filter_psd),
+            "data": _floats(data),
+            "template": _floats(template),
+            "whitened": _floats(whitened),
+            "optimal_snr": float(sigma),
+            "snr": _floats(snr),
         },
     }
 

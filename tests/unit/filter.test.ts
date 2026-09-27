@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   argmax,
+  interpolatePsd,
   innerProduct,
   matchedFilter,
   optimalSnr,
@@ -96,5 +97,30 @@ describe('the toy chirp dataset', () => {
     expect(Math.min(peak, snr.length - peak)).toBeLessThanOrEqual(2);
     expect(snr[peak]).toBeGreaterThan(17);
     expect(snr[peak]).toBeLessThan(23);
+  });
+});
+
+describe('against the numpy reference (tests/fixtures/dsp.json)', () => {
+  const ref = JSON.parse(readFileSync('tests/fixtures/dsp.json', 'utf8')).filter;
+  const band: Band = {
+    sampleRate: ref.sample_rate,
+    psd: interpolatePsd(ref.freqs, ref.psd),
+    fLow: ref.f_low,
+    fHigh: ref.f_high,
+  };
+  const close = (a: ArrayLike<number>, b: number[], tol: number) => {
+    expect(a.length).toBe(b.length);
+    let worst = 0;
+    for (let i = 0; i < b.length; i++) worst = Math.max(worst, Math.abs(a[i] - b[i]));
+    expect(worst).toBeLessThan(tol);
+  };
+
+  it('whitens like numpy', () => {
+    close(whiten(ref.data, band), ref.whitened, 1e-9);
+  });
+
+  it('gives numpy optimal SNR and matched-filter SNR at every lag', () => {
+    expect(optimalSnr(ref.template, band)).toBeCloseTo(ref.optimal_snr, 9);
+    close(matchedFilter(ref.data, ref.template, band), ref.snr, 1e-9);
   });
 });
