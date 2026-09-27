@@ -1,0 +1,46 @@
+name: Deploy
+
+# Publishes main to https://aatyaa.github.io/GRWU/ via the gh-pages branch.
+# GitHub Pages must be set to "Deploy from a branch": gh-pages, / (root).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check and build
+        run: pnpm check
+        env:
+          BASE_PATH: /GRWU/
+
+      - name: Publish to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
+          # Keep PR previews, and rebase instead of force-pushing so a preview
+          # deployed at the same moment is not lost.
+          clean-exclude: pr-preview/
+          force: false

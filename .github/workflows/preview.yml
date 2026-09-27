@@ -1,0 +1,48 @@
+name: Preview
+
+# Deploys every pull request to https://aatyaa.github.io/GRWU/pr-preview/pr-<n>/
+# (drafts included) and removes the preview when the PR closes.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: preview-${{ github.event.number }}
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    # Pull requests from forks cannot push to gh-pages with the default token.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        if: github.event.action != 'closed'
+
+      - uses: actions/setup-node@v7
+        if: github.event.action != 'closed'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Build preview
+        if: github.event.action != 'closed'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+        env:
+          BASE_PATH: /GRWU/pr-preview/pr-${{ github.event.number }}/
+          SHOW_DRAFTS: '1'
+
+      - name: Deploy or remove preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: dist
+          qr-code: false
