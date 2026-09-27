@@ -343,9 +343,9 @@
   .spectrum {
     margin: var(--space-8) 0;
     padding: var(--space-4);
-    border: 1px solid var(--border);
+    border: 1px solid var(--rule);
     border-radius: var(--radius-2);
-    background: var(--surface-1);
+    background: var(--surface);
   }
 
   .spectrum__controls {
@@ -389,7 +389,7 @@
     padding: 0;
     list-style: none;
     font-size: var(--text-sm);
-    color: var(--ink-2);
+    color: var(--ink-soft);
   }
 
   .swatch {
@@ -414,12 +414,12 @@
   }
 
   .grid line {
-    stroke: var(--grid);
+    stroke: var(--rule-soft);
     stroke-width: 1;
   }
 
   .grid text {
-    fill: var(--ink-2);
+    fill: var(--ink-soft);
     font-size: 12px;
     font-variant-numeric: tabular-nums;
   }
@@ -444,13 +444,13 @@
   }
 
   .crosshair {
-    stroke: var(--ink-muted);
+    stroke: var(--ink-faint);
     stroke-dasharray: 2 3;
   }
 
   .crosshair-dot {
     fill: var(--c-data);
-    stroke: var(--surface-1);
+    stroke: var(--surface);
     stroke-width: 2;
   }
 
@@ -459,7 +459,7 @@
     min-height: 1.5em;
     font-size: var(--text-sm);
     font-variant-numeric: tabular-nums;
-    color: var(--ink-2);
+    color: var(--ink-soft);
   }
 
   .spectrum__listen {
@@ -471,16 +471,16 @@
 
   figcaption {
     font-size: var(--text-sm);
-    color: var(--ink-2);
+    color: var(--ink-soft);
   }
 
   button,
   select {
     padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--border);
+    border: 1px solid var(--rule);
     border-radius: var(--radius-1);
     background: var(--surface-2);
-    color: var(--ink-1);
+    color: var(--ink);
     font: inherit;
     font-size: var(--text-sm);
   }

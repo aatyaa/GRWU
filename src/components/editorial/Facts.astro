@@ -1,0 +1,87 @@
+---
+/** A row of readouts: mono label, a number in the display face, and a short note. */
+interface Fact {
+  label: string;
+  value: string;
+  note?: string;
+}
+
+interface Props {
+  facts: Fact[];
+}
+
+const { facts } = Astro.props;
+---
+
+<dl class="facts">
+  {facts.map((fact) => (
+    <div class="fact">
+      <dt>{fact.label}</dt>
+      <dd>
+        <span set:html={fact.value} />
+        {fact.note && <small>{fact.note}</small>}
+      </dd>
+    </div>
+  ))}
+</dl>
+
+<style>
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    margin: var(--space-8) 0;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .fact {
+    flex: 1 1 9rem;
+    margin-right: 1.5rem;
+    padding: 1rem 1.5rem 0.25rem 0;
+    border-right: 1px solid var(--rule-soft);
+  }
+
+  .fact:last-child {
+    margin-right: 0;
+    border-right: 0;
+  }
+
+  dt {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 0 7px;
+    font-family: var(--f-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  dt::before {
+    content: '';
+    flex: none;
+    width: 5px;
+    height: 5px;
+    border: 1px solid var(--ink-faint);
+    border-radius: 1px;
+  }
+
+  dd {
+    margin: 0;
+    font-family: var(--f-display);
+    font-size: 1.8rem;
+    line-height: 1.1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+
+  small {
+    display: block;
+    margin-top: 5px;
+    font-family: var(--f-body);
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+</style>

@@ -1,0 +1,20 @@
+---
+/** A title with one word set in italic amber, the way the talks name themselves. */
+interface Props {
+  text: string;
+  emphasis?: string;
+}
+
+const { text, emphasis } = Astro.props;
+const at = emphasis ? text.lastIndexOf(emphasis) : -1;
+---
+
+{at < 0 ? (
+  text
+) : (
+  <>
+    {text.slice(0, at)}
+    <em>{emphasis}</em>
+    {text.slice(at + (emphasis?.length ?? 0))}
+  </>
+)}

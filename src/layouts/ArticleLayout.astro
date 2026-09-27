@@ -1,5 +1,9 @@
 ---
 import BaseLayout from './BaseLayout.astro';
+import Signature from '~/components/brand/Signature.astro';
+import DepthDial from '~/components/depth/DepthDial.astro';
+import Eyebrow from '~/components/editorial/Eyebrow.astro';
+import Title from '~/components/site/Title.astro';
 import type { Article } from '~/lib/content';
 
 interface Props {
@@ -7,7 +11,7 @@ interface Props {
 }
 
 const { article } = Astro.props;
-const { title, summary, status, odw, minutes, updated, objectives, sources, reviewers } =
+const { title, emphasis, headline, eyebrow, byline, summary, status, minutes, updated, sources } =
   article.data;
 
 const updatedLabel = updated.toLocaleDateString('en-GB', {
@@ -18,114 +22,135 @@ const updatedLabel = updated.toLocaleDateString('en-GB', {
 });
 ---
 
-<BaseLayout title={title} description={summary}>
+<BaseLayout title={title} description={summary} running={title}>
   <article class="article">
-    <header class="article__header prose">
+    <header class="article__header container">
       {status !== 'published' && (
-        <p class="status-banner" role="note">
-          {status === 'draft' ? 'Draft' : 'In review'}: this article is not published yet.
+        <p class="status" role="note">
+          {status === 'draft' ? 'Draft' : 'In review'} · not published yet
         </p>
       )}
-      <h1>{title}</h1>
-      <p class="article__summary">{summary}</p>
-      <p class="article__meta">
-        {minutes && <span>{minutes} min</span>}
-        {odw && <span>GW Open Data Workshop tutorial {odw}</span>}
-        <span>
-          Updated <time datetime={updated.toISOString()}>{updatedLabel}</time>
-        </span>
-      </p>
-      <section class="objectives" aria-labelledby="objectives-heading">
-        <h2 id="objectives-heading">You will learn</h2>
-        <ul>
-          {objectives.map((objective) => (
-            <li>{objective}</li>
-          ))}
-        </ul>
-      </section>
+      {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+      <h1>{headline ?? <Title text={title} emphasis={emphasis} />}</h1>
+      <p class="lead">{summary}</p>
+      <slot name="hero" />
+      <div class="article__byline">
+        {byline && <p class="label">{byline}</p>}
+        <Signature />
+        <div class="article__meta">
+          <p class="label">
+            {minutes && <span>{minutes} min read · </span>}
+            Updated <time datetime={updated.toISOString()}>{updatedLabel}</time>
+          </p>
+          <DepthDial />
+        </div>
+      </div>
     </header>
 
-    <div class="article__body prose">
+    <div class="article__body">
       <slot />
     </div>
 
-    {(sources.length > 0 || reviewers.length > 0) && (
-      <footer class="article__footer prose">
-        {reviewers.length > 0 && <p>Scientific review: {reviewers.join(', ')}</p>}
-        {sources.length > 0 && (
-          <section aria-labelledby="sources-heading">
-            <h2 id="sources-heading">Sources</h2>
-            <ul>
-              {sources.map((source) => (
-                <li>
-                  <a href={source.url}>{source.title}</a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+    {sources.length > 0 && (
+      <footer class="article__footer">
+        <Eyebrow tone="faint">Sources</Eyebrow>
+        <ol>
+          {sources.map((source) => (
+            <li>
+              <a href={source.url}>{source.title}</a>
+            </li>
+          ))}
+        </ol>
       </footer>
     )}
   </article>
 </BaseLayout>
 
 <style>
-  .article {
-    padding-inline: var(--gutter);
-    padding-top: var(--space-12);
+  .article__header {
+    padding-top: clamp(2.5rem, 7vh, 5rem);
   }
 
   .article__header h1 {
-    font-size: var(--text-3xl);
-    margin: var(--space-4) 0;
+    max-width: 16ch;
   }
 
-  .article__summary {
-    font-size: var(--text-lg);
-    color: var(--ink-2);
+  .article__header .lead {
+    max-width: 58ch;
+  }
+
+  .status {
+    display: inline-block;
+    margin: 0 0 var(--space-6);
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--signal);
+    border-radius: 3px;
+    background: var(--signal-bg);
+    font-family: var(--f-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+
+  .article__byline {
+    margin-top: var(--space-8);
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .article__byline .label {
+    margin: 0;
   }
 
   .article__meta {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
     gap: var(--space-4);
-    color: var(--ink-2);
-    font-size: var(--text-sm);
+    margin-top: var(--space-6);
   }
 
-  .status-banner {
-    display: inline-block;
-    margin: 0;
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-1);
-    background: var(--surface-2);
-    font-size: var(--text-sm);
+  /* The text column; wide figures and scrolly sections break out of it themselves. */
+  .article__body,
+  .article__footer {
+    width: 100%;
+    max-width: calc(var(--measure) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
   }
 
-  .objectives {
-    margin-block: var(--space-8);
-    padding: var(--space-4) var(--space-6);
-    border-radius: var(--radius-2);
-    background: var(--surface-1);
-    border: 1px solid var(--border);
+  .article__body {
+    margin-top: var(--space-16);
+    color: var(--ink-soft);
   }
 
-  .objectives h2 {
-    margin: 0 0 var(--space-2);
-    font-size: var(--text-base);
+  .article__body :global(h2) {
+    color: var(--ink);
   }
 
-  .objectives ul {
-    margin: 0;
-    padding-inline-start: var(--space-6);
+  .article__body :global(.eyebrow + h2) {
+    margin-top: 0;
+  }
+
+  .article__body :global(ul),
+  .article__body :global(ol) {
+    padding-inline-start: 1.2rem;
   }
 
   .article__footer {
-    margin-top: var(--space-12);
-    padding-top: var(--space-6);
-    border-top: 1px solid var(--border);
-    color: var(--ink-2);
-    font-size: var(--text-sm);
+    margin-top: var(--space-16);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--rule);
+  }
+
+  .article__footer ol {
+    margin: 0;
+    padding-inline-start: 1.2rem;
+    font-family: var(--f-mono);
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: var(--ink-faint);
   }
 </style>

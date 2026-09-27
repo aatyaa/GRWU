@@ -1,25 +1,26 @@
 ---
 /**
- * A paragraph with a one-line peek at its deeper layer. On wide screens that support CSS
- * anchor positioning the peek sits in the margin beside the paragraph; elsewhere it follows
- * the paragraph. It links to the <Unfold> it previews, which opens when targeted.
+ * A paragraph with a one-line glimpse of its mathematical layer. On wide screens that
+ * support CSS anchor positioning the glimpse sits in the margin beside the paragraph;
+ * elsewhere it follows the paragraph. It links to the <MathLayer> it previews, which opens
+ * when targeted.
  */
 interface Props {
   target: string;
-  layer: 'math' | 'code';
+  number: string;
   text: string;
 }
 
-const { target, layer, text } = Astro.props;
+const { target, number, text } = Astro.props;
 const anchor = `--peek-${target}`;
 ---
 
 <div class="peek-row">
-  <div class="peek-row__text" style={`anchor-name: ${anchor}`}>
+  <div style={`anchor-name: ${anchor}`}>
     <slot />
   </div>
   <a class="peek" href={`#${target}`} style={`position-anchor: ${anchor}`}>
-    <span class="peek__layer">{layer === 'math' ? 'Math' : 'Code'}</span>
+    <span class="peek__index">{number}</span>
     <span class="peek__text">{text}</span>
   </a>
 </div>
@@ -27,28 +28,26 @@ const anchor = `--peek-${target}`;
 <style>
   .peek {
     display: flex;
-    gap: var(--space-2);
+    gap: 0.6rem;
     align-items: baseline;
-    margin: calc(-1 * var(--space-2)) 0 var(--space-4);
-    padding-inline-start: var(--space-3);
-    border-inline-start: 2px solid var(--border);
-    color: var(--ink-2);
-    font-size: var(--text-sm);
-    text-decoration: none;
+    margin: -0.4rem 0 1.2rem;
+    padding: 0 0 0 0.8rem;
+    border: 0;
+    border-left: 1px solid var(--rule);
+    color: var(--ink-faint);
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    line-height: 1.55;
+  }
+
+  .peek__index {
+    flex: none;
+    color: var(--signal);
+    letter-spacing: 0.08em;
   }
 
   .peek:hover .peek__text {
-    color: var(--ink-1);
-    text-decoration: underline;
-  }
-
-  .peek__layer {
-    font-weight: 600;
-    color: var(--ink-1);
-  }
-
-  .peek__text {
-    font-family: var(--font-mono);
+    color: var(--ink);
   }
 
   @supports (anchor-name: --a) {
@@ -56,8 +55,8 @@ const anchor = `--peek-${target}`;
       .peek {
         position: absolute;
         top: anchor(top);
-        left: calc(anchor(right) + var(--space-8));
-        width: 15rem;
+        left: calc(anchor(right) + 3rem);
+        width: 14rem;
         margin: 0;
       }
     }

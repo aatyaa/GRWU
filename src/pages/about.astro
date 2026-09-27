@@ -1,39 +1,58 @@
 ---
 import BaseLayout from '~/layouts/BaseLayout.astro';
+import Signature from '~/components/brand/Signature.astro';
+import Eyebrow from '~/components/editorial/Eyebrow.astro';
 ---
 
 <BaseLayout title="About" description="What GRWU is, who it is for, and where its data comes from.">
-  <div class="prose about">
+  <div class="about">
+    <Eyebrow>About</Eyebrow>
     <h1>About GRWU</h1>
-    <p>
-      GRWU is a visual on-ramp to gravitational-wave data analysis. Each article takes one step of
-      the analysis pipeline, from reading detector data to measuring a merger, and builds intuition
-      for it on real data before handing you the tools researchers use.
-    </p>
-    <p>
-      The articles follow the same path as the{' '}
-      <a href="https://gwosc.org/workshops/">Gravitational Wave Open Data Workshop</a>. The goal is
-      that a reader who finishes the core track is ready for the workshop's data challenges.
+    <p class="lead">
+      GRWU is a set of interactive essays on gravitational-wave data analysis. Each one takes a
+      single idea, tells the story of how it came to be needed, and lets you move the figures until
+      the idea is yours.
     </p>
 
-    <h2>Three levels of depth</h2>
+    <h2>Two ways to read</h2>
     <p>
-      Every idea starts with intuition: figures you can move and signals you can hear. You can open
-      the mathematics behind it, and then the Python code that computes it, without losing your
-      place in the article.
+      Every essay is written to be read as a story, with figures you can drag, scrub and replay.
+      Underneath each idea is its <strong>mathematical layer</strong>: the claim, what may be
+      assumed, the derivation with the step it turns on, and what it means. Open one where you want
+      it, or all of them at once with the control at the top of an essay.
+    </p>
+
+    <h2>What the colours mean</h2>
+    <p>
+      Colour is never decoration here. <span class="term">Amber</span> is the signal, and anything
+      observed or measured. Blue-grey is noise, models and schematics. Red is bias and disagreement,
+      and it is always labelled. Every figure also says what kind of picture it is: measured, model,
+      schematic, or a control whose answer is known in advance.
     </p>
 
     <h2>Data</h2>
     <p>
-      Strain data and event catalogues come from the{' '}
+      Strain data comes from the{' '}
       <a href="https://gwosc.org/">Gravitational Wave Open Science Center</a>, which publishes data
-      from the LIGO, Virgo and KAGRA observatories.
+      from the LIGO, Virgo and KAGRA observatories. It is analysed in your browser.
     </p>
+
+    <Signature ruled />
   </div>
 </BaseLayout>
 
 <style>
   .about {
-    padding: var(--space-12) var(--gutter) 0;
+    width: 100%;
+    max-width: calc(var(--measure) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding: clamp(2.5rem, 7vh, 5rem) var(--gutter) 0;
+    color: var(--ink-soft);
+  }
+
+  .about h2 {
+    font-size: clamp(1.6rem, 3.4vw, 2.2rem);
+    margin-top: var(--space-12);
+    color: var(--ink);
   }
 </style>

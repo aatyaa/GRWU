@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { expectNoA11yViolations } from './helpers';
 
 const pages = [
-  { path: '', heading: 'Gravitational-wave data analysis, explained visually' },
+  { path: '', heading: 'The signal is in there somewhere.' },
   { path: 'about/', heading: 'About GRWU' },
   { path: 'lab/', heading: 'Lab' },
 ];
@@ -27,8 +27,11 @@ test('unknown pages show the 404 page', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
 });
 
-test('drafts are not published', async ({ page }) => {
+test('the home page lists the essays in review or published', async ({ page }) => {
   await page.goto('');
+  await expect(page.getByRole('link', { name: /The Shape of Error/ })).toBeVisible();
+  // Planned essays are named but not linked.
+  await expect(page.getByText('Hidden in the Noise')).toBeVisible();
   await expect(page.getByRole('link', { name: /Hidden in the Noise/ })).toHaveCount(0);
 });
 

@@ -77,9 +77,9 @@
   .ring {
     margin: var(--space-8) 0;
     padding: var(--space-4);
-    border: 1px solid var(--border);
+    border: 1px solid var(--rule);
     border-radius: var(--radius-2);
-    background: var(--surface-1);
+    background: var(--surface);
   }
 
   .ring__canvas {
@@ -107,15 +107,15 @@
   figcaption p {
     margin: var(--space-2) 0 0;
     font-size: var(--text-sm);
-    color: var(--ink-2);
+    color: var(--ink-soft);
   }
 
   button {
     padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--border);
+    border: 1px solid var(--rule);
     border-radius: var(--radius-1);
     background: var(--surface-2);
-    color: var(--ink-1);
+    color: var(--ink);
     font: inherit;
     cursor: pointer;
   }

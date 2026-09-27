@@ -5,15 +5,16 @@
 import { atom, map, type MapStore } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
 
-export const DEPTHS = ['intuition', 'math', 'code'] as const;
+/** Every idea is told as a story; its mathematical layer opens on request. */
+export const DEPTHS = ['story', 'math'] as const;
 export type Depth = (typeof DEPTHS)[number];
 
 export function parseDepth(value: unknown): Depth {
-  return DEPTHS.includes(value as Depth) ? (value as Depth) : 'intuition';
+  return DEPTHS.includes(value as Depth) ? (value as Depth) : 'story';
 }
 
-/** How deep the reader wants articles opened by default. Remembered across visits. */
-export const depth = persistentAtom<Depth>('grwu-depth', 'intuition', {
+/** Whether the reader wants every mathematical layer open. Remembered across visits. */
+export const depth = persistentAtom<Depth>('grwu-depth', 'story', {
   encode: (value) => value,
   decode: parseDepth,
 });
@@ -30,7 +31,10 @@ if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
   query.addEventListener('change', (event) => reducedMotion.set(event.matches));
 }
 
-/** Parameters of one figure, shared by its sliders, equation and code panel. */
+/** Active step of every scrollytelling section on the page, keyed by the section's id. */
+export const scrollySteps = map<Record<string, number>>({});
+
+/** Parameters of one figure, shared by its controls and the prose around it. */
 export function createParams<T extends Record<string, string | number | boolean>>(
   defaults: T,
 ): MapStore<T> {

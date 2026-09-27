@@ -1,0 +1,93 @@
+---
+/** One line of a derivation: an expression and, in mono, why it follows. `hinge` marks the step the argument turns on. */
+import { tex } from './tex';
+
+interface Props {
+  tex: string;
+  hinge?: boolean;
+}
+
+const { tex: source, hinge = false } = Astro.props;
+const html = tex(source);
+---
+
+<li class:list={['step', { hinge }]}>
+  {/* Focusable so a long expression can be scrolled from the keyboard on a narrow screen. */}
+  <div class="step__expr" tabindex="0" set:html={html} />
+  <p class="step__why">
+    <slot />
+  </p>
+</li>
+
+<style>
+  .step {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 1.4rem 1fr;
+    gap: 0.75rem;
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+
+  .step::before {
+    content: counter(step);
+    padding-top: 0.6rem;
+    font-family: var(--f-mono);
+    font-size: 0.66rem;
+    color: var(--ink-faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .step:first-child {
+    border-top: 0;
+  }
+
+  .step__expr {
+    grid-column: 2;
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  .step__expr :global(.katex-display) {
+    margin: 0.2rem 0;
+    text-align: left;
+  }
+
+  .step__expr :global(.katex-display > .katex) {
+    text-align: left;
+  }
+
+  .step__why {
+    grid-column: 2;
+    max-width: 56ch;
+    margin: 0.1rem 0 0;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    line-height: 1.6;
+    color: var(--ink-faint);
+  }
+
+  .hinge {
+    margin: 0.4rem 0;
+    padding: 0.75rem 0.9rem;
+    border-top: 1px solid var(--signal);
+    border-radius: 5px;
+    background: var(--signal-bg);
+  }
+
+  .hinge::before,
+  .hinge .step__why {
+    color: var(--signal);
+  }
+
+  .hinge::after {
+    content: 'the hinge';
+    grid-column: 2;
+    justify-self: end;
+    font-family: var(--f-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+</style>

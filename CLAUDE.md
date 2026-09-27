@@ -33,8 +33,6 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
   Run the **Data** workflow on GitHub instead; it pushes a `data/<event>-<run>` branch.
 - `BASE_PATH=/GRWU/pr-preview/pr-3/ pnpm build` builds for a PR preview; `SHOW_DRAFTS=1`
   includes draft articles.
-- `PLAYWRIGHT_NETWORK=1 pnpm test:e2e` also runs the tests that fetch Pyodide from jsDelivr.
-  jsDelivr is blocked in Claude Code on the web, so these run in CI.
 - Astro 7 detaches `astro preview` into the background when it detects an AI agent. Use
   `pnpm exec astro preview --ignore-lock` to keep it in the foreground (Playwright does).
 
@@ -45,24 +43,31 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
 - `src/pages/`: routes. `lab/` is a noindex workbench for components.
 - `src/components/`: Astro and Svelte components. `src/elements/`: framework-free custom
   elements for lightweight in-prose interactions.
-  - `depth/`: the Depth Lens (ADR 0005). `<Unfold layer="math|code">` is a native
-    `<details data-layer>`; `<DepthDial>` opens every layer at the chosen depth and
-    remembers it; `<Peek>` previews a layer in the margin (anchor positioning, inline
-    fallback).
-  - `math/Eq.astro`: KaTeX at build time. Tag terms with `\htmlData{term=<id>}{...}` and list
-    them in `terms` with a concept colour; they link to figures through `highlightedTerm`.
+  - `editorial/`: the talks' vocabulary (ADR 0006): `Eyebrow`, `Pull`, `Facts`, `Card`
+    (`tone="caveat"` for the warnings nobody writes down), `Figure` (evidence label:
+    measured, model, schematic, control; `width="text|medium|wide"`), `Scrolly`.
+  - `math/`: `Eq` (KaTeX at build time; tagged terms defined underneath and linked to
+    figures through `highlightedTerm`), and the mathematical layer: `MathLayer` with
+    `Claim`, `Given`, `Steps`/`Step` (`hinge` marks the step the argument turns on), `Means`.
+  - `depth/`: `DepthDial` (story only / with the mathematics) and `Peek` (margin note that
+    opens a layer). ADR 0005.
+  - `figures/`: the essays' figures. Astro components are static SVG computed at build
+    time; Svelte ones are interactive islands (`client:visible`).
+  - `brand/`: the AG monogram and the signature. `site/`: header rail, footer, `Title`.
   - `three/`: Threlte scenes from `@threlte/core/webgpu` (WebGPU, WebGL2 fallback).
-  - `lab/`: figures of the `/lab/skeleton` workbench, the models for article figures.
+  - `lab/`: work in progress for later figures (the spectrum figure).
 - `src/lib/`: shared TypeScript.
   - `dsp/`: `rfft`/`irfft` (fft.js, power-of-two lengths), `hann`, `welch` (scipy defaults,
     mean or median). Tested against `tests/fixtures/dsp.json`.
   - `data/dataset.ts`: `loadDataset(withBase('data/...'))` fetches meta.json and channels and
     checks SHA-256; `toPhysical()` multiplies by `scale`.
-  - `workers/`: `dspWorker()` (Comlink) runs DSP off the main thread; `python/`'s
-    `pythonWorker()` runs Pyodide in a worker, loading the runtime from jsDelivr on first
-    use. The Pyodide npm version pins the runtime version; keep them equal.
-  - `state/`: nanostores shared by islands (`depth`, `highlightedTerm`, `reducedMotion`,
-    `createParams`). `gpu/detect.ts`: WebGPU, else WebGL2.
+  - `workers/`: `dspWorker()` (Comlink) runs DSP off the main thread.
+  - `state/`: nanostores shared by islands (`depth`, `highlightedTerm`, `scrollySteps`,
+    `reducedMotion`, `createParams`). `gpu/detect.ts`: WebGPU, else WebGL2.
+  - `stats/`: seeded randomness (`mulberry32`, `gaussian`) so every figure draws the same
+    sample, and the estimators the essays compare (`mean`, `median`, `midrange`,
+    `fitLine`, `fitLinear`, `normalPdf`, `diceTotals`).
+  - `figure/pointer.ts`: dragging in SVG units, arrow-key stepping, tweens.
   - `dsp/models.ts`: analytic noise models (Advanced LIGO design PSD). `audio/play.ts`:
     plays 4096 Hz data through Web Audio. `format.ts`: `8.0 × 10⁻²⁴`-style numbers.
 - `src/styles/tokens.css`: design tokens, including the concept colour grammar.
@@ -76,18 +81,23 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
 
 - Internal links go through `withBase()` from `src/lib/url.ts`; never hard-code `/GRWU/`.
   In Playwright tests navigate with relative paths (`page.goto('about/')`).
-- Concept colours (`--c-data`, `--c-signal`, `--c-template`, `--c-snr`, `--c-glitch`,
-  `--c-noise`) are fixed per concept across the whole site. Prose text stays in ink; the
-  colour goes on a marker next to it. The pairings validated for colour-blind safety are
-  listed in `tokens.css`; do not add concept colours without re-running that check.
+- Colour carries meaning (ADR 0006): amber `--signal` is the signal and anything measured;
+  blue-grey `--noise`/`--model` is noise, models and schematics (models dashed); red
+  `--bias` is bias and disagreement, always labelled; green `--ok` is agreement. Text stays
+  in ink. Do not add colours; small text must pass AA on `--ground` and `--surface`.
+- Essays are written in the talks' voice: short declarative headings, a pull line per idea,
+  history before formalism, and honest limits (a `Card tone="caveat"`). Every figure gets
+  an evidence label and a mono caption that says what to look at.
+- Interactive figures: draw at real pixel size (`bind:clientWidth`), every draggable handle
+  is also a keyboard slider (`stepKey`), and state is exposed as `data-*` attributes.
 - Any DSP function must be tested against scipy/gwpy reference output before it is used.
 - Every page must pass axe (checked in e2e, light and dark) and respect
   `prefers-reduced-motion`. In Playwright emulate it with `page.emulateMedia()`: the
   `reducedMotion` test option does not take effect with the pinned Chromium.
-- Figures expose their state as `data-*` attributes (`data-state="ready"`, `data-segments`,
-  `data-highlight`) so tests wait on state, not on timing.
+- Tests wait on figure state (`data-*` attributes), never on timing; the axe helper waits
+  for fade-in animations to finish before measuring contrast.
 - Keep article pages light: text is static HTML, figures are islands loaded with
-  `client:visible`, and heavy libraries (Three.js, Pyodide) load only where needed.
+  `client:visible`, and heavy libraries (Three.js) load only where needed.
 - TypeScript is pinned to 6.x because Astro/Svelte tooling and typescript-eslint do not
   support 7 yet. Playwright is pinned to 1.56.1 to match the Chromium preinstalled in
   Claude Code on the web.

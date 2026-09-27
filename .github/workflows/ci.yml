@@ -48,9 +48,6 @@ jobs:
 
       - name: Browser and accessibility tests
         run: pnpm test:e2e
-        env:
-          # Also run the tests that need the network (Pyodide, numpy and scipy from jsDelivr).
-          PLAYWRIGHT_NETWORK: '1'
 
       - name: Upload Playwright report
         if: failure()

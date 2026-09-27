@@ -1,0 +1,316 @@
+---
+title: The Shape of Error
+emphasis: Error
+headline: How do you find what you cannot see?
+eyebrow: A story in five acts
+byline: 1801 — today · Gauss · Laplace · the interferometer
+summary: Two centuries ago a lost planet forced mathematics to answer a question every experiment since has had to face. When all your measurements disagree, how do you find what is true?
+track: orientation
+order: 1
+status: review
+minutes: 25
+objectives:
+  - Say what least squares minimises, and why the square is not a convention.
+  - Read a likelihood as the product of how probable each miss was.
+  - Check a fit by the only thing that can catch it out, its residuals.
+updated: 2026-09-27
+sources:
+  - title: C. F. Gauss, Theoria Motus Corporum Coelestium (1809)
+    url: https://archive.org/details/theoriamotuscor00gausgoog
+  - title: 'S. M. Stigler, The History of Statistics: The Measurement of Uncertainty before 1900'
+    url: https://www.hup.harvard.edu/books/9780674403413
+  - title: A guide to LIGO–Virgo detector noise and extraction of transient gravitational-wave signals
+    url: https://iopscience.iop.org/article/10.1088/1361-6382/ab685e
+---
+
+import Card from '~/components/editorial/Card.astro';
+import Eyebrow from '~/components/editorial/Eyebrow.astro';
+import Facts from '~/components/editorial/Facts.astro';
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import Peek from '~/components/depth/Peek.astro';
+import CandidateFits from '~/components/figures/CandidateFits.astro';
+import CostCurves from '~/components/figures/CostCurves.astro';
+import ErrorShape from '~/components/figures/ErrorShape.svelte';
+import LeastSquares from '~/components/figures/LeastSquares.svelte';
+import LikelihoodProduct from '~/components/figures/LikelihoodProduct.svelte';
+import Norms from '~/components/figures/Norms.svelte';
+import OrbitArc from '~/components/figures/OrbitArc.astro';
+import Residuals from '~/components/figures/Residuals.svelte';
+import Claim from '~/components/math/Claim.astro';
+import Eq from '~/components/math/Eq.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+
+<Eyebrow>Act I · The lost planet</Eyebrow>
+
+## On the first night of the nineteenth century, an astronomer found a new world.
+
+Giuseppe Piazzi, working in Palermo, spotted a faint moving point that belonged to no catalogue. He tracked it night after night as it crept across the sky.
+
+Then it drifted too close to the Sun and the glare swallowed it. Piazzi had followed it across just **nine degrees of arc**, a sliver of one orbit, and now it was gone.
+
+To find it again when it emerged months later, someone would have to predict <span class="term">where an entire orbit went</span> from that sliver alone. And the sliver was measured by hand, by eye, through a telescope. Every number in it was slightly wrong.
+
+<Figure kind="schematic">
+  <OrbitArc />
+  <Fragment slot="caption">
+    Piazzi's arc drawn to scale against the orbit it belongs to. The amber segment is all the
+    evidence that existed.
+  </Fragment>
+</Figure>
+
+<Facts
+  facts={[
+    { label: 'Discovered', value: '1 Jan 1801', note: 'Giuseppe Piazzi, Palermo' },
+    { label: 'Arc observed', value: '9°', note: 'of a full orbit' },
+    { label: 'Then', value: 'Lost', note: "behind the Sun's glare" },
+  ]}
+/>
+
+## Every measurement disagreed with every other one.
+
+An orbit is fixed by a handful of numbers, and Piazzi had far more observations than numbers to determine. That sounds like plenty, until you notice the catch.
+
+No orbit passes through all the points. The observations contradict each other, because each carries its own small error. Pick three observations and you get one orbit; pick three others and you get a different one.
+
+The astronomers of 1801 had no principled way to choose. Some averaged. Some kept the observations they trusted and threw the rest away. Their predictions scattered across the sky, and Ceres stayed lost.
+
+<Figure kind="schematic">
+  <CandidateFits />
+  <Fragment slot="caption">
+    The same observations, three defensible fits, each through a different three of the points.
+    Without a rule for what "best" means, the choice is taste, and taste does not find a planet.
+  </Fragment>
+</Figure>
+
+<Pull>
+  The data was not too little. <em>It was too inconsistent.</em>
+</Pull>
+
+## Gauss did not pick the best observations. He defined the best answer.
+
+His move was to stop arguing about which measurements to trust, and instead state once and for all what makes one curve better than another.
+
+<Peek target="m1" number="M1" text="least squares is a right angle: the best fit leaves a miss perpendicular to everything the model can do">
+
+For any candidate orbit, measure how far it misses each observation. Square each miss. Add them up. The best orbit is the one that makes that total as small as possible.
+
+</Peek>
+
+That is the whole method: **least squares**. Every observation contributes, none is discarded, and the answer stops depending on who is choosing. Try it: move the line until the shaded area is as small as you can make it, then let Gauss choose.
+
+<Figure kind="schematic" width="medium">
+  <LeastSquares client:visible />
+  <Fragment slot="caption">
+    Each square's side is one observation's miss. Squaring is what makes a few large errors cost
+    more than many small ones, so the fit refuses to abandon any point.
+  </Fragment>
+</Figure>
+
+He sent his prediction to Franz Xaver von Zach, and kept the method to himself.
+
+<MathLayer id="m1" number="M1" title="Least squares is a right angle">
+  <Claim>
+    Fitting is not searching. The best parameters are the ones that make the **leftover
+    perpendicular** to everything the model could have produced, and that condition has a
+    closed-form solution.
+  </Claim>
+  <Given>
+    A model that is linear in its parameters, *y* = *Aθ* + *n*, with *A* the design matrix: one
+    column per parameter, one row per measurement.
+  </Given>
+  <Steps>
+    <Step tex="S(\theta) = \lVert y - A\theta \rVert^2">
+      The same cost as before, written for many parameters at once. The double bars are just "the
+      total squared length of".
+    </Step>
+    <Step tex="A^{\top}(y - A\theta) = 0" hinge>
+      Differentiate and set to zero. Read it as a geometric statement: the residual must be
+      orthogonal to every column of A.
+    </Step>
+    <Step tex="A^{\top}A\,\hat\theta = A^{\top} y">
+      Rearranged, these are the normal equations: normal in the old sense of perpendicular, not
+      the sense of the bell curve.
+    </Step>
+    <Step tex="\hat\theta = (A^{\top}A)^{-1}A^{\top} y">
+      And they solve in one line. No search, no iteration. With a single column of ones, this is
+      the mean.
+    </Step>
+  </Steps>
+  <Means>
+    Hold this picture: it recurs. The data is a point, everything the model can reach is a plane,
+    and the fit is the foot of the perpendicular from one to the other. When the data moves off in
+    a direction the plane cannot follow, the foot slides, which is the whole subject of the last
+    act.
+  </Means>
+</MathLayer>
+
+## Zach pointed his telescope where Gauss said, and Ceres was there.
+
+Gauss's predicted position differed sharply from everyone else's. On the night of 7 December 1801 von Zach found the lost planet almost exactly where that prediction placed it. Heinrich Olbers confirmed it on 31 December.
+
+A method for handling error had just made a physical prediction that methods without one could not.
+
+<Facts
+  facts={[
+    { label: 'Recovered', value: '7 Dec 1801', note: 'von Zach, Gotha' },
+    { label: 'Confirmed', value: '31 Dec 1801', note: 'Olbers, Bremen' },
+    { label: 'Gauss was', value: '24', note: 'and did not publish the method' },
+  ]}
+/>
+
+But Gauss had only shown that least squares works. He had not yet said why, and the answer to that turns out to be the foundation of everything that follows.
+
+<Pull>
+  Least squares is not a convention. <em>It is a consequence.</em>
+</Pull>
+
+<Eyebrow>Act II · The shape of error</Eyebrow>
+
+## Why squares? Why not just the distance?
+
+Nothing forces you to square the misses. You could add up the plain distances. You could raise them to the fourth power. Each rule is defensible, and each picks a different best curve out of the same data.
+
+Plain distance treats a miss of 10 as exactly ten misses of 1. The fourth power treats a single large miss as a catastrophe and ignores everything else. Squaring sits between them, but "between them" is not a reason.
+
+<Figure kind="schematic">
+  <CostCurves />
+  <Fragment slot="caption">
+    Three possible rules for what a miss should cost you. Every one of them gives a different
+    answer. Gauss needed a reason, not a preference.
+  </Fragment>
+</Figure>
+
+Here is how different. Eight measurements of one quantity, seven that agree and one that does not. Minimise the squares and you are led to the mean. Minimise the plain distances and you get the median. Minimise the single worst miss and you get the midrange, which listens to nothing but the two extremes. Drag the outlier and watch who follows it.
+
+<Figure kind="schematic" width="wide">
+  <Norms client:visible />
+  <Fragment slot="caption">
+    Nobody here is cheating. Each marker is the exact minimiser of a perfectly reasonable cost,
+    and they land in different places. "Best fit" is not a well-posed phrase until you name the
+    cost.
+  </Fragment>
+</Figure>
+
+To justify one rule over the others, Gauss had to answer a harder question first: what does a measurement error actually look like?
+
+## Before any mathematics, three things are true about mistakes.
+
+1. Small misses happen far more often than large ones.
+2. Missing high and missing low are equally likely.
+3. Enormous misses essentially never happen.
+
+These are not a model. They are things anyone who has ever measured anything will agree with before being shown a single equation. And they are almost enough to determine the curve completely. Symmetric, peaked at zero, falling away fast on both sides: there is not much room left.
+
+<Figure kind="model" width="wide">
+  <ErrorShape client:visible />
+  <Fragment slot="caption">
+    Individual errors (the ticks), gathered into counts (the bars), and the curve they trace out.
+    Everyone had seen this shape. Gauss asked where it came from.
+  </Fragment>
+</Figure>
+
+## Gauss ran the argument backwards.
+
+The natural thing to do is start with a law for the errors and work out which estimate it recommends. Gauss did the opposite.
+
+Astronomers already trusted one thing without proof: when you measure the same quantity several times, you take the average. Nobody doubted it. So Gauss treated it as given and asked the reverse question: what would the error curve have to be, for the average to be the most probable answer?
+
+Exactly one curve satisfies that demand. It is the bell curve, and it has carried his name ever since.
+
+Notice that this is not yet a proof. He assumed the average was right to show the curve was right. Laplace closes that circle in the next act.
+
+## And now least squares stops being a choice.
+
+Follow the bell curve through, one step at a time. Nothing below is a decision: each line is forced by the one above it.
+
+<Eq
+  tex={String.raw`p(\htmlData{term=miss}{r}) \propto e^{-r^2/2\sigma^2}
+  \quad\Rightarrow\quad
+  \htmlData{term=likelihood}{p(\text{all})} = \prod_i p(r_i) \propto e^{-\sum_i r_i^2 / 2\sigma^2}`}
+  terms={[
+    { id: 'miss', symbol: 'r', label: 'one measurement’s miss', concept: 'signal' },
+    { id: 'likelihood', symbol: 'p(\\text{all})', label: 'how likely all of them were together: the likelihood', concept: 'data' },
+  ]}
+/>
+
+One measurement: the chance of missing by *r* is the bell curve, and a big miss sits far out on the tail, so it is unlikely. Every measurement together: independent errors multiply, the same way two coin flips both landing heads is one chance in four. And multiplying exponentials adds their exponents, so the product collapses into a single sum, and that sum is a **sum of squares**. The exponent is negative, so the probability is largest exactly when the sum of squares is smallest. The two statements are the same statement.
+
+<Figure kind="schematic" width="wide">
+  <LikelihoodProduct client:visible />
+  <Fragment slot="caption">
+    Three good points and one poor one. The product is decided by the poor one: that is squaring
+    doing its work. Drag any point towards the middle of its curve and watch the product recover.
+  </Fragment>
+</Figure>
+
+<Pull>
+  Gauss's rule was never a convention. <em>It fell out of the shape of error.</em>
+</Pull>
+
+<MathLayer id="m5" number="M5" title="Maximising a probability and minimising a sum of squares are one act">
+  <Claim>
+    Once the errors are Gaussian, "the most probable model" and "the model with the smallest total
+    squared miss" are not two criteria that happen to agree. They are the same sentence written
+    twice.
+  </Claim>
+  <Given>
+    Independent measurements, Gaussian errors of known width σᵢ, and a model that predicts hᵢ.
+  </Given>
+  <Steps>
+    <Step tex="L = \prod_i \frac{1}{\sqrt{2\pi}\,\sigma_i}\, e^{-r_i^2/2\sigma_i^2}">
+      Independent things multiply. Here rᵢ = yᵢ − hᵢ is the miss at point i.
+    </Step>
+    <Step tex="\ln L = \text{const} - \tfrac12 \sum_i \left(\frac{r_i}{\sigma_i}\right)^2">
+      Take the logarithm. The product becomes a sum, and every factor that does not depend on the
+      model collects into a constant.
+    </Step>
+    <Step tex="\chi^2 = \sum_i \left(\frac{r_i}{\sigma_i}\right)^2 \;\Rightarrow\; L \propto e^{-\chi^2/2}" hinge>
+      That sum has a name. Everything the data says about the model is inside it.
+    </Step>
+    <Step tex="\max L \iff \min \chi^2">
+      The exponent carries a minus sign, and e⁻ˣ falls as x grows. Largest probability is smallest
+      χ², necessarily.
+    </Step>
+    <Step tex="\langle \chi^2 \rangle = N - k">
+      And its expected value is the number of points minus the number of parameters you fitted,
+      which is why χ² per degree of freedom near 1 is the number people quote.
+    </Step>
+  </Steps>
+  <Means>
+    The consequence is of the Gaussian, and of nothing else. Change the noise law and this
+    equivalence breaks, which is the honest reason the field cares so much about whether detector
+    noise really is Gaussian.
+  </Means>
+</MathLayer>
+
+## Subtract the model. Look at what is left.
+
+Fitting always returns an answer. It never refuses. So the fit itself cannot tell you whether the model was any good: you have to check separately.
+
+The check is simple. Take the data, subtract the curve you fitted, and stare at the leftovers. These are the **residuals**. If your model captured everything real, the leftovers should be indistinguishable from pure noise: scattered evenly above and below zero, with no shape you can point at.
+
+<Figure kind="schematic" width="wide">
+  <Residuals client:visible />
+  <Fragment slot="caption">
+    Both fits return an answer, and both look plausible on top. Only the residual panel separates
+    them.
+  </Fragment>
+</Figure>
+
+<Pull>
+  If you can still see a pattern in what is left over, <em>the pattern belongs to something your model does not contain.</em>
+</Pull>
+
+Hold on to that sentence. In the last act it comes back, and it will not be so easy to spot.
+
+<Card label="Where the story goes next">
+  Laplace explains why the bell curve is there at all, and why it fails when a single disturbance
+  dominates. Then the same problem returns in its most extreme form: a signal a hundred times
+  fainter than the noise it is buried in, and the template that pulls it out. Those acts are being
+  written now.
+</Card>

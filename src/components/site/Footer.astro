@@ -1,26 +1,46 @@
+---
+import Signature from '~/components/brand/Signature.astro';
+---
+
 <footer class="site-footer">
-  <div class="container">
-    <p>
-      GRWU explains gravitational-wave data analysis with interactive figures. Strain data comes
-      from the <a href="https://gwosc.org/">Gravitational Wave Open Science Center</a>.
-    </p>
-    <p>
-      <a href="https://github.com/aatyaa/GRWU">Source on GitHub</a>
-    </p>
+  <div class="container site-footer__inner">
+    <Signature />
+    <div class="site-footer__notes">
+      <p>
+        Strain data from the <a href="https://gwosc.org/">Gravitational Wave Open Science Center</a>
+        , a service of the LIGO Scientific Collaboration, the Virgo Collaboration and KAGRA.
+      </p>
+      <p>
+        <a href="https://github.com/aatyaa/GRWU">Source on GitHub</a>
+      </p>
+    </div>
   </div>
 </footer>
 
 <style>
   .site-footer {
-    margin-top: var(--space-16);
-    padding-block: var(--space-8);
-    border-top: 1px solid var(--border);
-    color: var(--ink-2);
-    font-size: var(--text-sm);
+    margin-top: var(--space-24);
+    padding-block: var(--space-8) var(--space-12);
+    border-top: 1px solid var(--rule);
   }
 
-  .site-footer p {
-    max-width: var(--measure);
+  .site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-6);
+  }
+
+  .site-footer__notes {
+    max-width: 30rem;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    line-height: 1.6;
+    color: var(--ink-faint);
+  }
+
+  .site-footer__notes p {
     margin: 0 0 var(--space-2);
   }
 </style>

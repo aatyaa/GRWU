@@ -1,0 +1,33 @@
+---
+/**
+ * A pull line in the display face with an amber rule. Wrap the turn of the sentence in
+ * <em> to set it in italic amber: <Pull>The data was not too little. <em>It was too
+ * inconsistent.</em></Pull>
+ */
+---
+
+<div class="pull">
+  <slot />
+</div>
+
+<style>
+  .pull {
+    max-width: 44ch;
+    margin: var(--space-8) 0;
+    padding: 2px 0 2px 1.4rem;
+    border-left: 2px solid var(--signal);
+    font-family: var(--f-display);
+    font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+    line-height: 1.28;
+    color: var(--ink);
+  }
+
+  .pull :global(p) {
+    margin: 0;
+  }
+
+  .pull :global(em) {
+    font-style: italic;
+    color: var(--signal);
+  }
+</style>

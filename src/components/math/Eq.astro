@@ -1,17 +1,20 @@
 ---
 /**
  * A display equation rendered by KaTeX at build time (no client JS for the maths itself),
- * with MathML for screen readers. Terms tagged with \htmlData{term=<id>}{...} are linked to
- * figures through the shared `highlightedTerm` store; each tagged term needs an entry in
- * `terms`, which also renders a keyboard-accessible legend.
+ * with MathML for screen readers. Terms tagged with \htmlData{term=<id>}{...} are defined
+ * underneath, the way the talks write "d  what the instrument wrote down": pointing at or
+ * focusing a definition lights its term, and figures listening to `highlightedTerm` light
+ * the same concept.
  */
-import katex from 'katex';
 import 'katex/dist/katex.min.css';
+import { tex } from './tex';
 
 type Concept = 'data' | 'signal' | 'template' | 'snr' | 'glitch' | 'noise';
 
 export interface Term {
   id: string;
+  /** TeX for the symbol shown in the definition, e.g. "\\hat S(f)". */
+  symbol: string;
   label: string;
   concept: Concept;
 }
@@ -19,30 +22,24 @@ export interface Term {
 interface Props {
   tex: string;
   terms?: Term[];
+  size?: 'normal' | 'large';
 }
 
-const { tex, terms = [] } = Astro.props;
+const { tex: source, terms = [], size = 'normal' } = Astro.props;
 
-let html = katex.renderToString(tex, {
-  displayMode: true,
-  output: 'htmlAndMathml',
-  throwOnError: true,
-  trust: ({ command }) => command === '\\htmlData',
-  strict: (code: string) => (code === 'htmlExtension' ? 'ignore' : 'error'),
-});
-
+let html = tex(source);
 for (const term of terms) {
   const tagged = `data-term="${term.id}"`;
-  if (!html.includes(tagged)) throw new Error(`Eq: no \\htmlData{term=${term.id}} in ${tex}`);
+  if (!html.includes(tagged)) throw new Error(`Eq: no \\htmlData{term=${term.id}} in ${source}`);
   html = html.replaceAll(tagged, `${tagged} style="--term-color: var(--c-${term.concept})"`);
 }
 ---
 
-<grwu-eq class="eq">
+<grwu-eq class:list={['eq', size]}>
   {/* Focusable so a wide equation can be scrolled from the keyboard on a narrow screen. */}
   <div class="eq__math" tabindex="0" set:html={html} />
   {terms.length > 0 && (
-    <ul class="eq__terms" aria-label="Terms in this equation">
+    <ul class="eq__where" aria-label="Terms in this equation">
       {terms.map((term) => (
         <li>
           <button
@@ -50,7 +47,8 @@ for (const term of terms) {
             data-term={term.id}
             style={`--term-color: var(--c-${term.concept})`}
           >
-            {term.label}
+            <span class="eq__symbol" set:html={tex(term.symbol, false)} />
+            <span class="eq__label">{term.label}</span>
           </button>
         </li>
       ))}
@@ -65,7 +63,7 @@ for (const term of terms) {
 <style is:global>
   .eq {
     display: block;
-    margin: var(--space-6) 0;
+    margin: var(--space-8) 0;
   }
 
   .eq__math {
@@ -75,42 +73,67 @@ for (const term of terms) {
 
   .eq .katex-display {
     margin: 0;
+    text-align: left;
+  }
+
+  .eq .katex-display > .katex {
+    text-align: left;
+  }
+
+  .eq.large .katex {
+    font-size: 1.7em;
   }
 
   /* Glyphs stay in ink; the concept colour is a marker under the term. */
-  .eq [data-term] {
-    border-bottom: 2px solid var(--term-color);
-    border-radius: 2px;
-    transition: background-color var(--dur-fast) var(--ease);
-  }
-
   .eq .katex [data-term] {
     padding-bottom: 1px;
-  }
-
-  .eq [data-term].is-highlighted {
-    background: color-mix(in srgb, var(--term-color) 22%, transparent);
-  }
-
-  .eq__terms {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin: var(--space-2) 0 0;
-    padding: 0;
-    list-style: none;
-    justify-content: center;
-  }
-
-  .eq__terms button {
-    padding: var(--space-1) var(--space-2);
-    border: 0;
     border-bottom: 2px solid var(--term-color);
     border-radius: 2px;
+    transition:
+      color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease);
+  }
+
+  .eq .katex [data-term].is-highlighted {
+    color: var(--term-color);
+    background: color-mix(in srgb, var(--term-color) 16%, transparent);
+  }
+
+  .eq__where {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.6rem;
+    margin: 1.1rem 0 0;
+    padding: 0.9rem 0 0;
+    border-top: 1px solid var(--rule-soft);
+    list-style: none;
+  }
+
+  .eq__where button {
+    display: grid;
+    gap: 3px;
+    max-width: 24ch;
+    padding: 0;
+    border: 0;
     background: none;
-    color: var(--ink-2);
-    font: inherit;
-    font-size: var(--text-sm);
-    cursor: help;
+    text-align: left;
+    cursor: default;
+  }
+
+  .eq__symbol {
+    font-size: 1.05rem;
+    color: var(--term-color);
+  }
+
+  .eq__label {
+    font-family: var(--f-mono);
+    font-size: 0.7rem;
+    line-height: 1.55;
+    color: var(--ink-faint);
+  }
+
+  .eq__where button.is-highlighted .eq__label,
+  .eq__where button:hover .eq__label {
+    color: var(--ink);
   }
 </style>

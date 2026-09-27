@@ -1,0 +1,49 @@
+---
+import Mark from './Mark.astro';
+
+interface Props {
+  role?: string;
+  ruled?: boolean;
+}
+
+const { role = 'Gravitational-wave data analysis', ruled = false } = Astro.props;
+---
+
+<div class:list={['signature', { ruled }]}>
+  <Mark size={44} label="Attia A. Gadallah" />
+  <div>
+    <div class="signature__name">Attia A. Gadallah</div>
+    <div class="signature__role">{role}</div>
+  </div>
+</div>
+
+<style>
+  .signature {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+    margin-top: var(--space-6);
+  }
+
+  .signature.ruled {
+    margin-top: var(--space-8);
+    padding-top: 1.3rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .signature__name {
+    font-family: var(--f-display);
+    font-size: 1.4rem;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+
+  .signature__role {
+    margin-top: 4px;
+    font-family: var(--f-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+</style>

@@ -1,13 +1,13 @@
 # GRWU
 
-Visual, interactive explanations of gravitational-wave data analysis.
+Interactive essays on gravitational-wave data analysis, by Attia A. Gadallah.
 
-GRWU takes one step of the analysis pipeline at a time, from reading detector data to
-measuring a merger, and builds intuition for it on real LIGO and Virgo data in the
-browser. Each idea can be opened at three depths: intuition, the mathematics, and the
-Python code that computes it. The articles follow the path of the
-[Gravitational Wave Open Data Workshop](https://gwosc.org/workshops/), so a reader who
-finishes the core track is ready for its data challenges.
+Each essay takes one idea, tells the story of how it came to be needed, and lets the reader
+move the figures until the idea is theirs: why errors have a shape, how a template pulls a
+merger out of noise a hundred times louder, and how a confident fit can be wrong. Every idea
+has a mathematical layer underneath that opens in place. The figures run on real LIGO and
+Virgo data in the browser, and the look and voice come from the author's talks (see
+[ADR 0006](docs/adr/0006-visual-identity.md)).
 
 The site is under construction. It will be published at
 <https://aatyaa.github.io/GRWU/>.
@@ -27,9 +27,6 @@ pnpm dev          # http://localhost:4321/GRWU/
 | `pnpm test:e2e` | Browser tests with accessibility checks (after `pnpm build`) |
 | `pnpm format`   | Format the code with Prettier                                |
 | `pnpm build`    | Production build into `dist/`                                |
-
-`/lab/skeleton/` shows every layer working together on real data: a spectrum computed
-in the browser, an equation linked to it, three depths, Python (Pyodide), sound and 3D.
 
 Articles live in `src/content/articles/`. Architecture decisions are recorded in
 [`docs/adr/`](docs/adr/). The Python data pipeline that prepares the datasets in

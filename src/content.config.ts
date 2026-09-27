@@ -21,6 +21,14 @@ const articles = defineCollection({
   }),
   schema: z.object({
     title: z.string(),
+    /** A word of the title set in italic amber, as in "The Shape of *Error*". */
+    emphasis: z.string().optional(),
+    /** The question the article opens with, shown as its headline. Defaults to the title. */
+    headline: z.string().optional(),
+    /** Mono line above the headline, e.g. "A story in five acts". */
+    eyebrow: z.string().optional(),
+    /** Mono line under the lead, e.g. "1801 — today · Gauss · Laplace · the interferometer". */
+    byline: z.string().optional(),
     summary: z.string(),
     track: z.enum(TRACKS),
     /** Position inside its track. */
