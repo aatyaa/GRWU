@@ -1,0 +1,63 @@
+name: Data
+
+# Downloads event strain from gwosc.org with the data pipeline and pushes it to a
+# data/<event>-<run id> branch, ready for a pull request. Run it from the Actions tab.
+
+on:
+  workflow_dispatch:
+    inputs:
+      event:
+        description: GWOSC event name, e.g. GW150914
+        required: true
+        default: GW150914
+      detectors:
+        description: Detectors, space separated
+        required: true
+        default: H1 L1
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    env:
+      EVENT: ${{ inputs.event }}
+      DETECTORS: ${{ inputs.detectors }}
+    steps:
+      - name: Validate inputs
+        run: |
+          [[ "$EVENT" =~ ^GW[0-9]{6}(_[0-9]{6})?$ ]] || { echo "Bad event name: $EVENT"; exit 1; }
+          for detector in $DETECTORS; do
+            [[ "$detector" =~ ^(H1|L1|V1|K1)$ ]] || { echo "Bad detector: $detector"; exit 1; }
+          done
+
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          working-directory: pipeline
+          enable-cache: true
+          cache-dependency-glob: pipeline/uv.lock
+
+      - name: Fetch from GWOSC
+        working-directory: pipeline
+        run: |
+          uv sync --frozen
+          # Word splitting is intended: one argument per detector (validated above).
+          # shellcheck disable=SC2086
+          uv run grwu-pipeline fetch --event "$EVENT" --detectors $DETECTORS
+
+      - name: Push to a data branch
+        run: |
+          branch="data/${EVENT}-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add "public/data/events/$EVENT"
+          git commit -m "Add $EVENT strain from GWOSC ($DETECTORS)"
+          git push origin "$branch"
+          {
+            echo "Pushed \`$branch\`."
+            echo "Open a pull request: https://github.com/$GITHUB_REPOSITORY/compare/main...$branch?expand=1"
+          } >> "$GITHUB_STEP_SUMMARY"

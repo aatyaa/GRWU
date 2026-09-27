@@ -1,0 +1,5 @@
+# Raw float32 sample files written by the data pipeline.
+*.f32 binary
+# Generated outputs: collapsed in pull request diffs.
+public/data/** linguist-generated=true
+tests/fixtures/** linguist-generated=true
