@@ -8,7 +8,7 @@ import { tex } from '~/components/math/tex';
 import { getArticles } from '~/lib/content';
 import { withBase } from '~/lib/url';
 
-type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map';
+type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map' | 'bell';
 
 interface Card {
   id: string;
@@ -97,7 +97,10 @@ const segments: Segment[] = [...cards]
 const first = cards.find((card) => card.href);
 
 // Published articles beyond the four on the signal map.
-const moreThumbs: Record<string, Kind> = { 'almost-none-of-it': 'map' };
+const moreThumbs: Record<string, Kind> = {
+  'almost-none-of-it': 'map',
+  'laplace-closes-the-circle': 'bell',
+};
 const more = articles.filter((a) => !planned.some((p) => p.id === a.id));
 ---
 

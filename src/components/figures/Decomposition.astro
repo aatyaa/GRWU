@@ -1,0 +1,96 @@
+---
+/**
+ * d = h + n (Laplace Closes the Circle): the practice chirp as recorded, and the two things
+ * it is made of, on one scale. Only the top trace exists; the split is what analysis
+ * proposes.
+ */
+import { decomposition } from '~/lib/articles/laplace';
+import { linePath, linear } from '~/lib/figure/svg';
+
+const dec = decomposition();
+const W = 600;
+const ROW = 92;
+const H = 30 + ROW * 3;
+const PAD = { l: 44, r: 12 };
+const x = linear(0, dec.t[dec.t.length - 1], PAD.l, W - PAD.r);
+const peak = Math.max(...dec.d.map(Math.abs));
+const rows = [
+  { key: 'd', values: dec.d, cls: 'rec', label: 'what you recorded', sign: '' },
+  {
+    key: 'h',
+    values: dec.h,
+    cls: 'sig',
+    label: 'the thing you want: never seen on its own',
+    sign: '=',
+  },
+  {
+    key: 'n',
+    values: dec.n,
+    cls: 'noi',
+    label: 'everything else: also never seen on its own',
+    sign: '+',
+  },
+];
+---
+
+<svg
+  class="fig decomposition"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Three traces on the same scale. On top, what the detector recorded, which looks like noise. Below it, the signal alone, a chirp that grows toward the right, and below that everything else, which looks just like the top trace. Adding the lower two gives the top one."
+>
+  {rows.map((row, k) => {
+    const mid = 30 + k * ROW + ROW / 2;
+    const y = linear(-peak, peak, mid + ROW / 2 - 12, mid - ROW / 2 + 12);
+    return (
+      <g>
+        <text class="letter" x="14" y={mid + 6}>
+          {row.key}
+        </text>
+        {row.sign && (
+          <text class="sign" x="30" y={mid - ROW / 2 + 6} text-anchor="middle">
+            {row.sign}
+          </text>
+        )}
+        <text class="caps" x={PAD.l} y={mid - ROW / 2 + 16}>
+          {row.label}
+        </text>
+        <path class={`trace ${row.cls}`} d={linePath(dec.t, row.values, x, y)} />
+      </g>
+    );
+  })}
+</svg>
+
+<style>
+  .decomposition {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .decomposition .trace {
+    fill: none;
+    stroke-width: 1;
+  }
+
+  .decomposition .trace.rec {
+    stroke: var(--ink-soft);
+  }
+
+  .decomposition .trace.sig {
+    stroke: var(--signal);
+    stroke-width: 1.6;
+  }
+
+  .decomposition .trace.noi {
+    stroke: var(--noise);
+  }
+
+  .decomposition .letter,
+  .decomposition .sign {
+    font-family: var(--f-display);
+    font-size: 22px;
+    font-style: italic;
+    fill: var(--ink);
+  }
+</style>

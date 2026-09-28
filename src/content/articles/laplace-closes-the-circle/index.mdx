@@ -1,0 +1,331 @@
+---
+title: Laplace Closes the Circle
+emphasis: Circle
+headline: Why does the bell curve appear at all, and what does the data really tell you?
+summary: The rest of The Shape of Error. Why only the bell makes the average the best answer, why least squares wins even without it, where the bell comes from, and the question Gauss answered the wrong way round.
+track: orientation
+order: 2
+status: review
+minutes: 25
+prerequisites:
+  - the-shape-of-error
+objectives:
+  - Say why the bell is the only error law that makes the average the most probable answer, and why least squares is still best without it.
+  - Explain why sums of many small disturbances become a bell, and when they do not.
+  - Tell a likelihood from a posterior, and say exactly what a prior asserts.
+updated: 2026-09-28
+sources:
+  - title: C. F. Gauss, Theoria Motus Corporum Coelestium (1809)
+    url: https://archive.org/details/theoriamotuscor00gausgoog
+  - title: 'S. M. Stigler, The History of Statistics: The Measurement of Uncertainty before 1900'
+    url: https://www.hup.harvard.edu/books/9780674403413
+---
+
+import Card from '~/components/editorial/Card.astro';
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import BayesRectangle from '~/components/figures/BayesRectangle.astro';
+import Decomposition from '~/components/figures/Decomposition.astro';
+import GaussMarkov from '~/components/figures/GaussMarkov.svelte';
+import GaussNewton from '~/components/figures/GaussNewton.svelte';
+import NegativeMass from '~/components/figures/NegativeMass.svelte';
+import PriorPosterior from '~/components/figures/PriorPosterior.svelte';
+import ScoreShapes from '~/components/figures/ScoreShapes.astro';
+import SumsForgetShape from '~/components/figures/SumsForgetShape.svelte';
+import Claim from '~/components/math/Claim.astro';
+import Eq from '~/components/math/Eq.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+
+[The Shape of Error](../the-shape-of-error/) ended with Gauss's rule justified by the bell curve: if errors follow the bell, the most probable answer is the one with the smallest sum of squares. Two loose ends were left hanging. Gauss had assumed the average was the right answer in order to show that the bell was the right curve, an argument that runs in a circle. And the probability he maximised answers a question nobody actually asks.
+
+This article ties both ends. It is the rest of the story: why only the bell will do, why least squares survives even without it, how Laplace explained where the bell comes from, and how he turned Gauss's question the right way round.
+
+## Only the bell will do
+
+Astronomers trusted one thing without proof: when you measure the same quantity several times, you take the average. Gauss took that as given and ran the argument backwards. What would the error curve have to be for the average to be the most probable answer, for every sample anyone could ever take?
+
+The answer turns on the error curve's **score**: the slope of its logarithm, which says how fast the probability of a miss falls as the miss grows. Gauss's demand forces the score to scale in step with the miss. Double the miss, double the score. Only a straight line through the origin does that, and only one error law has a straight score.
+
+<Figure kind="schematic" width="medium">
+  <ScoreShapes />
+  <Fragment slot="caption">
+    Three error laws, three scores. Only one of them scales in step with the size of the miss.
+  </Fragment>
+</Figure>
+
+Integrate a straight score and you get the bell. It is not an assumption you are asked to swallow: it is the unique answer to a question everyone had already answered by instinct. But notice what was assumed on the way. Gauss used the average to justify the bell. Someone still had to justify one of them without the other.
+
+<MathLayer id="m-score" title="the bell is the only law whose score is a straight line">
+  <Claim>
+    Demand that the arithmetic mean be the most probable value for every sample you could ever
+    take. That demand alone forces the error distribution to be Gaussian. Not merely allows it:
+    forces it.
+  </Claim>
+  <Given>an error density *g*, smooth and the same for every measurement, and Gauss's axiom that the mean is the most probable value.</Given>
+  <Steps>
+    <Step tex="\psi(u) = \frac{d}{du} \ln g(u)">Name the log-derivative of the density: the score.</Step>
+    <Step tex="\sum_i \psi(x_i - \bar{x}) = 0">
+      The most probable value makes this sum vanish, and Gauss demands that value be the mean, for
+      every sample.
+    </Step>
+    <Step tex="\psi(m\,u) = m\,\psi(u)" hinge>
+      Feed it a sample of equal readings with one odd one out, and the condition collapses to this,
+      for every whole number m and every u.
+    </Step>
+    <Step tex="\psi(u) = c\,u">
+      A continuous function that stretches exactly in step with its input is a straight line through
+      the origin. There is no other.
+    </Step>
+    <Step tex="\ln g(u) = \tfrac{c}{2}u^2 + \text{const} \;\Rightarrow\; g(u) \propto e^{-u^2/2\sigma^2}">
+      Integrate. For the density to be normalisable c must be negative: write it as −1/σ².
+    </Step>
+  </Steps>
+  <Means>
+    The characterisation is Gauss's own (Theoria Motus, 1809, §177). In modern terms: the mean is
+    the maximum-likelihood estimate for every sample size if and only if the errors are Gaussian.
+  </Means>
+</MathLayer>
+
+## Least squares without the bell
+
+There is a second road to least squares that never mentions the bell at all. Gauss found it himself in 1821, and Andrey Markov restated it eighty years later; it now carries both their names. Assume only that the errors average to zero, have the same size, and do not correlate with one another. Their shape can be anything. Then among all the estimates that are linear in the data and right on average, least squares has the smallest spread.
+
+See it happen. Below, a straight line is measured at ten points with noise, four thousand times over, and three honest estimators of its slope go to work on every dataset. Change the shape of the noise.
+
+<Figure kind="control" width="medium">
+  <GaussMarkov client:visible />
+  <Fragment slot="caption">
+    All three estimators are right on average. Only one is as narrow as it can be, whatever the
+    noise looks like.
+  </Fragment>
+</Figure>
+
+Least squares, the difference between the two halves of the data, the first and last points alone: all three centre on the truth for every noise shape, and least squares is always the narrowest. What the bell buys on top of this is stronger: with Gaussian noise, least squares is the best of all estimators, not only the linear ones.
+
+<MathLayer id="m-markov" title="least squares wins even when the errors are not Gaussian">
+  <Claim>
+    Among all estimators that are linear in the data and unbiased, least squares has the smallest
+    spread, with no assumption about the shape of the errors.
+  </Claim>
+  <Given>errors with mean zero, equal variance, and no correlation between them. Nothing about their shape.</Given>
+  <Steps>
+    <Step tex="\langle n \rangle = 0, \qquad \mathrm{Cov}(n) = \sigma^2 I">
+      The whole assumption. What is absent matters: no density, no bell, not even independence.
+    </Step>
+    <Step tex="\tilde\theta = C\,y, \quad \text{unbiased for every } \theta">
+      Any rival estimator that is linear in the data and right on average. Least squares is one
+      member of this wide class.
+    </Step>
+    <Step tex="\mathrm{Cov}(\tilde\theta) - \mathrm{Cov}(\hat\theta) \succeq 0" hinge>
+      For every such rival, the difference in covariance is positive semi-definite: none spreads less
+      than least squares.
+    </Step>
+    <Step tex="\hat\theta \text{ is BLUE: the Best Linear Unbiased Estimator}">This is the Gauss–Markov theorem.</Step>
+  </Steps>
+  <Means>
+    Least squares is not only a consequence of Gaussian noise; it is the best linear unbiased choice
+    under far weaker conditions. Aitken later extended the theorem to errors of different sizes that
+    correlate, and that extension is whitening: see [Hidden in the Noise](../hidden-in-the-noise/#m-whiten).
+  </Means>
+</MathLayer>
+
+## Laplace: why the curve is there at all
+
+Gauss showed what the error curve must be if the average is the best answer. Pierre-Simon Laplace showed why the curve appears at all, assuming nothing about the average.
+
+His observation: a measurement error is never one thing. It is hundreds of tiny disturbances piled on top of each other: a draught across the lens, a fraction of a degree of warmth, the tremble in a hand, the grain of the eye, a floorboard settling. And it does not matter what shape each disturbance has. Add enough of them together and the total becomes a bell. Try it.
+
+<Figure kind="model" width="wide">
+  <SumsForgetShape client:visible />
+  <Fragment slot="caption">
+    Each bar counts totals of many disturbances, measured from the centre in units of their spread.
+    Change what one disturbance looks like, and how many are added.
+  </Fragment>
+</Figure>
+
+A die, a lopsided spread, a coin that lands on one of two values: by a handful of pieces the totals already trace the bell, and nobody put it there. This is the **central limit theorem**, and it is why the same curve turns up in human heights, in exam marks and in the noise of a gravitational-wave detector.
+
+<Card tone="caveat" label="When this argument fails, and it does">
+  The theorem needs the disturbances to be many, small and independent, with a finite spread.
+  Choose the heavy-tailed pieces: now and then one of them is enormous on its own, the totals never
+  settle into a bell, and about a tenth of them land beyond four spreads, where a bell puts almost
+  none. Real detectors suffer exactly this, often enough to have a name for it: a glitch. None of
+  Gauss's mathematics applies to it.
+</Card>
+
+<MathLayer id="m-clt" title="why sums forget the shape they were made of">
+  <Claim>
+    Add up many small independent contributions and the total tends to a bell, whatever the pieces
+    looked like. The reason is visible in one line of algebra, if you look at the right function.
+  </Claim>
+  <Given>contributions that are independent and identically distributed, with mean zero and a finite variance σ². Finiteness is the condition that matters.</Given>
+  <Steps>
+    <Step tex="\varphi(t) = \langle e^{itX} \rangle">
+      The characteristic function: the average of a rotating phase. It carries exactly the same
+      information as the distribution.
+    </Step>
+    <Step tex="\varphi_{X_1 + X_2}(t) = \varphi_{X_1}(t)\,\varphi_{X_2}(t)" hinge>
+      Adding independent variables multiplies their characteristic functions. A hard operation
+      becomes an easy one.
+    </Step>
+    <Step tex="\varphi(u) = 1 - \frac{\sigma^2 u^2}{2} + o(u^2)">
+      Expand for small u. The mean is zero, so the variance is the first thing that survives: the
+      only feature of the shape that matters.
+    </Step>
+    <Step tex="\varphi_{Z_n}(t) = \left(1 - \frac{t^2}{2n} + o\!\left(\tfrac{1}{n}\right)\right)^{\!n} \to e^{-t^2/2}">
+      Scale the sum by 1/(σ√n) and let n grow: the ordinary limit that defines e.
+    </Step>
+    <Step tex="e^{-t^2/2} \text{ is the characteristic function of the bell}">
+      And a characteristic function determines its distribution. (The convergence step is Lévy's
+      continuity theorem.)
+    </Step>
+  </Steps>
+  <Means>
+    The proof fails exactly where the variance is infinite. Distributions with tails that heavy do
+    not converge to a bell, and their sums keep producing outliers however many terms you add. That
+    is not a curiosity: it is what a detector glitch is.
+  </Means>
+</MathLayer>
+
+## Gauss answered the wrong question
+
+The likelihood tells you: given this model, how probable was the data I got? Read that again. It treats the model as settled and the data as uncertain, which is exactly backwards. You already have the data. It is sitting on your disk; it is not uncertain at all. What you do not know is the model. The question you actually want answered is the other one: given the data I got, how probable is this model?
+
+Laplace was the first to take that flip seriously, and to give a rule for performing it.
+
+<Eq
+  tex={String.raw`\htmlData{term=posterior}{p(\text{model} \mid \text{data})} \;\propto\; \htmlData{term=likelihood}{p(\text{data} \mid \text{model})} \times \htmlData{term=prior}{p(\text{model})}`}
+  terms={[
+    { id: 'posterior', symbol: 'p(\\text{model} \\mid \\text{data})', label: 'the posterior: what you believe now', concept: 'signal' },
+    { id: 'likelihood', symbol: 'p(\\text{data} \\mid \\text{model})', label: "the likelihood: how well the model explains the data, Gauss's piece", concept: 'data' },
+    { id: 'prior', symbol: 'p(\\text{model})', label: 'the prior: what you knew before looking', concept: 'template' },
+  ]}
+/>
+
+<MathLayer id="m-bayes-rule" title="Bayes' rule is one sentence about a rectangle">
+  <Claim>
+    Turning the probability of the data into the probability of the model is not deep. A joint
+    probability can be cut two ways, and the two cuts must agree.
+  </Claim>
+  <Given>two events, and the definition of conditional probability. That is all.</Given>
+  <Figure kind="schematic">
+    <BayesRectangle />
+    <Fragment slot="caption">Two routes into the same corner of the same square.</Fragment>
+  </Figure>
+  <Steps>
+    <Step tex="p(A, B) = p(A \mid B)\,p(B)">Cut it one way: how often B happens, times how often A happens when it does.</Step>
+    <Step tex="p(A, B) = p(B \mid A)\,p(A)">Cut it the other way. Same square, same corner, same area.</Step>
+    <Step tex="p(A \mid B)\,p(B) = p(B \mid A)\,p(A)" hinge>Both equal the same thing, so they equal each other. This line is the whole theorem.</Step>
+    <Step tex="p(h \mid d) = \frac{p(d \mid h)\,p(h)}{p(d)}">Divide, and rename: h for the model, d for the data you already hold.</Step>
+  </Steps>
+  <Means>
+    Nothing controversial has happened. What is controversial is the use: to get p(h | d) you must
+    supply p(h), a probability for the model before any data existed. The mathematics is a
+    triviality; the prior is the commitment.
+  </Means>
+</MathLayer>
+
+## When the prior saves you
+
+Suppose the data are poor, and the fit, left to itself, returns its best answer: the object has a negative mass. The likelihood has no objection. It only knows how to compare curves to points, and that curve fits the points best; physics is not among its concerns.
+
+The prior does object. Mass cannot be negative, so the prior is zero everywhere below zero, and multiplying by zero ends the argument.
+
+<Figure kind="schematic" width="wide">
+  <NegativeMass client:visible />
+  <Fragment slot="caption">
+    Slide where the data alone put the mass. Prior times likelihood is the posterior, renormalised.
+  </Fragment>
+</Figure>
+
+<Pull>
+  The prior does not adjust the fit. <em>It deletes the region the fit was never entitled to visit.</em>
+</Pull>
+
+## A prior is never free
+
+Deleting a negative mass feels like common sense. But nothing in the mathematics tells common sense apart from what you were hoping to find. The prior is whatever you assert before looking, and the machinery obeys it without comment. Assert little and the data decides. Assert a lot and the data is merely nudged. Assert enough and the data cannot reach the answer at all: you get back what you put in, dressed as a measurement, with error bars.
+
+<Figure kind="schematic" width="medium">
+  <PriorPosterior client:visible />
+  <Fragment slot="caption">
+    The same measurement under four declarations made before it was taken. Only the first is really
+    a measurement.
+  </Fragment>
+</Figure>
+
+<Pull>
+  The strongest prior in the room is the one nobody counts as a prior: <em>the shape of the model itself.</em>
+</Pull>
+
+Choosing a template, a straight line, a circle, a single ringing tone, declares that the signal looks like that and like nothing else. It is the fixed prior above, and it is where [What the Wrong Model Knows](../what-the-wrong-model-knows/) happens.
+
+## One more thing Gauss invented
+
+Ceres's orbit is not a straight line in its parameters. It needs six orbital elements, and its position in the sky depends on them in a way no straight line can capture. Gauss's answer was to pretend the model is straight for one small step, solve least squares for that step, and repeat. It is called Gauss–Newton, and it still fits waveforms to data today.
+
+Here it fits the frequency of a wave to sixty noisy points. The solid curve is how badly each frequency fits; the dashed curve is what the straight-line pretence sees from where you stand.
+
+<Figure kind="schematic" width="wide">
+  <GaussNewton client:visible />
+  <Fragment slot="caption">
+    Drag the starting guess, then step. Each step jumps to the bottom of the dashed curve.
+  </Fragment>
+</Figure>
+
+Start near 3 Hz and the steps walk into the deepest valley. Start near 5 and they settle happily in a shallow one, reporting a tidy answer all the way down. The method finds a valley floor, not necessarily the deepest, which is why real fits start from many places. And it converges just as happily on a wrong model.
+
+<MathLayer id="m-gauss-newton" title="a hard problem, solved by doing an easy one repeatedly">
+  <Given>a model *h*(θ) that is smooth but not linear, and a starting guess in the right valley.</Given>
+  <Steps>
+    <Step tex="h(\theta + \delta\theta) \approx h(\theta) + J\,\delta\theta">
+      Expand the model about the current guess. To first order any smooth function is a straight one.
+    </Step>
+    <Step tex="J = \partial h / \partial \theta">
+      The matrix of first derivatives plays the part the columns of the model played in least squares.
+    </Step>
+    <Step tex="\hat{\delta\theta} = (J^{\top} J)^{-1} J^{\top}\,(y - h(\theta))" hinge>
+      So the step is exactly the least-squares solution, applied to what is left over. Take it, and
+      linearise again about the new point.
+    </Step>
+    <Step tex="\text{repeat until } \hat{\delta\theta} \text{ stops changing}">Gauss–Newton.</Step>
+  </Steps>
+  <Means>
+    Two warnings that matter later. It finds a valley floor, not necessarily the deepest, which is
+    why a fit with two tones needs several starting points. And it converges happily on a wrong
+    model, reporting a tidy answer the whole way down.
+  </Means>
+</MathLayer>
+
+## Where the story goes next
+
+Everything so far has one structure. Whatever you record is a sum: the thing you want, plus everything else.
+
+<Eq
+  tex={String.raw`\htmlData{term=d}{d} = \htmlData{term=h}{h} + \htmlData{term=n}{n}`}
+  size="large"
+  terms={[
+    { id: 'd', symbol: 'd', label: 'what the instrument wrote down', concept: 'data' },
+    { id: 'h', symbol: 'h', label: 'the thing you are trying to measure', concept: 'signal' },
+    { id: 'n', symbol: 'n', label: 'everything else that got in', concept: 'noise' },
+  ]}
+/>
+
+<Figure kind="control" width="medium">
+  <Decomposition />
+  <Fragment slot="caption">
+    The practice chirp from Hidden in the Noise, whitened, all on one scale. Only the top trace
+    exists; the two below it are a split the analysis proposes.
+  </Fragment>
+</Figure>
+
+For Piazzi it was a star's position plus the tremble of the atmosphere and the limits of his eye. For a gravitational-wave detector it is a ripple in spacetime plus seismic rumble, laser flicker and the thermal jitter of the mirrors. The rest of the story is about the two letters on the right: how to describe *n*, and what happens when you assume the wrong *h*.
+
+<Card label="Next: Hidden in the Noise">
+  How to describe *n*: the first gravitational wave, invisible in the raw data, found by whitening
+  the noise and sliding a template along it. [Read it →](../hidden-in-the-noise/)
+</Card>
