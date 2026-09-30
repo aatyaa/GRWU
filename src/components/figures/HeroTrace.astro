@@ -1,0 +1,61 @@
+---
+/**
+ * The site's motif, from the title slide of The Shape of Error: a recording that looks like
+ * noise, and the packet of signal inside it. Computed at build time from a seeded sample,
+ * drawn as static SVG; it traces itself in when revealed.
+ */
+import { gaussian, mulberry32 } from '~/lib/stats/random';
+
+interface Props {
+  seed?: number;
+  label?: string;
+}
+
+const { seed = 1801, label = 'A noisy trace with a smooth wave packet hidden inside it.' } =
+  Astro.props;
+
+const W = 1180;
+const H = 150;
+const N = 900;
+const draw = gaussian(mulberry32(seed));
+
+// Signal: a slowly swelling packet. Noise: white noise, lightly smoothed.
+const packet: number[] = [];
+const recorded: number[] = [];
+let smooth = 0;
+for (let i = 0; i < N; i++) {
+  const u = i / (N - 1);
+  const envelope = Math.exp(-(((u - 0.52) / 0.2) ** 2));
+  const h = envelope * Math.sin(2 * Math.PI * 7.5 * u + 0.4);
+  smooth = 0.55 * smooth + 0.45 * draw();
+  packet.push(h);
+  recorded.push(h + 0.42 * smooth);
+}
+
+const x = (i: number) => (i / (N - 1)) * W;
+const y = (v: number) => H / 2 - v * (H * 0.36);
+const path = (values: number[]) =>
+  values.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('');
+---
+
+<figure class="hero-trace" data-reveal>
+  <svg class="fig" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
+    <path class="noise draw" d={path(recorded)} pathLength="1" style="--i: 0"></path>
+    <path class="signal draw" d={path(packet)} pathLength="1" style="--i: 6"></path>
+  </svg>
+</figure>
+
+<style>
+  .hero-trace {
+    margin: var(--space-12) 0 0;
+  }
+
+  .hero-trace .noise {
+    stroke-width: 0.9;
+    opacity: 0.85;
+  }
+
+  .hero-trace .signal {
+    stroke-width: 2.2;
+  }
+</style>

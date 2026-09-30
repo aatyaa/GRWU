@@ -1,0 +1,7 @@
+---
+/** Hands the site's base path to the skills map so its links work under any base. */
+import { withBase } from '~/lib/url';
+import SkillMapIsland from './SkillMap.svelte';
+---
+
+<SkillMapIsland client:visible base={withBase('')} />

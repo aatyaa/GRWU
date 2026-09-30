@@ -1,0 +1,91 @@
+---
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import CodeForm from '~/components/ringdown/CodeForm.astro';
+import RequestForm from '~/components/ringdown/RequestForm.astro';
+import { getRingdownArticles } from '~/lib/content';
+import { sealedArticles, sealedMode } from '~/lib/ringdown';
+import { withBase } from '~/lib/url';
+
+// The track's front page (ADR 0007): public teaser, access code box and request form.
+const full = sealedMode ? [] : await getRingdownArticles();
+const articles = full.length
+  ? full.map(({ id, data }) => ({ slug: id, ...data }))
+  : sealedArticles();
+---
+
+<BaseLayout
+  title="The ringdown track"
+  description="A heavier-than-possible black hole in GW250114, taken apart one section of the paper at a time. Open by request."
+  noindex
+>
+  <article class="track">
+    <header class="track__header">
+      <h1>Heavier Than Its Parents</h1>
+      <p class="track__headline">
+        A one-tone fit to the ringdown of GW250114 returns a black hole heavier than the two that
+        made it. This track follows the paper that explains why, section by section, with its own
+        figures drawn from its own data.
+      </p>
+      <p class="track__byline">
+        By <strong>Attia A. Gadallah</strong> · open by request
+      </p>
+    </header>
+
+    <CodeForm />
+
+    <ol class="track__list">
+      {articles.map((a) => (
+        <li>
+          <a href={withBase(`ringdown/${a.slug}/`)}>{a.title}</a>
+          <p>{a.summary}</p>
+        </li>
+      ))}
+    </ol>
+
+    <RequestForm />
+  </article>
+</BaseLayout>
+
+<style>
+  .track {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: var(--space-12) var(--gutter);
+  }
+
+  .track__header h1 {
+    margin: 0 0 var(--space-4);
+    font-family: var(--f-display);
+    font-size: var(--text-3xl);
+    font-weight: 400;
+    line-height: var(--leading-tight);
+  }
+
+  .track__headline {
+    font-size: var(--text-lg);
+    color: var(--ink-soft);
+  }
+
+  .track__byline {
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+
+  .track__list {
+    display: grid;
+    gap: var(--space-6);
+    margin: var(--space-12) 0;
+    padding-left: 1.4rem;
+  }
+
+  .track__list a {
+    font-family: var(--f-display);
+    font-size: var(--text-xl);
+    color: var(--ink);
+  }
+
+  .track__list p {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-soft);
+  }
+</style>

@@ -1,0 +1,37 @@
+---
+/**
+ * A symbol or term from the glossary (ADR 0009), linked to its definition on /start/ and
+ * explained on hover. Renders the glossary's symbol unless given text; an unknown id fails
+ * the build.
+ */
+import 'katex/dist/katex.min.css';
+import { getEntry } from 'astro:content';
+import { tex } from '~/components/math/tex';
+import { withBase } from '~/lib/url';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+const entry = await getEntry('glossary', id);
+if (!entry) throw new Error(`Term: "${id}" is not in src/content/glossary.json`);
+const { symbol, name, definition } = entry.data;
+const hasText = Astro.slots.has('default');
+---
+
+<a class="term" href={withBase(`start/#term-${id}`)} title={`${name}: ${definition}`}>
+  {hasText ? <slot /> : <span set:html={tex(symbol, false)} />}
+</a>
+
+<style>
+  .term {
+    border-bottom: 1px dotted var(--ink-soft);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .term:hover {
+    border-bottom-style: solid;
+  }
+</style>

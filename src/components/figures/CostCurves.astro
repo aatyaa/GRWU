@@ -1,0 +1,46 @@
+---
+/** Three rules for what a miss should cost you (The Shape of Error, Act II). */
+const W = 560;
+const H = 300;
+const PAD = { l: 36, r: 20, t: 20, b: 40 };
+const R = 2.2;
+const px = (r: number) => PAD.l + ((r + R) / (2 * R)) * (W - PAD.l - PAD.r);
+const py = (c: number) => H - PAD.b - (c / 5) * (H - PAD.t - PAD.b);
+const curve = (f: (r: number) => number) =>
+  Array.from({ length: 121 }, (_, i) => -R + (2 * R * i) / 120)
+    .map((r, i) => `${i ? 'L' : 'M'}${px(r).toFixed(1)},${py(f(r)).toFixed(1)}`)
+    .join('');
+---
+
+<svg
+  class="fig"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Three cost curves against the size of a miss: a V shape for the plain distance, a parabola for squares, and a much steeper curve for the fourth power."
+>
+  <clipPath id="cost-clip">
+    <rect x="0" y={PAD.t} width={W} height={H - PAD.t}></rect>
+  </clipPath>
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={py(0)} y2={py(0)}></line>
+  <line class="axis" x1={px(0)} x2={px(0)} y1={PAD.t} y2={py(0)}></line>
+  <g clip-path="url(#cost-clip)">
+    <path class="noise draw" d={curve((r) => Math.abs(r))} pathLength="1" style="--i: 0"></path>
+    <path class="signal draw" d={curve((r) => r * r)} pathLength="1" style="--i: 3"></path>
+    <path class="model fade" d={curve((r) => r ** 4)} style="--i: 12"></path>
+  </g>
+  <text x={px(2.05)} y={py(2.05) - 8} text-anchor="end">
+    |r|
+  </text>
+  <text x={px(1.92)} y={py(3.7)} text-anchor="end" class="signal">
+    r² ← Gauss
+  </text>
+  <text x={px(1.18)} y={py(4.6)} text-anchor="end">
+    r⁴
+  </text>
+  <text x={W - PAD.r} y={H - 12} text-anchor="end">
+    size of the miss →
+  </text>
+  <text x={PAD.l - 8} y={PAD.t + 6} text-anchor="end">
+    cost
+  </text>
+</svg>

@@ -1,0 +1,154 @@
+---
+title: From Strain to Source
+emphasis: Source
+headline: How does a wiggle in a detector become two black holes?
+summary: The whole route, from a detector shaking in Louisiana to masses you can defend, with the two detectors and the posterior in your hands.
+track: capstone
+order: 1
+status: review
+minutes: 20
+prerequisites:
+  - hidden-in-the-noise
+  - what-the-wrong-model-knows
+objectives:
+  - Say what an interferometer measures, and why its noise has the shape it does.
+  - Use two detectors to tell a passing wave from a local disturbance.
+  - Read a posterior, and say which combination of the masses the data actually pins down.
+updated: 2026-09-27
+sources:
+  - title: 'LIGO and Virgo, Properties of the Binary Black Hole Merger GW150914, Phys. Rev. Lett. 116, 241102 (2016)'
+    url: https://arxiv.org/abs/1602.03840
+  - title: A guide to LIGO–Virgo detector noise and extraction of transient gravitational-wave signals, Class. Quantum Grav. 37, 055002 (2020)
+    url: https://doi.org/10.1088/1361-6382/ab685e
+  - title: 'G. Ashton et al., Bilby: a user-friendly Bayesian inference library for gravitational-wave astronomy, ApJS 241, 27 (2019)'
+    url: https://arxiv.org/abs/1811.02042
+  - title: Gravitational Wave Open Science Center, data and tutorials
+    url: https://gwosc.org/
+---
+
+import Card from '~/components/editorial/Card.astro';
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import NetworkShift from '~/components/figures/NetworkShift.astro';
+import NoiseBudget from '~/components/figures/NoiseBudget.astro';
+import PosteriorRidge from '~/components/figures/PosteriorRidge.astro';
+import Claim from '~/components/math/Claim.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+
+Gravitational-wave data is public. Anyone can download the seconds around GW150914 and ask them questions. This article follows the whole route, from a detector shaking in Louisiana to a statement about two black holes that you could defend, and puts each step in your hands. The earlier articles supplied the tools; here they are used in order.
+
+## The instrument measures a difference
+
+Split a laser beam in two and send the halves down two perpendicular arms, four kilometres long. Bounce them off mirrors at the far ends, bring them back and let them interfere, held so that the returning light cancels and the output stays dark.
+
+A passing gravitational wave stretches one arm and squeezes the other. The cancellation stops being perfect, and light appears where there was none. That light, calibrated, is the number you download: the **strain**, the fractional change in length, *h* = Δ*L*/*L*, around 10⁻²¹.
+
+Three tricks make it measurable at all. The light bounces hundreds of times inside each arm before it leaves, so the arm acts far longer than it is. The returning light is recycled back in, so hundreds of kilowatts circulate in the arms. And squeezed light reshapes the quantum noise of the vacuum itself, trading uncertainty out of the band that matters.
+
+## Three noises, one window
+
+A detector is not equally deaf at every frequency. Its noise is the sum of three families, and each owns a different part of the spectrum.
+
+<Figure kind="measured">
+  <NoiseBudget />
+  <Fragment slot="caption">
+    Both LIGO detectors around GW150914, against the Advanced LIGO design goal. The shaded window
+    is the band analyses use; the three labels say which noise owns which decade.
+  </Fragment>
+</Figure>
+
+**Seismic** motion dominates below about 10 Hz: the ground, traffic, waves on a distant coast. It falls away so steeply that it acts as a wall. **Thermal** noise, atoms jittering in the mirror coatings and in the fibres the mirrors hang from, sets the floor of the quiet band. **Quantum** noise rises at high frequency: light arrives as countable photons, so its brightness has an irreducible graininess. What is left is a usable window from about 20 Hz to a few kilohertz, which is why analyses start at 20 Hz: below that there is nothing to hear.
+
+In September 2015 both detectors were still a few times noisier than their design goal, and the narrow lines of the machine stood out in both. They heard GW150914 anyway.
+
+## Two detectors, one wave
+
+A truck passing a detector, a glitch in its electronics, a gust of wind: each shows up in one detector and not the other. A gravitational wave crosses both, at the speed of light. Hanford and Livingston are about 3,000 kilometres apart, so a real wave arrives at the two within 10 milliseconds of each other. And because their arms point in different directions, the same wave can arrive in one with its sign flipped.
+
+Here is GW150914 in both detectors, real data, whitened as in Hidden in the Noise. Shift Livingston in time, and flip it if you need to, until the two agree.
+
+<Figure kind="measured" width="wide">
+  <NetworkShift />
+  <Fragment slot="caption">
+    Agreement is the correlation of the two traces over the window: 1 would be identical shapes.
+    Try the arrow keys on the slider for fine steps.
+  </Fragment>
+</Figure>
+
+They agree when Livingston is delayed by about 7 milliseconds and flipped: the wave reached Livingston first, and its arms saw it with the opposite sign. With three or more detectors, those delays also say where in the sky the wave came from.
+
+## Found, then measured
+
+The matched filter found the signal and roughly which template fits it. Measuring is a different question: not "which template is best?" but "which templates does the data still allow, and how strongly?"
+
+The answer comes from Bayes' rule. For every candidate set of source parameters, build its template and ask how probable the data would be if that were the truth. That probability, the **likelihood**, is the same exponential of a noise-weighted sum of squared misses as in The Shape of Error. Multiply by what you believed beforehand, the **prior**, and you get the **posterior**: not a number, but a map of everything the data still allows.
+
+Below is that map for the practice chirp from Hidden in the Noise, whose true chirp mass is 28 solar masses. Drag the pair of masses around the map, then along the ridge, and compare your template with the best one.
+
+<Figure kind="control" width="wide">
+  <PosteriorRidge />
+  <Fragment slot="caption">
+    Flat prior on both masses, heavier first. The ridge is the posterior; the curves on the top and
+    right edges are what it says about each mass on its own.
+  </Fragment>
+</Figure>
+
+The shape is the result. The data pin down one combination of the two masses, the **chirp mass**, to a fraction of a percent. Each mass on its own is known only to within tens of solar masses: along the ridge, a heavier first object traded against a lighter second one produces nearly the same template, and the detector cannot tell them apart. That trade-off is called a **degeneracy**.
+
+<Pull>
+  Reporting only the peak of this map <em>would throw away the honest part of the result.</em>
+</Pull>
+
+This practice chirp is the simplest possible: its phase depends on the masses only through the chirp mass, so the ridge never ends. Real signals carry more: the mass ratio and the spins enter the phase at higher order, and the merger and ringdown add information of their own. A real analysis explores fifteen or more parameters with a sampler rather than a grid. For GW150914 it found two black holes of about 36 and 29 solar masses, each uncertain by about 4.
+
+<MathLayer id="m-bayes" title="from the likelihood to the ridge">
+  <Claim>
+    The posterior is the likelihood times the prior, and at leading order the likelihood depends on
+    the two masses only through the chirp mass.
+  </Claim>
+  <Given>stationary Gaussian noise with spectrum *S*<sub>n</sub>, and a template *h*(θ) for each set of parameters θ.</Given>
+  <Steps>
+    <Step tex="p(\theta \mid d) = \frac{p(d \mid \theta)\,p(\theta)}{p(d)}">
+      Bayes' rule: what the data allow, from how probable the data are under each θ.
+    </Step>
+    <Step tex="p(d \mid \theta) \propto \exp\!\left[-\tfrac12\,(d - h(\theta) \,|\, d - h(\theta))\right]">
+      The Gaussian likelihood, written with the noise-weighted inner product of Hidden in the Noise.
+    </Step>
+    <Step tex="\max_{A,\,\phi,\,t_c}\; \ln p(d \mid \theta) = \tfrac12\,\rho(\theta)^2 + \text{const}">
+      Maximised over amplitude, phase and arrival time, what is left is the matched-filter score.
+    </Step>
+    <Step tex="\Phi(\tau) = -2\left(\frac{5\,G\mathcal{M}}{c^3}\right)^{-5/8}\tau^{5/8},\qquad \mathcal{M} = \frac{(m_1 m_2)^{3/5}}{(m_1+m_2)^{1/5}}" hinge>
+      At leading order the phase depends on the masses only through the chirp mass 𝓜. Every pair with
+      the same 𝓜 makes the same template: that is the ridge.
+    </Step>
+  </Steps>
+  <Means>
+    The ridge is not a failure of the data. It is an exact statement of what the data can and
+    cannot say, and the width across it is set by the signal-to-noise ratio.
+  </Means>
+</MathLayer>
+
+## The errors nobody writes down
+
+Most things that go wrong on this route go wrong quietly. A few are worth knowing by sight.
+
+**A huge score at the very edge of the data** is not a signal. Every filter corrupts the stretch at each end where it runs off the data; the rule is to cut those edges away after every filtering step.
+
+**Noise measured from the same seconds as the signal** partly contains the signal, and whitening then subtracts some of it from itself. Real analyses estimate the noise from a separate, longer stretch nearby: one stretch to measure the noise, another to analyse.
+
+**A posterior that looks exactly like the prior** means the data constrained nothing. Either the parameter cannot be measured with this signal, or it was fixed without anyone noticing.
+
+**A perfect signal that nobody has heard of** is almost certainly a hardware injection: a fake signal the collaboration adds to the detector on purpose, to test the pipeline. The data release marks them.
+
+<Card label="The habit that separates a pipeline from a tutorial">
+  Inject a signal you built yourself, with parameters you chose, into real noise. Run the whole
+  route on it and see whether you get your own numbers back. Until then you have a pipeline that
+  produces answers; afterwards you have one whose accuracy you know. It is the control from What
+  the Wrong Model Knows, and it is the step most often skipped.
+</Card>
+
+That is the whole route: a difference in light, a noise with a shape, a template slid through whitened data, two detectors that agree, and a posterior that says exactly what is known. Every piece of it rests on the idea the first article started with: when every measurement misses, the shape of the error tells you how to find the truth anyway.

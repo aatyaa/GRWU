@@ -1,29 +1,105 @@
 ---
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import IslandCheck from '~/components/lab/IslandCheck.svelte';
+import CheckYourself from '~/components/learn/CheckYourself.svelte';
+import Misconception from '~/components/learn/Misconception.astro';
+import Predict from '~/components/learn/Predict.svelte';
+import PreparesFor from '~/components/learn/PreparesFor.astro';
+import Term from '~/components/learn/Term.astro';
+import Exercise from '~/components/learn/Exercise.svelte';
+import { qualityFactor } from '~/lib/exercises/quality-factor';
+import { welchPeak } from '~/lib/exercises/welch-peak';
 
-const concepts = ['data', 'signal', 'template', 'snr', 'glitch', 'noise'] as const;
+const colours = [
+  { token: 'signal', meaning: 'the signal; anything observed or measured' },
+  { token: 'noise', meaning: 'noise; references and schematics' },
+  { token: 'model', meaning: 'a model or template (dashed)' },
+  { token: 'bias', meaning: 'bias, disagreement, a glitch (always labelled)' },
+  { token: 'ok', meaning: 'agreement; a check that passed' },
+  { token: 'ink', meaning: 'text and recorded data' },
+];
 ---
 
 <BaseLayout title="Lab" description="Component workbench for GRWU." noindex>
   <div class="container lab">
     <h1>Lab</h1>
-    <p class="lede">
-      A workbench for the building blocks of GRWU articles. Nothing here is published content.
-    </p>
+    <p class="lead">The building blocks of GRWU articles, one at a time.</p>
 
     <section aria-labelledby="islands-heading">
       <h2 id="islands-heading">Islands</h2>
       <IslandCheck client:visible />
     </section>
 
+    <section aria-labelledby="learn-heading" class="learn">
+      <h2 id="learn-heading">Learning components</h2>
+      <p>
+        A black hole's ring has a frequency <Term id="frequency" /> and a damping time{' '}
+        <Term id="damping-time" />; together they give its mass <Term id="mass" /> and spin{' '}
+        <Term id="spin">its spin</Term>.
+      </p>
+      <Predict
+        client:visible
+        id="lab"
+        question="A black hole twice as heavy rings at…"
+        options={[
+          { label: 'twice the frequency' },
+          { label: 'the same frequency' },
+          { label: 'half the frequency' },
+        ]}
+      >
+        <p>Half: the frequency of the ring scales as one over the mass.</p>
+      </Predict>
+      <Misconception claim="A 90% credible interval means the true value is inside it 90% of the time.">
+        <p>It describes what is believed given the model, the prior and the data.</p>
+      </Misconception>
+      <PreparesFor to={['hidden-in-the-noise', 'ringdown/weighing-the-ring']} />
+      <CheckYourself
+        client:visible
+        id="lab"
+        questions={[
+          {
+            question: 'A ring completes 10 cycles in one damping time. What is its quality factor?',
+            options: [
+              { label: 'About 10', why: 'Q = π f τ, and f τ is the 10 cycles: about 31.' },
+              { label: 'About 31', correct: true, why: 'Q = π f τ = π × 10.' },
+            ],
+          },
+          {
+            question: 'Sampled at 64 Hz, a 45 Hz tone appears at…',
+            options: [
+              { label: '45 Hz', why: 'Above half the sampling rate a tone folds back.' },
+              { label: '19 Hz', correct: true, why: '64 − 45 = 19: it folds about 32 Hz.' },
+            ],
+          },
+        ]}
+      />
+    </section>
+
+    <section aria-labelledby="practice-heading">
+      <h2 id="practice-heading">Practice in the page</h2>
+      <Exercise client:visible exercise={qualityFactor} title="How long does a ring last?">
+        <p>
+          A ring's quality factor Q counts how many oscillations it lasts. Complete{' '}
+          <code>quality_factor(f, tau)</code> so it returns Q for a ring of frequency f and damping
+          time tau, then press Check.
+        </p>
+      </Exercise>
+      <Exercise client:visible exercise={welchPeak} title="Find the hidden tone">
+        <p>
+          The data <code>x</code> hide one steady tone under noise. Welch's method gives the power
+          at each frequency; set <code>peak</code> to the frequency where it is largest.
+        </p>
+      </Exercise>
+    </section>
+
     <section aria-labelledby="colours-heading">
-      <h2 id="colours-heading">Concept colours</h2>
+      <h2 id="colours-heading">Colour carries meaning</h2>
       <ul class="swatches">
-        {concepts.map((concept) => (
+        {colours.map((colour) => (
           <li>
-            <span class="swatch" style={`--swatch: var(--c-${concept})`} />
-            {concept}
+            <span class="swatch" style={`--swatch: var(--${colour.token})`} />
+            <b>{colour.token}</b>
+            <span>{colour.meaning}</span>
           </li>
         ))}
       </ul>
@@ -36,34 +112,33 @@ const concepts = ['data', 'signal', 'template', 'snr', 'glitch', 'noise'] as con
     padding-top: var(--space-12);
   }
 
-  .lede {
-    max-width: var(--measure);
-    color: var(--ink-2);
-  }
-
-  section {
-    margin-top: var(--space-8);
-  }
-
   .swatches {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-6);
+    display: grid;
+    gap: 0.6rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .swatches li {
-    display: flex;
+    display: grid;
+    grid-template-columns: 2rem 5rem 1fr;
     align-items: center;
-    gap: var(--space-2);
+    gap: 0.8rem;
+    font-family: var(--f-mono);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
   }
 
   .swatch {
-    width: 1.5rem;
-    height: 0.35rem;
+    width: 2rem;
+    height: 3px;
     border-radius: 2px;
     background: var(--swatch);
+  }
+
+  b {
+    font-weight: 500;
+    color: var(--ink);
   }
 </style>

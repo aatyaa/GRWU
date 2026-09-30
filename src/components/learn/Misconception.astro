@@ -1,0 +1,26 @@
+---
+/**
+ * A common mistake, stated in its own words and then corrected in the slot. A caveat card:
+ * red because it is an error, and labelled as one (ADR 0006).
+ */
+import Card from '~/components/editorial/Card.astro';
+
+interface Props {
+  /** The mistaken belief, as a reader might say it. */
+  claim: string;
+}
+
+const { claim } = Astro.props;
+---
+
+<Card tone="caveat" label="A common mistake">
+  <p class="myth">“{claim}”</p>
+  <slot />
+</Card>
+
+<style>
+  .myth {
+    font-style: italic;
+    color: var(--ink);
+  }
+</style>

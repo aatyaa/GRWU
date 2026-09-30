@@ -20,3 +20,11 @@ def public_data(root: Path) -> Path:
 
 def fixtures_file(root: Path) -> Path:
     return root / "tests" / "fixtures" / "dsp.json"
+
+
+def kerr_fixtures_file(root: Path) -> Path:
+    return root / "tests" / "fixtures" / "kerr.json"
+
+
+def foundations_fixtures_file(root: Path) -> Path:
+    return root / "tests" / "fixtures" / "foundations.json"
