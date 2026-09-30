@@ -43,6 +43,11 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json and kerr.
 - `src/content/articles/<slug>/index.mdx`: articles; schema in `src/content.config.ts`.
   `status: draft` articles are hidden from production builds.
 - `src/pages/`: routes. `lab/` is a noindex workbench for components.
+- Tracks (ADR 0009): `src/lib/tracks.ts` registers them: flagship (the gated research tracks),
+  `foundations` (five open articles for beginners, planned in `foundations`, listed on
+  `/start/`) and open tracks adapted from permissively licensed open-source work, credited in
+  the article's `credits`. Symbols are defined once in `src/content/glossary.json` (the
+  `glossary` collection, shown on `/start/#glossary`).
 - `src/components/`: Astro and Svelte components. `src/elements/`: framework-free custom
   elements for lightweight in-prose interactions.
   - `hero/BinaryHero.astro`: the home page's GW250114 black-hole scene (ADR 0006).

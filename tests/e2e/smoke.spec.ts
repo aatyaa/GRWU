@@ -4,6 +4,7 @@ import { expectNoA11yViolations } from './helpers';
 const pages = [
   { path: '', heading: 'How do we know this was two black holes?' },
   { path: 'about/', heading: 'About GRWU' },
+  { path: 'start/', heading: 'Start here' },
   { path: 'lab/', heading: 'Lab' },
 ];
 
@@ -59,6 +60,15 @@ test('the home page presents the ringdown track', async ({ page }) => {
   );
   await track.getByRole('link', { name: 'I have a code' }).click();
   await expect(page).toHaveURL(/ringdown\/$/);
+});
+
+test('the start page lists the foundations series and the symbols', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.goto('start/');
+  await expect(page.locator('.series > li')).toHaveCount(5);
+  await expect(page.locator('.glossary > div').first()).toBeVisible();
+  await expect(page.locator('#term-spin dt')).toContainText('dimensionless spin');
+  await expectNoA11yViolations(page);
 });
 
 test('the signal under the scene is a map of the articles', async ({ page }) => {
