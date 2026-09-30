@@ -10,9 +10,15 @@ from dataclasses import asdict
 import numpy as np
 import pytest
 
-from grwu_pipeline import fixtures, kerr, synthetic
+from grwu_pipeline import fixtures, foundations, kerr, synthetic
 from grwu_pipeline.dataset import read_channel, read_meta
-from grwu_pipeline.paths import find_repo_root, fixtures_file, kerr_fixtures_file, public_data
+from grwu_pipeline.paths import (
+    find_repo_root,
+    fixtures_file,
+    foundations_fixtures_file,
+    kerr_fixtures_file,
+    public_data,
+)
 
 ROOT = find_repo_root()
 TOY_CHIRP = public_data(ROOT) / "synthetic" / synthetic.DATASET_ID
@@ -55,3 +61,9 @@ def test_committed_kerr_fixtures_match_qnm():
     committed = json.loads(kerr_fixtures_file(ROOT).read_text())
     # Leaver's continued fraction converges to a tolerance, not to the last bit.
     compare(committed, kerr.build(), "kerr", rtol=1e-9)
+
+
+def test_committed_foundations_fixtures_match_references():
+    committed = json.loads(foundations_fixtures_file(ROOT).read_text())
+    # The oscillator comes from an adaptive ODE solver; everything else is exact arithmetic.
+    compare(committed, foundations.build(), "foundations", rtol=1e-9)

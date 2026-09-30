@@ -28,7 +28,7 @@ Data pipeline (Python, uv), run from `pipeline/`:
 uv run pytest                     # tests, including "committed outputs are current"
 uv run ruff check . && uv run ruff format --check .
 uv run grwu-pipeline synthetic    # regenerate public/data/synthetic/toy-chirp/
-uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json and kerr.json
+uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundations}.json
 ```
 
 - `grwu-pipeline fetch` needs gwosc.org, which Claude Code on the web blocks by default.
@@ -78,6 +78,11 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json and kerr.
   - `stats/`: seeded randomness (`mulberry32`, `gaussian`) so every figure draws the same
     sample, and the estimators the essays compare (`mean`, `median`, `midrange`,
     `fitLine`, `fitLinear`, `normalPdf`, `diceTotals`).
+    For the foundations series: `intervals` (numpy quantiles, equal-tailed and highest-density
+    intervals), `correlation` (Pearson, Spearman), `autocorr` (emcee's integrated time, ESS),
+    `mcmc` (seeded random-walk Metropolis that records every proposal). Checked against
+    `tests/fixtures/foundations.json`, with `dsp/window.ts` `tukey`, `dsp/sampling.ts`
+    (aliasing) and `physics/oscillator.ts` (the damped oscillator, against scipy's ODE solver).
   - `figure/pointer.ts`: dragging in SVG units, arrow-key stepping, tweens.
   - `articles/`: build-time computations behind each article's figures (Node only, cached):
     `hidden.ts` (GW150914 whitening, the toy-chirp matched filter), `wrong.ts` (two-tone

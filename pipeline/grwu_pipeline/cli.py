@@ -5,8 +5,14 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from . import fixtures, gwosc_data, kerr, synthetic
-from .paths import find_repo_root, fixtures_file, kerr_fixtures_file, public_data
+from . import fixtures, foundations, gwosc_data, kerr, synthetic
+from .paths import (
+    find_repo_root,
+    fixtures_file,
+    foundations_fixtures_file,
+    kerr_fixtures_file,
+    public_data,
+)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -38,7 +44,7 @@ def main(argv: list[str] | None = None) -> None:
 
     commands.add_parser(
         "fixtures",
-        help="write scipy and qnm reference outputs to tests/fixtures/{dsp,kerr}.json",
+        help="write reference outputs to tests/fixtures/{dsp,kerr,foundations}.json",
     )
 
     args = parser.parse_args(argv)
@@ -59,7 +65,11 @@ def main(argv: list[str] | None = None) -> None:
         )
         print(f"{args.event}: {', '.join(meta['channels'])} from GPS {meta['gps_start']}")
     elif args.command == "fixtures":
-        for path, module in ((fixtures_file(root), fixtures), (kerr_fixtures_file(root), kerr)):
+        for path, module in (
+            (fixtures_file(root), fixtures),
+            (kerr_fixtures_file(root), kerr),
+            (foundations_fixtures_file(root), foundations),
+        ):
             module.write(path)
             print(f"fixtures: {path.relative_to(root)}")
 
