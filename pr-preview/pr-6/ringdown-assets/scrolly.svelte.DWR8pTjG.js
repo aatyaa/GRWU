@@ -1,0 +1,1 @@
+import{J as e,R as t,S as n,Y as r}from"./client.D_7MrOIc.js";import{r as i}from"./state.D65KWWUj.js";function a(a){let o=r(0);return n(()=>i.subscribe(t=>e(o,t[a]??0,!0))),{get current(){return t(o)}}}export{a as t};
