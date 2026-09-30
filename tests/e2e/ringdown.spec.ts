@@ -13,7 +13,7 @@ test('the track page lists the articles and asks for a code', async ({ page }) =
 });
 
 test('an article stays locked, and a wrong code is refused', async ({ page }) => {
-  await page.goto('ringdown/three-masses/');
+  await page.goto('ringdown/weighing-the-ring/');
   const gate = page.locator('grwu-sealed');
   await expect(gate).toHaveAttribute('data-state', 'locked');
   await expect(page.locator('.trajectory')).toHaveCount(0);
@@ -26,7 +26,7 @@ test('an article stays locked, and a wrong code is refused', async ({ page }) =>
 for (const colorScheme of ['light', 'dark'] as const) {
   test(`the locked pages pass axe in ${colorScheme} mode`, async ({ page }) => {
     await page.emulateMedia({ colorScheme });
-    for (const path of ['ringdown/', 'ringdown/three-masses/']) {
+    for (const path of ['ringdown/', 'ringdown/weighing-the-ring/']) {
       await page.goto(path);
       await expect(page.locator('grwu-sealed')).toHaveAttribute('data-state', 'locked');
       await expectNoA11yViolations(page);
