@@ -32,7 +32,8 @@ export const sealedMode = process.env.RINGDOWN_SEALED === '1';
 
 /**
  * Access requests go to a form service that emails the owner, so no address appears on the
- * site. The public access key identifies the owner's form (Web3Forms); without it the request
- * form is not shown.
+ * site. The public access key identifies the owner's form on Web3Forms (it is meant to be
+ * public); PUBLIC_ACCESS_FORM_KEY overrides it, and an empty value hides the form.
  */
-export const requestFormKey = process.env.PUBLIC_ACCESS_FORM_KEY ?? '';
+export const requestFormKey =
+  process.env.PUBLIC_ACCESS_FORM_KEY ?? '4c6b917b-e03e-48e6-9c6f-b443802a7425';
