@@ -5,7 +5,8 @@ import BinaryHero, { type Segment } from '~/components/hero/BinaryHero.astro';
 import HowToDemo from '~/components/figures/HowToDemo.svelte';
 import Thumb from '~/components/site/Thumb.astro';
 import { tex } from '~/components/math/tex';
-import { getArticles } from '~/lib/content';
+import { getArticles, getRingdownArticles } from '~/lib/content';
+import { sealedArticles, sealedMode } from '~/lib/ringdown';
 import { withBase } from '~/lib/url';
 
 type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map' | 'bell';
@@ -102,6 +103,31 @@ const moreThumbs: Record<string, Kind> = {
   'laplace-closes-the-circle': 'bell',
 };
 const more = articles.filter((a) => !planned.some((p) => p.id === a.id));
+
+// The ringdown track (ADR 0007): only its public teaser, the chapter titles and questions
+// that /ringdown/ already shows. The chapters themselves stay sealed.
+const trackSource = sealedMode ? [] : await getRingdownArticles();
+const track = (
+  trackSource.length ? trackSource.map(({ id, data }) => ({ slug: id, ...data })) : sealedArticles()
+).filter((a) => a.status !== 'draft');
+
+// The ring behind the panel: a damped tone and its envelope, drawn once at build time.
+const RW = 640;
+const RH = 120;
+const ringPoints = Array.from({ length: 321 }, (_, i) => {
+  const u = i / 320;
+  const y = Math.exp(-3.2 * u) * Math.cos(2 * Math.PI * 9 * u);
+  return [u * RW, RH / 2 - y * (RH / 2 - 6)] as const;
+});
+const ringPath = ringPoints
+  .map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`)
+  .join('');
+const envelope = (sign: 1 | -1) =>
+  Array.from({ length: 81 }, (_, i) => {
+    const u = i / 80;
+    const y = RH / 2 - sign * Math.exp(-3.2 * u) * (RH / 2 - 6);
+    return `${i ? 'L' : 'M'}${(u * RW).toFixed(1)},${y.toFixed(1)}`;
+  }).join('');
 ---
 
 <BaseLayout>
@@ -123,6 +149,11 @@ const more = articles.filter((a) => !planned.some((p) => p.id === a.id));
       <a class="hero__more" href="#articles">
         All articles
       </a>
+      {track.length > 0 && (
+        <a class="hero__more" href="#ringdown-track">
+          The ringdown track
+        </a>
+      )}
     </div>
   </BinaryHero>
 
@@ -170,6 +201,62 @@ const more = articles.filter((a) => !planned.some((p) => p.id === a.id));
       ))}
     </ul>
   </section>
+
+  {track.length > 0 && (
+    <section class="container section" id="ringdown-track" aria-labelledby="track-title">
+      <div class="track">
+        <svg
+          class="track__ring"
+          viewBox={`0 0 ${RW} ${RH}`}
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path class="track__env" d={envelope(1)} />
+          <path class="track__env" d={envelope(-1)} />
+          <path class="track__wave" d={ringPath} />
+        </svg>
+        <div class="track__intro">
+          <p class="track__label">A research track in {track.length} chapters</p>
+          <h2 id="track-title">Heavier Than Its Parents</h2>
+          <p class="track__lede">
+            Fit a single tone to the ringdown of GW250114 and the black hole it describes weighs
+            more than the two that made it. This track takes apart, chapter by chapter, the paper
+            that explains why, with its own figures drawn from its own data.
+          </p>
+          <p class="track__byline">
+            By Attia A. Gadallah, from an unpublished paper. Open by request.
+          </p>
+          <div class="track__actions">
+            <a class="track__cta" href={withBase('ringdown/#request')}>
+              Request access →
+            </a>
+            <a class="track__code" href={withBase('ringdown/')}>
+              I have a code
+            </a>
+          </div>
+        </div>
+        <ol class="track__chapters">
+          {track.map((a, i) => (
+            <li>
+              <a href={withBase(`ringdown/${a.slug}/`)}>
+                <span class="track__n" aria-hidden="true">
+                  {i + 1}
+                </span>
+                <span class="track__text">
+                  <span class="track__title">{a.title}</span>
+                  {a.headline && <span class="track__q">{a.headline}</span>}
+                </span>
+                <svg class="track__lock" viewBox="0 0 16 16" aria-hidden="true">
+                  <rect x="3" y="7" width="10" height="7" rx="1.5" />
+                  <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+                </svg>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )}
 
   {more.length > 0 && (
     <section class="container section" aria-labelledby="more-title">
@@ -419,6 +506,170 @@ const more = articles.filter((a) => !planned.some((p) => p.id === a.id));
 
   .upcoming .card__image {
     opacity: 0.8;
+  }
+
+  .track {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: var(--space-8) var(--space-12);
+    overflow: hidden;
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-radius: 16px;
+    background:
+      radial-gradient(ellipse at 15% 0%, rgb(229 163 67 / 0.12), transparent 55%), var(--space);
+    color: var(--space-ink);
+    scroll-margin-top: 5rem;
+  }
+
+  .track__ring {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: clamp(4rem, 9vw, 7rem);
+    margin-bottom: calc(-1 * var(--space-4));
+    opacity: 0.7;
+  }
+
+  .track__wave {
+    fill: none;
+    stroke: var(--space-signal);
+    stroke-width: 1.6;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .track__env {
+    fill: none;
+    stroke: var(--space-cool);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .track__label {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--space-signal);
+  }
+
+  .track h2 {
+    margin: 0 0 1rem;
+    font-size: clamp(2rem, 4vw, 2.9rem);
+    line-height: 1.05;
+    color: var(--space-ink);
+  }
+
+  .track__lede {
+    margin: 0 0 1rem;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: var(--space-ink);
+  }
+
+  .track__byline {
+    margin: 0 0 1.5rem;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--space-soft);
+  }
+
+  .track__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    align-items: center;
+  }
+
+  .track__cta {
+    display: inline-block;
+    padding: 0.7rem 1.2rem;
+    border: 1px solid var(--space-signal);
+    border-radius: 999px;
+    background: rgb(229 163 67 / 0.14);
+    font-weight: 600;
+    color: #f2be6a;
+  }
+
+  .track__cta:hover {
+    background: rgb(229 163 67 / 0.26);
+    color: #fff;
+  }
+
+  .track__code {
+    border-bottom: 1px solid rgb(231 237 245 / 0.4);
+    font-weight: 500;
+    color: var(--space-ink);
+  }
+
+  .track__chapters {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .track__chapters li + li {
+    border-top: 1px solid var(--space-line);
+  }
+
+  .track__chapters a {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    gap: 0.9rem;
+    align-items: start;
+    padding: 0.8rem 0.4rem;
+    border: 0;
+    border-radius: 8px;
+    color: var(--space-ink);
+    transition: background var(--dur-fast) var(--ease);
+  }
+
+  .track__chapters a:hover,
+  .track__chapters a:focus-visible {
+    background: rgb(231 237 245 / 0.06);
+  }
+
+  .track__n {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border: 1px solid rgb(229 163 67 / 0.6);
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--space-signal);
+  }
+
+  .track__text {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .track__title {
+    font-family: var(--f-display);
+    font-size: 1.2rem;
+    line-height: 1.2;
+  }
+
+  .track__q {
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: var(--space-soft);
+  }
+
+  .track__lock {
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.35rem;
+    fill: none;
+    stroke: var(--space-faint);
+    stroke-width: 1.4;
+  }
+
+  @media (max-width: 860px) {
+    .track {
+      grid-template-columns: 1fr;
+    }
   }
 
   .how {
