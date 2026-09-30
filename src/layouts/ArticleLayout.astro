@@ -1,9 +1,15 @@
 ---
 import BaseLayout from './BaseLayout.astro';
-import type { Article, RingdownArticle } from '~/lib/content';
+import type { Article } from '~/lib/content';
 
 interface Props {
-  article: Article | RingdownArticle;
+  /** An article, or just the fields the header and references need (sealed shells). */
+  article: {
+    data: Pick<
+      Article['data'],
+      'title' | 'headline' | 'summary' | 'status' | 'minutes' | 'updated' | 'sources'
+    >;
+  };
   /** Keep the page out of search engines (the gated track). */
   noindex?: boolean;
 }

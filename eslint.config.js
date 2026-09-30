@@ -13,6 +13,7 @@ export default defineConfig(
     'node_modules/',
     'pipeline/',
     'private/paper/',
+    'public/ringdown-assets/',
     'playwright-report/',
     'test-results/',
     'coverage/',

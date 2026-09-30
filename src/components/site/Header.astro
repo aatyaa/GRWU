@@ -5,6 +5,7 @@ import { withBase } from '~/lib/url';
 const current = Astro.url.pathname;
 const links = [
   { href: withBase(), label: 'Articles' },
+  { href: withBase('ringdown/'), label: 'Ringdown' },
   { href: withBase('about/'), label: 'About' },
 ];
 ---

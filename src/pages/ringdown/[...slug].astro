@@ -1,22 +1,49 @@
 ---
 import { render } from 'astro:content';
 import ArticleLayout from '~/layouts/ArticleLayout.astro';
+import CodeForm from '~/components/ringdown/CodeForm.astro';
 import { getRingdownArticles, type RingdownArticle } from '~/lib/content';
+import { sealedArticles, sealedMode, type SealedArticle } from '~/lib/ringdown';
 
-// The access-gated ringdown track (ADR 0007). No pages exist without the private repository.
+// The access-gated ringdown track (ADR 0007). With the private repository the pages render
+// in full (local work); the public site serves sealed shells that decrypt with an access code.
 export async function getStaticPaths() {
-  const articles = await getRingdownArticles();
-  return articles.map((article) => ({ params: { slug: article.id }, props: { article } }));
+  const articles = sealedMode ? [] : await getRingdownArticles();
+  if (articles.length) {
+    return articles.map((article) => ({ params: { slug: article.id }, props: { article } }));
+  }
+  return sealedArticles().map((sealed) => ({ params: { slug: sealed.slug }, props: { sealed } }));
 }
 
-interface Props {
-  article: RingdownArticle;
-}
+type Props =
+  { article: RingdownArticle; sealed?: never } | { sealed: SealedArticle; article?: never };
 
-const { article } = Astro.props;
-const { Content } = await render(article);
+const { article, sealed } = Astro.props;
+const Content = article ? (await render(article)).Content : null;
 ---
 
-<ArticleLayout article={article} noindex>
-  <Content />
-</ArticleLayout>
+{article && Content ? (
+  <ArticleLayout article={article} noindex>
+    <Content />
+  </ArticleLayout>
+) : (
+  sealed && (
+    <ArticleLayout
+      article={{
+        data: {
+          title: sealed.title,
+          headline: sealed.headline,
+          summary: sealed.summary,
+          status: 'published',
+          minutes: sealed.minutes,
+          updated: new Date(sealed.updated),
+          sources: [],
+        },
+      }}
+      noindex
+    >
+      <p>{sealed.summary}</p>
+      <CodeForm slug={sealed.slug} />
+    </ArticleLayout>
+  )
+)}

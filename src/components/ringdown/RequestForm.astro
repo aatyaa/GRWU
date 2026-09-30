@@ -1,0 +1,133 @@
+---
+/**
+ * The access request of the ringdown track (ADR 0007). It posts to Web3Forms, which emails
+ * the owner; the site itself never shows an address. Without an access key it says so.
+ */
+import { requestFormKey } from '~/lib/ringdown';
+import { withBase } from '~/lib/url';
+
+const thanks = new URL(withBase('ringdown/?requested=1'), Astro.site).href;
+---
+
+<section class="request" id="request" aria-labelledby="request-title">
+  <h2 id="request-title">Ask for access</h2>
+  <p class="request__thanks" data-requested>
+    Thank you. Your request has been sent, and you will hear back by email.
+  </p>
+  {requestFormKey ? (
+    <form class="request__form" action="https://api.web3forms.com/submit" method="POST">
+      <input type="hidden" name="access_key" value={requestFormKey} />
+      <input type="hidden" name="subject" value="GRWU: a request for the ringdown track" />
+      <input type="hidden" name="from_name" value="GRWU ringdown track" />
+      <input type="hidden" name="redirect" value={thanks} />
+      <input
+        type="checkbox"
+        name="botcheck"
+        class="request__trap"
+        tabindex="-1"
+        aria-hidden="true"
+      />
+      <p>
+        Tell the author who you are and why you would like to read it. You will get a personal
+        access code by email.
+      </p>
+      <label>
+        Name
+        <input name="name" autocomplete="name" required />
+      </label>
+      <label>
+        Email
+        <input name="email" type="email" autocomplete="email" required />
+      </label>
+      <label>
+        Affiliation <span class="request__optional">(optional)</span>
+        <input name="affiliation" autocomplete="organization" />
+      </label>
+      <label>
+        Why you would like access
+        <textarea name="message" rows="4" required />
+      </label>
+      <button type="submit">Send the request</button>
+    </form>
+  ) : (
+    <p>Requests open soon.</p>
+  )}
+</section>
+
+<script>
+  if (new URLSearchParams(location.search).has('requested')) {
+    document.querySelector('.request')?.classList.add('is-requested');
+  }
+</script>
+
+<style>
+  .request {
+    margin: var(--space-12) 0;
+  }
+
+  .request__thanks {
+    display: none;
+    padding: var(--space-4);
+    border: 1px solid var(--ok);
+    border-radius: var(--radius-2);
+    background: var(--ok-bg);
+  }
+
+  .request.is-requested .request__thanks {
+    display: block;
+  }
+
+  .request.is-requested .request__form {
+    display: none;
+  }
+
+  .request__form {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-2);
+    background: var(--surface);
+  }
+
+  .request__form p {
+    margin: 0;
+  }
+
+  .request__form label {
+    display: grid;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+
+  .request__form input,
+  .request__form textarea {
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-1);
+    background: var(--ground);
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--text-base);
+  }
+
+  .request__optional {
+    color: var(--ink-faint);
+  }
+
+  .request__trap {
+    display: none;
+  }
+
+  .request__form button {
+    justify-self: start;
+    padding: 0.6rem 1.2rem;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-1);
+    background: var(--ink);
+    color: var(--surface);
+    font: inherit;
+    cursor: pointer;
+  }
+</style>

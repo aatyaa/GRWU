@@ -24,16 +24,25 @@ can be read on GitHub, so a gate on the page alone would lock nothing.
   track's tests from `private/track/tests/` when the folder exists. Without it the
   collection is empty and every public build, test and preview is unaffected.
 - The track's pages are `noindex`.
-- The gate, when the track is finished: the deploy workflow clones the private repository
-  with a read-only secret and encrypts each track page at build time (AES-GCM, key derived
-  from an access code with PBKDF2). A visitor sees the title, a summary and an access
-  request form, which reaches the owner by email; the owner replies with the code, and
-  the page decrypts in the browser.
+- The gate: `pnpm seal:ringdown` (a full build with the private folder, then
+  `scripts/seal-ringdown.mjs`) encrypts each track page's `<article>` with a fresh AES-GCM
+  content key and wraps that key once per access code (PBKDF2-SHA256). The ciphertext
+  (`public/ringdown-sealed/`) and the compiled scripts and styles those articles load
+  (`public/ringdown-assets/`) are committed here; the codes are not. Public builds, which
+  have no private folder, serve shells: title, summary and a code box (`<grwu-sealed>`,
+  `src/elements/sealed.ts`) that decrypts the article in the browser and remembers the code
+  in that browser.
+- Each reader gets their own code (`scripts/ringdown-codes.mjs`, kept in
+  `private/access/`). Revoking one means marking it and sealing again.
+- Access requests go through a form service (Web3Forms) that emails the owner, so the site
+  never shows an address; its public key is `PUBLIC_ACCESS_FORM_KEY`.
 
 ## Consequences
 
-- Public CI never sees the track; it is checked where the private folder is present
-  (Claude Code sessions, the owner's machine, and the deploy job once the gate exists).
-- An access code can be passed on. Rotating it means changing one secret and redeploying.
+- Public CI never sees the track's sources and needs no secret; the track is checked where
+  the private folder is present. After any change to the track, seal again and commit.
+- A code can be passed on; the ciphertext is public, so codes must stay long and random.
+- The compiled figure components (no data: that travels inside the encrypted article) are
+  readable, as are the titles and summaries.
 - The paper's numbers and figures are not reproduced from public data here: the track
   draws the paper's own figure data, exported by `private/track/scripts/export_figdata.py`.

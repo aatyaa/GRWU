@@ -93,7 +93,9 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json and kerr.
 - `private/` (git-ignored): clone of the private `aatyaa/GRWU-private` repository. Its
   `track/` holds the access-gated ringdown track (collection `ringdown`, route
   `/ringdown/<slug>/`, alias `@track`); its `paper/` is reference only. See ADR 0007. Commit
-  track work inside `private/`, never in this repository.
+  track work inside `private/`, never in this repository. After changing the track run
+  `pnpm seal:ringdown` and commit `public/ringdown-sealed/` and `public/ringdown-assets/`;
+  `RINGDOWN_SEALED=1 pnpm build` serves the sealed shells locally, as the public site does.
 
 ## Conventions
 
