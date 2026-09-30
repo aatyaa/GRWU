@@ -7,6 +7,7 @@ import Thumb from '~/components/site/Thumb.astro';
 import { tex } from '~/components/math/tex';
 import { getArticles, getRingdownArticles } from '~/lib/content';
 import { sealedArticles, sealedMode } from '~/lib/ringdown';
+import { foundations, tracks } from '~/lib/tracks';
 import { withBase } from '~/lib/url';
 
 type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map' | 'bell';
@@ -111,6 +112,10 @@ const track = (
   trackSource.length ? trackSource.map(({ id, data }) => ({ slug: id, ...data })) : sealedArticles()
 ).filter((a) => a.status !== 'draft');
 
+// Every track on the site (ADR 0009): the foundations series, the flagship tracks, the open ones.
+const codeTrack = tracks.find((t) => t.id === 'code');
+const openTracks = tracks.filter((t) => t.kind === 'open');
+
 // The ring behind the panel: a damped tone and its envelope, drawn once at build time.
 const RW = 640;
 const RH = 120;
@@ -148,6 +153,9 @@ const envelope = (sign: 1 | -1) =>
       )}
       <a class="hero__more" href="#articles">
         All articles
+      </a>
+      <a class="hero__more" href="#start">
+        New? Start here
       </a>
       {track.length > 0 && (
         <a class="hero__more" href="#ringdown-track">
@@ -202,6 +210,34 @@ const envelope = (sign: 1 | -1) =>
     </ul>
   </section>
 
+  <section class="container section" id="start" aria-labelledby="start-title">
+    <div class="start">
+      <header class="start__head">
+        <h2 id="start-title">New to this? Start here</h2>
+        <p>
+          Five articles for a first-year student. Each joins a piece of physics, statistics and
+          signal analysis, so that the research tracks below make sense.
+        </p>
+        <a class="start__cta" href={withBase('start/')}>
+          Start the foundations →
+        </a>
+      </header>
+      <ol class="start__list">
+        {foundations.map((a, i) => (
+          <li>
+            <span class="start__n" aria-hidden="true">
+              {i + 1}
+            </span>
+            <span>
+              <span class="start__title">{a.title}</span>
+              <span class="start__q">{a.question}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
   {track.length > 0 && (
     <section class="container section" id="ringdown-track" aria-labelledby="track-title">
       <div class="track">
@@ -234,6 +270,15 @@ const envelope = (sign: 1 | -1) =>
               I have a code
             </a>
           </div>
+          {codeTrack && (
+            <div class="track__next">
+              <p class="track__next-label">
+                {codeTrack.status === 'live' ? 'Also in this track' : 'Coming next, same access'}
+              </p>
+              <p class="track__next-title">{codeTrack.title}</p>
+              <p class="track__next-text">{codeTrack.summary}</p>
+            </div>
+          )}
         </div>
         <ol class="track__chapters">
           {track.map((a, i) => (
@@ -257,6 +302,37 @@ const envelope = (sign: 1 | -1) =>
       </div>
     </section>
   )}
+
+  <section class="container section" id="open-tracks" aria-labelledby="open-title">
+    <header class="section__head">
+      <h2 id="open-title">Open tracks</h2>
+      <p>
+        Short tracks built on open-source work that deserves its own path, redrawn in this site's
+        style and credited to the people who made it. Open to everyone.
+      </p>
+    </header>
+    <ul class="cards open">
+      {openTracks.map((t) => (
+        <li class="card open__card" id={`track-${t.id}`}>
+          <div>
+            <div class="card__body">
+              <h3>{t.path ? <a href={withBase(t.path)}>{t.title}</a> : t.title}</h3>
+              <p class="card__question">{t.question}</p>
+              <p class="card__summary">{t.summary}</p>
+              {t.credits?.map((c) => (
+                <p class="open__credit">
+                  Built on <a href={c.url}>{c.project}</a> by {c.authors} ({c.license})
+                </p>
+              ))}
+              <p class="card__meta">
+                <span class="card__soon">{t.status === 'live' ? 'Open' : 'Coming soon'}</span>
+              </p>
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </section>
 
   {more.length > 0 && (
     <section class="container section" aria-labelledby="more-title">
@@ -668,6 +744,138 @@ const envelope = (sign: 1 | -1) =>
 
   @media (max-width: 860px) {
     .track {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .start {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    gap: var(--space-8) var(--space-12);
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    border: 1px solid var(--rule-soft);
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .start__head h2 {
+    margin: 0 0 0.6rem;
+    font-size: clamp(1.9rem, 3.6vw, 2.5rem);
+    line-height: 1.05;
+  }
+
+  .start__head p {
+    margin: 0 0 1.3rem;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+
+  .start__cta {
+    display: inline-block;
+    padding: 0.65rem 1.15rem;
+    border: 1px solid var(--signal);
+    border-radius: 999px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .start__cta:hover {
+    background: var(--signal-bg);
+  }
+
+  .start__list {
+    display: grid;
+    gap: 0.2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .start__list li {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 0.8rem;
+    align-items: start;
+    padding: 0.6rem 0;
+  }
+
+  .start__list li + li {
+    border-top: 1px solid var(--rule-soft);
+  }
+
+  .start__n {
+    display: grid;
+    place-items: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border: 1.5px solid var(--signal);
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .start__title {
+    display: block;
+    font-family: var(--f-display);
+    font-size: 1.2rem;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .start__q {
+    display: block;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+
+  .track__next {
+    margin-top: var(--space-8);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--space-line);
+  }
+
+  .track__next-label {
+    margin: 0 0 0.3rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--space-signal);
+  }
+
+  .track__next-title {
+    margin: 0 0 0.3rem;
+    font-family: var(--f-display);
+    font-size: 1.35rem;
+    color: var(--space-ink);
+  }
+
+  .track__next-text {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--space-soft);
+  }
+
+  .cards.open {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  }
+
+  .open__credit {
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+
+  .open__card h3 a {
+    border: 0;
+    color: inherit;
+  }
+
+  @media (max-width: 860px) {
+    .start {
       grid-template-columns: 1fr;
     }
   }

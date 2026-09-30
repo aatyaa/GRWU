@@ -20,7 +20,13 @@ export interface Track {
   kind: TrackKind;
   /** Behind the access gate (ADR 0007). */
   gated: boolean;
+  /** The question the track answers, shown on its card. */
+  question: string;
   summary: string;
+  /** Planned tracks are shown as coming; live ones link to `path`. */
+  status: 'planned' | 'live';
+  /** Route under the site's base, e.g. "start/". */
+  path?: string;
   credits?: Credit[];
 }
 
@@ -30,16 +36,121 @@ export const tracks: Track[] = [
     title: 'Foundations',
     kind: 'foundations',
     gated: false,
+    question: 'New to this? What do you need before the research?',
     summary:
       'Five articles for a first-year student: the physics, statistics and signal analysis that the research tracks rest on, joined up.',
+    status: 'live',
+    path: 'start/',
   },
   {
     id: 'ringdown',
     title: 'Heavier Than Its Parents',
     kind: 'flagship',
     gated: true,
+    question: 'Why does a one-tone fit weigh the black hole heavier than its parents?',
     summary:
       'A research track on GW250114: why a one-tone fit weighs the black hole heavier than the two that made it.',
+    status: 'live',
+    path: 'ringdown/',
+  },
+  {
+    id: 'code',
+    title: 'The Code Behind It',
+    kind: 'flagship',
+    gated: true,
+    question: 'How does each number in the ringdown track come out of the data?',
+    summary:
+      'The ringdown track again, chapter by chapter, through the code: from public posterior samples to every claim, and how the tools that made them work inside.',
+    status: 'planned',
+  },
+  {
+    id: 'samplers',
+    title: 'How a Sampler Walks',
+    kind: 'open',
+    gated: false,
+    question: 'How does a computer map a posterior it cannot write down?',
+    summary:
+      'Random-walk Metropolis, Hamiltonian Monte Carlo and NUTS, watched step by step on shapes you choose.',
+    status: 'planned',
+    credits: [
+      {
+        project: 'mcmc-demo',
+        authors: 'Chi Feng',
+        url: 'https://github.com/chi-feng/mcmc-demo',
+        license: 'MIT',
+      },
+    ],
+  },
+  {
+    id: 'fourier',
+    title: 'Fourier, Drawn',
+    kind: 'open',
+    gated: false,
+    question: 'How can any shape be built from circles?',
+    summary: 'The Fourier transform from spinning circles to sound, before any formula.',
+    status: 'planned',
+    credits: [
+      {
+        project: 'An Interactive Introduction to Fourier Transforms',
+        authors: 'Jez Swanson',
+        url: 'https://github.com/Jezzamonn/fourier',
+        license: 'MIT',
+      },
+    ],
+  },
+  {
+    id: 'matched-filtering',
+    title: 'Listening for a Chirp',
+    kind: 'open',
+    gated: false,
+    question: 'How do you hear a signal quieter than the noise?',
+    summary:
+      'Matched filtering with a microphone and with LIGO data: the detector as an ear, and why knowing the tune lets you hear it.',
+    status: 'planned',
+    credits: [
+      {
+        project: 'MatchedFiltering',
+        authors: 'Mike Boyle',
+        url: 'https://github.com/moble/MatchedFiltering',
+        license: 'MIT',
+      },
+    ],
+  },
+  {
+    id: 'first-ringdown-fit',
+    title: 'Your First Ringdown Fit',
+    kind: 'open',
+    gated: false,
+    question: 'What does it take to fit the ring of a real black hole yourself?',
+    summary:
+      'A quasinormal-mode fit to GW150914 with the ringdown package, step by step, and how to read what it returns.',
+    status: 'planned',
+    credits: [
+      {
+        project: 'ringdown',
+        authors: 'Maximiliano Isi and Will M. Farr',
+        url: 'https://github.com/maxisi/ringdown',
+        license: 'MIT',
+      },
+    ],
+  },
+  {
+    id: 'nested-sampling',
+    title: 'Counting With Nested Sampling',
+    kind: 'open',
+    gated: false,
+    question: 'How do you weigh a whole model, not just its best fit?',
+    summary:
+      'Nested sampling replayed live: how it climbs the likelihood, and how that climb becomes the evidence used to compare models.',
+    status: 'planned',
+    credits: [
+      {
+        project: 'anesthetic',
+        authors: 'Will Handley and contributors',
+        url: 'https://github.com/handley-lab/anesthetic',
+        license: 'MIT',
+      },
+    ],
   },
 ];
 

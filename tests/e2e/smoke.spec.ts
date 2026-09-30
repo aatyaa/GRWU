@@ -71,6 +71,22 @@ test('the start page lists the foundations series and the symbols', async ({ pag
   await expectNoA11yViolations(page);
 });
 
+test('the home page presents every track', async ({ page }) => {
+  await page.goto('');
+  const start = page.locator('#start');
+  await expect(start.locator('.start__list > li')).toHaveCount(5);
+  await expect(start.getByRole('link', { name: /Start the foundations/ })).toHaveAttribute(
+    'href',
+    /start\/$/,
+  );
+  await expect(page.locator('#ringdown-track .track__next')).toContainText('The Code Behind It');
+  const open = page.locator('#open-tracks .open__card');
+  await expect(open).toHaveCount(5);
+  for (const project of ['mcmc-demo', 'MatchedFiltering', 'ringdown', 'anesthetic']) {
+    await expect(page.locator('#open-tracks').getByRole('link', { name: project })).toBeVisible();
+  }
+});
+
 test('the signal under the scene is a map of the articles', async ({ page }) => {
   await page.goto('');
   const stage = page.locator('grwu-binary-hero .ovh');
