@@ -2,15 +2,20 @@
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import IslandCheck from '~/components/lab/IslandCheck.svelte';
 
-const concepts = ['data', 'signal', 'template', 'snr', 'glitch', 'noise'] as const;
+const colours = [
+  { token: 'signal', meaning: 'the signal; anything observed or measured' },
+  { token: 'noise', meaning: 'noise; references and schematics' },
+  { token: 'model', meaning: 'a model or template (dashed)' },
+  { token: 'bias', meaning: 'bias, disagreement, a glitch (always labelled)' },
+  { token: 'ok', meaning: 'agreement; a check that passed' },
+  { token: 'ink', meaning: 'text and recorded data' },
+];
 ---
 
 <BaseLayout title="Lab" description="Component workbench for GRWU." noindex>
   <div class="container lab">
     <h1>Lab</h1>
-    <p class="lede">
-      A workbench for the building blocks of GRWU articles. Nothing here is published content.
-    </p>
+    <p class="lead">The building blocks of GRWU articles, one at a time.</p>
 
     <section aria-labelledby="islands-heading">
       <h2 id="islands-heading">Islands</h2>
@@ -18,12 +23,13 @@ const concepts = ['data', 'signal', 'template', 'snr', 'glitch', 'noise'] as con
     </section>
 
     <section aria-labelledby="colours-heading">
-      <h2 id="colours-heading">Concept colours</h2>
+      <h2 id="colours-heading">Colour carries meaning</h2>
       <ul class="swatches">
-        {concepts.map((concept) => (
+        {colours.map((colour) => (
           <li>
-            <span class="swatch" style={`--swatch: var(--c-${concept})`} />
-            {concept}
+            <span class="swatch" style={`--swatch: var(--${colour.token})`} />
+            <b>{colour.token}</b>
+            <span>{colour.meaning}</span>
           </li>
         ))}
       </ul>
@@ -36,34 +42,33 @@ const concepts = ['data', 'signal', 'template', 'snr', 'glitch', 'noise'] as con
     padding-top: var(--space-12);
   }
 
-  .lede {
-    max-width: var(--measure);
-    color: var(--ink-2);
-  }
-
-  section {
-    margin-top: var(--space-8);
-  }
-
   .swatches {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-6);
+    display: grid;
+    gap: 0.6rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .swatches li {
-    display: flex;
+    display: grid;
+    grid-template-columns: 2rem 5rem 1fr;
     align-items: center;
-    gap: var(--space-2);
+    gap: 0.8rem;
+    font-family: var(--f-mono);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
   }
 
   .swatch {
-    width: 1.5rem;
-    height: 0.35rem;
+    width: 2rem;
+    height: 3px;
     border-radius: 2px;
     background: var(--swatch);
+  }
+
+  b {
+    font-weight: 500;
+    color: var(--ink);
   }
 </style>

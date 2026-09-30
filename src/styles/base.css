@@ -1,3 +1,14 @@
+/* Self-hosted fonts, Latin subset only (see tokens.css for the roles). */
+@import '@fontsource/instrument-serif/latin-400.css';
+@import '@fontsource/instrument-serif/latin-400-italic.css';
+@import '@fontsource/archivo/latin-400.css';
+@import '@fontsource/archivo/latin-400-italic.css';
+@import '@fontsource/archivo/latin-500.css';
+@import '@fontsource/archivo/latin-600.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+@import '@fontsource/ibm-plex-mono/latin-500.css';
+@import './figures.css';
+
 *,
 *::before,
 *::after {
@@ -11,11 +22,12 @@ html {
 
 body {
   margin: 0;
-  background: var(--surface-page);
-  color: var(--ink-1);
-  font-family: var(--font-sans);
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--f-body);
   font-size: var(--text-base);
   line-height: var(--leading);
+  -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
@@ -27,53 +39,229 @@ video {
   max-width: 100%;
 }
 
+/* ---------- type ---------- */
+
 h1,
-h2,
-h3,
-h4 {
-  line-height: var(--leading-tight);
+h2 {
+  font-family: var(--f-display);
+  font-weight: 400;
   text-wrap: balance;
 }
 
+h1 {
+  font-size: var(--text-3xl);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  margin: 0 0 var(--space-6);
+}
+
+h2 {
+  font-size: var(--text-2xl);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  margin: var(--space-16) 0 var(--space-6);
+}
+
+h3 {
+  font-family: var(--f-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  margin: var(--space-8) 0 var(--space-2);
+}
+
+h1 em,
+h2 em {
+  font-style: italic;
+  color: var(--signal);
+}
+
 p {
+  margin: 0 0 1.05em;
   text-wrap: pretty;
 }
 
+strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
 a {
-  color: var(--accent);
-  text-underline-offset: 0.18em;
+  color: var(--signal);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 1px;
 }
 
 a:hover {
-  text-decoration-thickness: 2px;
+  color: var(--ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--signal);
   outline-offset: 2px;
 }
 
 code,
 pre,
-kbd {
-  font-family: var(--font-mono);
-  font-size: 0.92em;
+kbd,
+samp {
+  font-family: var(--f-mono);
+  font-size: 0.88em;
 }
+
+kbd {
+  font-size: 0.72rem;
+  border: 1px solid var(--rule);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  padding: 1px 6px;
+  color: var(--ink-soft);
+  background: var(--surface);
+}
+
+sub,
+sup {
+  font-size: 0.66em;
+  line-height: 0;
+}
+
+/* Lead paragraph under a title. */
+.lead {
+  font-size: var(--text-lg);
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+/* Mono label: the site's small-caps voice for eyebrows, axes and captions. */
+.label {
+  font-family: var(--f-mono);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* A term that belongs to a concept: ink with the concept colour on the word itself. */
+.term {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--signal);
+}
+
+/* ---------- controls ---------- */
 
 button {
   font: inherit;
 }
 
-.container {
-  width: 100%;
-  max-width: var(--wide);
-  margin-inline: auto;
-  padding-inline: var(--gutter);
+.btn {
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-1);
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
 }
 
-.prose {
-  max-width: var(--measure);
+.btn:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--ink-faint);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn[aria-pressed='true'] {
+  color: var(--signal);
+  border-color: var(--signal);
+  background: var(--signal-bg);
+}
+
+input[type='range'] {
+  appearance: none;
+  height: 3px;
+  min-width: 7rem;
+  border-radius: 2px;
+  background: var(--rule);
+  outline: none;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--signal);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--signal);
+  cursor: pointer;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--signal);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--signal);
+  cursor: pointer;
+}
+
+input[type='range']:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 4px;
+}
+
+input[type='radio'],
+input[type='checkbox'] {
+  accent-color: var(--signal);
+}
+
+/* ---------- tables ---------- */
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.55rem 0.9rem 0.55rem 0;
+  border-bottom: 1px solid var(--rule-soft);
+  font-family: var(--f-mono);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  vertical-align: top;
+}
+
+th {
+  font-size: 0.66rem;
+  font-weight: 400;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border-bottom-color: var(--rule);
+}
+
+/* ---------- layout helpers ---------- */
+
+.container {
+  width: 100%;
+  max-width: calc(var(--wide) + 2 * var(--gutter));
   margin-inline: auto;
+  padding-inline: var(--gutter);
 }
 
 .visually-hidden {
@@ -91,13 +279,30 @@ button {
   top: -3rem;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-1);
-  background: var(--surface-1);
-  color: var(--ink-1);
-  z-index: 10;
+  background: var(--surface);
+  color: var(--ink);
+  z-index: 60;
 }
 
 .skip-link:focus {
   top: var(--space-4);
+}
+
+/* Anything that animates in when it scrolls into view (figures, lists) starts here. */
+/* Only once scripts run (html.js), so nothing stays hidden without JavaScript. */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 0.6s var(--ease),
+      transform 0.6s var(--ease);
+  }
+
+  .js [data-reveal].is-revealed {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

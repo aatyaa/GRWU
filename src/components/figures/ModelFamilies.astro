@@ -1,0 +1,102 @@
+---
+/**
+ * The families of waveform models, by cost and by how much of the signal they describe
+ * (Almost None of It Is About Gravitational Waves). Schematic: positions are orders of
+ * magnitude, and every family keeps improving.
+ */
+const W = 600;
+const H = 300;
+const PAD = { l: 150, r: 16, t: 20, b: 48 };
+// Cost of one waveform, log10 of seconds: 1 µs … 1 month.
+const cx = (log10s: number) => PAD.l + ((log10s + 6) / (6.5 + 6)) * (W - PAD.l - PAD.r);
+const levels = [
+  ['the inspiral', 'only'],
+  ['the whole signal, with', 'precession and harmonics'],
+  ['the equations', 'themselves'],
+];
+const cy = (level: number) => H - PAD.b - 30 - level * 90;
+const families = [
+  { name: 'post-Newtonian', eg: 'TaylorF2', cost: -4.3, level: 0, anchor: 'start' },
+  { name: 'phenomenological', eg: 'IMRPhenomXPHM', cost: -2.2, level: 1, anchor: 'end' },
+  { name: 'effective one body', eg: 'SEOBNRv5PHM', cost: -0.3, level: 1, anchor: 'start' },
+  { name: 'NR surrogate', eg: 'NRSur7dq4, limited range', cost: -1.2, level: 1.5, anchor: 'start' },
+  { name: 'numerical relativity', eg: 'SXS simulations', cost: 6.2, level: 2, anchor: 'end' },
+] as const;
+const ticks: [number, string][] = [
+  [-6, '1 µs'],
+  [-3, '1 ms'],
+  [0, '1 s'],
+  [3.56, '1 hour'],
+  [6.41, '1 month'],
+];
+---
+
+<svg
+  class="fig families"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Waveform model families placed by the cost of one waveform and by how much of the signal they describe. Post-Newtonian models take microseconds and describe the inspiral only. Phenomenological and effective-one-body models take milliseconds to about a second and describe the whole signal with precession and higher modes. Numerical-relativity surrogates are nearly as fast and closer to the full solution, over a limited range. Numerical relativity solves the equations themselves and takes weeks on a supercomputer per simulation."
+>
+  {levels.map(([a, b], i) => (
+    <g>
+      <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={cy(i)} y2={cy(i)} />
+      <text class="level" x={PAD.l - 10} y={cy(i) - 3} text-anchor="end">
+        {a}
+      </text>
+      <text class="level" x={PAD.l - 10} y={cy(i) + 12} text-anchor="end">
+        {b}
+      </text>
+    </g>
+  ))}
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+  {ticks.map(([v, label]) => (
+    <text x={cx(v)} y={H - PAD.b + 18} text-anchor="middle">
+      {label}
+    </text>
+  ))}
+  <text x={W - PAD.r} y={H - 8} text-anchor="end">
+    cost of one waveform →
+  </text>
+  {families.map((f) => (
+    <g>
+      <circle class="dot" cx={cx(f.cost)} cy={cy(f.level)} r="6" />
+      <text
+        class="name"
+        x={cx(f.cost) + (f.anchor === 'start' ? 10 : -10)}
+        y={cy(f.level) + 4}
+        text-anchor={f.anchor}
+      >
+        {f.name}
+      </text>
+      <text
+        x={cx(f.cost) + (f.anchor === 'start' ? 10 : -10)}
+        y={cy(f.level) + 19}
+        text-anchor={f.anchor}
+      >
+        {f.eg}
+      </text>
+    </g>
+  ))}
+</svg>
+
+<style>
+  .families {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .families .dot {
+    fill: var(--signal);
+  }
+
+  .families .name {
+    font-family: var(--f-body);
+    font-weight: 700;
+    fill: var(--ink);
+  }
+
+  .families .level {
+    fill: var(--ink-faint);
+  }
+</style>

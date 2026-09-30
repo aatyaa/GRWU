@@ -1,0 +1,16 @@
+---
+/** Computes every ringdown fit at build time and hands them to the island. */
+import { ring, scan, TRUTH } from '~/lib/articles/wrong';
+import RingLabIsland from './RingLab.svelte';
+
+const r = ring();
+const round = (v: number) => Number(v.toFixed(4));
+---
+
+<RingLabIsland
+  client:visible
+  t={r.t.map((v) => Number(v.toFixed(7)))}
+  data={r.data.map(round)}
+  points={scan()}
+  truth={TRUTH}
+/>

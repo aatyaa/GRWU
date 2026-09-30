@@ -1,0 +1,115 @@
+---
+/**
+ * Scrollytelling: the figure (slot "figure") stays in view while the steps beside it scroll
+ * past; the step in the middle of the viewport drives the figure (see elements/scrolly.ts).
+ * On narrow screens the figure sticks to the top and the steps pass beneath it as cards.
+ */
+interface Props {
+  id: string;
+  /** Put the figure on the left instead of the right. */
+  flip?: boolean;
+}
+
+const { id, flip = false } = Astro.props;
+---
+
+<grwu-scrolly id={id} class:list={['scrolly', { flip }]}>
+  <div class="scrolly__figure">
+    <slot name="figure" />
+  </div>
+  <div class="scrolly__steps">
+    <slot />
+  </div>
+</grwu-scrolly>
+
+<script>
+  import '~/elements/scrolly';
+</script>
+
+<style>
+  .scrolly {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-areas: 'steps figure';
+    gap: clamp(1.6rem, 4vw, 3.4rem);
+    width: min(var(--wide), calc(100vw - 2 * var(--gutter)));
+    margin: var(--space-12) calc(50% - min(var(--wide), calc(100vw - 2 * var(--gutter))) / 2);
+  }
+
+  .scrolly.flip {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    grid-template-areas: 'figure steps';
+  }
+
+  .scrolly__figure {
+    grid-area: figure;
+    position: sticky;
+    top: 5.5rem;
+    align-self: start;
+  }
+
+  .scrolly__steps {
+    grid-area: steps;
+    padding-bottom: 30vh;
+  }
+
+  .scrolly__steps > :global([data-step]) {
+    min-height: 60vh;
+    padding: 1rem 0;
+  }
+
+  .scrolly__steps > :global([data-step]:first-child) {
+    padding-top: 12vh;
+  }
+
+  /*
+   * Without scripts every step is simply readable; with them, the others recede to the faint
+   * ink (still AA contrast, unlike an opacity fade).
+   */
+  :global(.js) .scrolly__steps > :global([data-step]) {
+    color: var(--ink-faint);
+    transition: color var(--dur) var(--ease);
+  }
+
+  :global(.js) .scrolly__steps > :global([data-step]) :global(strong) {
+    color: inherit;
+  }
+
+  :global(.js) .scrolly__steps > :global([data-step].is-active) {
+    color: var(--ink);
+  }
+
+  @media (max-width: 54rem) {
+    .scrolly,
+    .scrolly.flip {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        'figure'
+        'steps';
+      gap: 0;
+    }
+
+    .scrolly__figure {
+      top: 3.6rem;
+      z-index: 2;
+      padding: 0.6rem 0;
+      background: var(--ground);
+    }
+
+    .scrolly__steps > :global([data-step]) {
+      position: relative;
+      z-index: 3;
+      min-height: auto;
+      margin: 0 0 45vh;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--rule-soft);
+      border-radius: var(--radius-2);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    :global(.js) .scrolly__steps > :global([data-step]) {
+      color: var(--ink);
+    }
+  }
+</style>

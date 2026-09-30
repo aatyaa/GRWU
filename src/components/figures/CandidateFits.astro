@@ -1,0 +1,58 @@
+---
+/**
+ * The same observations, three defensible curves (The Shape of Error, Act I). Each curve is
+ * the parabola through a different triple of the points: a fit chosen by taste.
+ */
+import { gaussian, mulberry32 } from '~/lib/stats/random';
+
+const W = 560;
+const H = 300;
+const PAD = 26;
+const draw = gaussian(mulberry32(1801));
+const xs = [0.6, 1.7, 2.8, 4.0, 5.1, 6.2, 7.3, 8.4];
+const ys = xs.map((x) => 1.2 + 0.55 * x - 0.035 * x * x + 0.42 * draw());
+
+/** The parabola through three points (Lagrange form). */
+function through(i: number, j: number, k: number) {
+  const [x1, x2, x3] = [xs[i], xs[j], xs[k]];
+  const [y1, y2, y3] = [ys[i], ys[j], ys[k]];
+  return (x: number) =>
+    (y1 * (x - x2) * (x - x3)) / ((x1 - x2) * (x1 - x3)) +
+    (y2 * (x - x1) * (x - x3)) / ((x2 - x1) * (x2 - x3)) +
+    (y3 * (x - x1) * (x - x2)) / ((x3 - x1) * (x3 - x2));
+}
+
+const px = (x: number) => PAD + (x / 9) * (W - 2 * PAD);
+const py = (y: number) => H - PAD - ((y + 0.5) / 6) * (H - 2 * PAD);
+const curves = [through(0, 3, 7), through(1, 4, 6), through(0, 2, 5)].map((f) =>
+  Array.from({ length: 91 }, (_, i) => (i / 90) * 9)
+    .map((x, i) => `${i ? 'L' : 'M'}${px(x).toFixed(1)},${py(f(x)).toFixed(1)}`)
+    .join(''),
+);
+---
+
+<svg
+  class="fig"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Eight amber observation points with three different dashed candidate curves drawn through them, each disagreeing with the others."
+>
+  <clipPath id="candidate-clip">
+    <rect x="0" y="0" width={W} height={H - PAD}></rect>
+  </clipPath>
+  <g clip-path="url(#candidate-clip)">
+    {curves.map((d, i) => (
+      <path class="model fade" d={d} style={`--i: ${i * 3}`} />
+    ))}
+  </g>
+  {xs.map((x, i) => (
+    <circle class="dot fade" cx={px(x)} cy={py(ys[i])} r="4.5" style={`--i: ${i}`} />
+  ))}
+  <line class="axis" x1={PAD} x2={W - PAD} y1={H - PAD} y2={H - PAD}></line>
+  <text x={W - PAD} y={H - 8} text-anchor="end">
+    time →
+  </text>
+  <text x={PAD} y={16} class="caps">
+    three candidate orbits
+  </text>
+</svg>

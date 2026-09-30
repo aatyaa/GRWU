@@ -1,15 +1,8 @@
-import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
-
-async function expectNoA11yViolations(page: Page) {
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-    .analyze();
-  expect(results.violations.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
-}
+import { expect, test } from '@playwright/test';
+import { expectNoA11yViolations } from './helpers';
 
 const pages = [
-  { path: '', heading: 'Gravitational-wave data analysis, explained visually' },
+  { path: '', heading: 'How do we know this was two black holes?' },
   { path: 'about/', heading: 'About GRWU' },
   { path: 'lab/', heading: 'Lab' },
 ];
@@ -34,9 +27,59 @@ test('unknown pages show the 404 page', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
 });
 
-test('drafts are not published', async ({ page }) => {
+test('the home page lists the articles as cards', async ({ page }) => {
   await page.goto('');
-  await expect(page.getByRole('link', { name: /Hidden in the Noise/ })).toHaveCount(0);
+  const cards = page.locator('#articles .card');
+  await expect(cards).toHaveCount(4);
+  for (const title of [
+    'The Shape of Error',
+    'Hidden in the Noise',
+    'What the Wrong Model Knows',
+    'From Strain to Source',
+  ]) {
+    await expect(cards.getByRole('link', { name: new RegExp(title) })).toBeVisible();
+  }
+});
+
+test('the home page lists the further articles', async ({ page }) => {
+  await page.goto('');
+  const more = page.locator('section[aria-labelledby="more-title"] .card');
+  await expect(more.getByRole('link', { name: /Almost None of It/ })).toBeVisible();
+  await expect(more.getByRole('link', { name: /Laplace Closes the Circle/ })).toBeVisible();
+});
+
+test('the signal under the scene is a map of the articles', async ({ page }) => {
+  await page.goto('');
+  const stage = page.locator('grwu-binary-hero .ovh');
+  await expect(stage).toHaveAttribute('data-hero-ready', /.*/);
+  await expect(stage).not.toHaveAttribute('data-hero-error', /.*/);
+  const map = page.getByRole('navigation', { name: 'The signal, part by part' });
+  await expect(map.getByRole('link')).toHaveCount(4);
+  await map.getByRole('link', { name: /The merger/ }).focus();
+  await expect(stage).toHaveAttribute('data-seg', 'merger');
+  await map.getByRole('link', { name: /The noise/ }).click();
+  await expect(page).toHaveURL(/articles\/the-shape-of-error\/$/);
+});
+
+test('the home page lets the reader try each move', async ({ page }) => {
+  await page.goto('');
+  const scroll = page.locator('.demo.scroll');
+  await scroll.scrollIntoViewIfNeeded();
+  await expect(scroll).toHaveAttribute('data-hydrated', 'true');
+  await expect(scroll).toHaveAttribute('data-step', '0');
+  await scroll.locator('.demo-steps').evaluate((el) => (el.scrollTop = el.scrollHeight));
+  await expect(scroll).toHaveAttribute('data-step', '2');
+
+  const drag = page.locator('.demo.drag');
+  await expect(drag).toHaveAttribute('data-hydrated', 'true');
+  const before = await drag.getAttribute('data-slope');
+  await drag.getByRole('slider', { name: 'The movable point' }).focus();
+  await page.keyboard.press('Home');
+  await expect(drag).not.toHaveAttribute('data-slope', before ?? '');
+
+  const math = page.locator('details.how__math');
+  await math.locator('summary').click();
+  await expect(math).toHaveAttribute('open', '');
 });
 
 test('Svelte islands hydrate', async ({ page }) => {

@@ -1,0 +1,232 @@
+---
+/**
+ * Whitening GW150914, one step per scrolly step (Hidden in the Noise). Drawn at build time
+ * from the LIGO Hanford record; the five states are stacked and the enclosing
+ * <grwu-scrolly>'s data-active attribute shows one at a time, so the figure needs no
+ * JavaScript of its own. Without scripts the first state shows.
+ */
+import { gw150914 } from '~/lib/articles/hidden';
+import { linePath, linear, log } from '~/lib/figure/svg';
+
+const g = gw150914();
+const W = 560;
+const H = 380;
+const PAD = { l: 58, r: 18, t: 46, b: 44 };
+const t0 = g.raw.t[0];
+const t1 = g.raw.t[g.raw.t.length - 1];
+const x = linear(t0, t1, PAD.l, W - PAD.r);
+const yMid = (PAD.t + H - PAD.b) / 2;
+const half = (H - PAD.t - PAD.b) / 2;
+const peakOf = (v: number[]) => Math.max(...v.map(Math.abs));
+const yRaw = linear(0, peakOf(g.raw.v) * 1.08, yMid, yMid - half);
+const yWhite = linear(0, peakOf(g.whitened.v) * 1.08, yMid, yMid - half);
+const yBand = linear(0, peakOf(g.banded.v) * 1.08, yMid, yMid - half);
+
+const fx = log(12, 1500, PAD.l, W - PAD.r);
+const fy = log(5e-24, 3e-20, H - PAD.b, PAD.t);
+const wy = linear(0, 3.5, H - PAD.b, PAD.t);
+
+const raw = linePath(g.raw.t, g.raw.v, x, yRaw);
+const whitened = linePath(g.whitened.t, g.whitened.v, x, yWhite);
+const banded = linePath(g.banded.t, g.banded.v, x, yBand);
+const chirpFrom = g.event - 0.12;
+const chirpTo = g.event + 0.04;
+const inChirp = g.banded.t.map((t) => t >= chirpFrom && t <= chirpTo);
+const chirp = linePath(
+  g.banded.t.filter((_, i) => inChirp[i]),
+  g.banded.v.filter((_, i) => inChirp[i]),
+  x,
+  yBand,
+);
+const asd = linePath(g.asd.f, g.asd.v, fx, fy);
+const asdWhite = linePath(
+  g.asdWhite.f,
+  g.asdWhite.v.map((v) => Math.min(v, 3.5)),
+  fx,
+  wy,
+);
+
+// The loudest narrow line between 300 and 700 Hz: the mirror suspensions' violin modes.
+let line = 0;
+g.asd.f.forEach((f, i) => {
+  if (f > 300 && f < 700 && (line === 0 || g.asd.v[i] > g.asd.v[line])) line = i;
+});
+
+const timeTicks = [-0.4, -0.3, -0.2, -0.1, 0, 0.1];
+const freqTicks = [20, 50, 100, 200, 500, 1000];
+const titles = [
+  'What the detector recorded',
+  'How loud the noise is, frequency by frequency',
+  'Each frequency divided by its own noise',
+  'The data, measured in units of its own noise',
+  'Only the band the detector hears best: 35–350 Hz',
+];
+---
+
+<svg
+  class="fig whitening"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="GW150914 in LIGO Hanford, in five stages: the raw strain, which shows only slow wandering noise; its noise spectrum, loud at low frequencies with narrow spectral lines; the spectrum after dividing each frequency by its own noise, now flat; the whitened data, still noisy; and the whitened data limited to 35 to 350 hertz, where a chirp rising in frequency is clearly visible 0.4 seconds into the window."
+>
+  {titles.map((title, i) => (
+    <text class={`caps state s${i}`} x={PAD.l} y={20}>
+      {title}
+    </text>
+  ))}
+
+  <!-- Time axis, shared by states 0, 3 and 4. -->
+  <g class="state s0 s3 s4">
+    <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+    {timeTicks.map((t) => (
+      <g>
+        <line
+          class="axis"
+          x1={x(g.event + t)}
+          x2={x(g.event + t)}
+          y1={H - PAD.b}
+          y2={H - PAD.b + 5}
+        />
+        <text x={x(g.event + t)} y={H - PAD.b + 20} text-anchor="middle">
+          {t === 0 ? '0' : t.toFixed(1).replace('-', '−')}
+        </text>
+      </g>
+    ))}
+    <text x={W - PAD.r} y={H - 6} text-anchor="end">
+      seconds from the event
+    </text>
+    <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={yMid} y2={yMid}></line>
+  </g>
+
+  <g class="state s0">
+    <path class="data" d={raw}></path>
+    <text x={PAD.l - 8} y={yRaw(4e-19)} text-anchor="end" dy="4">
+      4×10⁻¹⁹
+    </text>
+    <text x={PAD.l - 8} y={yMid} text-anchor="end" dy="4">
+      0
+    </text>
+    <text x={PAD.l} y={36}>
+      strain · slow wandering, no signal in sight
+    </text>
+  </g>
+
+  <!-- Frequency axis, shared by states 1 and 2. -->
+  <g class="state s1 s2">
+    <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+    {freqTicks.map((f) => (
+      <g>
+        <line class="axis" x1={fx(f)} x2={fx(f)} y1={H - PAD.b} y2={H - PAD.b + 5} />
+        <text x={fx(f)} y={H - PAD.b + 20} text-anchor="middle">
+          {f}
+        </text>
+      </g>
+    ))}
+    <text x={W - PAD.r} y={H - 6} text-anchor="end">
+      frequency (Hz)
+    </text>
+  </g>
+
+  <g class="state s1">
+    {[1e-23, 1e-22, 1e-21, 1e-20].map((v) => (
+      <g>
+        <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={fy(v)} y2={fy(v)} />
+        <text x={PAD.l - 8} y={fy(v)} text-anchor="end" dy="4">
+          {`10${['⁻²³', '⁻²²', '⁻²¹', '⁻²⁰'][Math.round(Math.log10(v)) + 23]}`}
+        </text>
+      </g>
+    ))}
+    <path class="noise-line" d={asd}></path>
+    <text x={fx(16)} y={fy(4e-21)}>
+      the ground
+    </text>
+    <text x={fx(70)} y={fy(1.6e-22)}>
+      the quiet band
+    </text>
+    <text x={fx(g.asd.f[line])} y={fy(g.asd.v[line]) - 8} text-anchor="middle">
+      the machine singing
+    </text>
+    <text x={PAD.l} y={36}>
+      noise amplitude (1/√Hz)
+    </text>
+  </g>
+
+  <g class="state s2">
+    <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={wy(1)} y2={wy(1)}></line>
+    <text x={PAD.l - 8} y={wy(1)} text-anchor="end" dy="4">
+      1
+    </text>
+    <text x={PAD.l - 8} y={wy(0)} text-anchor="end" dy="4">
+      0
+    </text>
+    <path class="noise-line" d={asdWhite}></path>
+    <text x={fx(60)} y={wy(2.2)}>
+      flat: every frequency now carries
+    </text>
+    <text x={fx(60)} y={wy(2.2) + 17}>
+      the same amount of noise
+    </text>
+    <text x={PAD.l} y={36}>
+      noise amplitude, in units of itself
+    </text>
+  </g>
+
+  <g class="state s3">
+    <path class="data" d={whitened}></path>
+    <text x={PAD.l} y={36}>
+      whitened strain · the slow wander is gone
+    </text>
+  </g>
+
+  <g class="state s4">
+    <path class="data" d={banded}></path>
+    <path class="chirp" d={chirp}></path>
+    <text class="signal" x={x(chirpFrom)} y={PAD.t + 14} text-anchor="end" dx="-6">
+      GW150914 →
+    </text>
+    <text x={PAD.l} y={36}>
+      whitened, 35–350 Hz · the chirp stands out
+    </text>
+  </g>
+</svg>
+
+<style>
+  .whitening {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .whitening .state {
+    opacity: 0;
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  /* Without scripts (no data-active yet) the first state shows. */
+  :global(grwu-scrolly:not([data-active])) .whitening .s0,
+  :global(grwu-scrolly[data-active='0']) .whitening .s0,
+  :global(grwu-scrolly[data-active='1']) .whitening .s1,
+  :global(grwu-scrolly[data-active='2']) .whitening .s2,
+  :global(grwu-scrolly[data-active='3']) .whitening .s3,
+  :global(grwu-scrolly[data-active='4']) .whitening .s4 {
+    opacity: 1;
+  }
+
+  .whitening .data {
+    fill: none;
+    stroke: var(--ink-soft);
+    stroke-width: 1;
+  }
+
+  .whitening .noise-line {
+    fill: none;
+    stroke: var(--noise);
+    stroke-width: 1.4;
+  }
+
+  .whitening .chirp {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 2;
+  }
+</style>

@@ -1,0 +1,110 @@
+---
+/**
+ * The score of three error laws (Laplace Closes the Circle, after The Shape of Error M4).
+ * Gauss's demand, that the mean be the most probable value for every sample, requires the
+ * score to scale in step with its input: a straight line through the origin. Only the bell
+ * has one.
+ */
+import { linear } from '~/lib/figure/svg';
+
+const W = 560;
+const H = 300;
+const PAD = { l: 30, r: 150, t: 34, b: 34 };
+const U = 2.6;
+const x = linear(-U, U, PAD.l, W - PAD.r);
+const y = linear(-3.2, 3.2, H - PAD.b, PAD.t);
+const laws = [
+  { id: 'bell', label: 'the bell: straight', score: (u: number) => u },
+  { id: 'heavy', label: 'heavy tails: bends over', score: (u: number) => (2 * u) / (1 + u * u) },
+  { id: 'light', label: 'light tails: runs away', score: (u: number) => u ** 3 },
+];
+// Break the line where it leaves the frame rather than clamping it along the edge.
+const path = (f: (u: number) => number) => {
+  let d = '';
+  let pen = false;
+  for (let i = 0; i <= 160; i++) {
+    const u = -U + (2 * U * i) / 160;
+    const v = f(u);
+    if (Math.abs(v) > 3.2) {
+      pen = false;
+      continue;
+    }
+    d += `${pen ? 'L' : 'M'}${x(u).toFixed(1)},${y(v).toFixed(1)}`;
+    pen = true;
+  }
+  return d;
+};
+const end = (f: (u: number) => number) => {
+  // Label each curve where it leaves the frame, or at its right end.
+  let u = U;
+  for (let k = 0; k <= 200; k++) {
+    const v = -U + (2 * U * k) / 200;
+    if (v > 0 && Math.abs(f(v)) >= 3.2) {
+      u = v;
+      break;
+    }
+  }
+  return { x: x(u), y: y(Math.max(-3.2, Math.min(3.2, f(u)))) };
+};
+---
+
+<svg
+  class="fig scores"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="The score, the slope of the log of the error curve, for three error laws. For the bell curve it is a straight line through the origin. For a heavy-tailed law it rises and then bends back towards zero. For a light-tailed law it curves up ever more steeply. Only the straight line scales in step with its input."
+>
+  <text class="caps" x={PAD.l} y="16">
+    the score of each error law, against the size of the miss
+  </text>
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={y(0)} y2={y(0)}></line>
+  <line class="axis" x1={x(0)} x2={x(0)} y1={PAD.t} y2={H - PAD.b}></line>
+  <text x={W - PAD.r} y={y(0) + 18} text-anchor="end">
+    size of the miss →
+  </text>
+  {laws.map((law) => {
+    const e = end(law.score);
+    return (
+      <g>
+        <path class={`score ${law.id}`} d={path(law.score)} />
+        <text class={`law-label ${law.id}`} x={Math.min(e.x + 8, W - PAD.r + 8)} y={e.y + 4}>
+          {law.label}
+        </text>
+      </g>
+    );
+  })}
+</svg>
+
+<style>
+  .scores {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .scores .score {
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .scores .score.bell {
+    stroke: var(--signal);
+    stroke-width: 2.5;
+  }
+
+  .scores .score.heavy {
+    stroke: var(--model);
+    stroke-dasharray: 6 4;
+  }
+
+  .scores .score.light {
+    stroke: var(--noise);
+    stroke-dasharray: 2 3;
+  }
+
+  .scores .law-label.bell {
+    font-family: var(--f-body);
+    font-weight: 700;
+    fill: var(--ink);
+  }
+</style>

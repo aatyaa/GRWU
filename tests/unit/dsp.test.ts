@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import fixtures from '../fixtures/dsp.json';
 import { irfft, rfft } from '~/lib/dsp/fft';
+import { aligoDesignPsd } from '~/lib/dsp/models';
 import { median, medianBias, welch } from '~/lib/dsp/welch';
 import { hann } from '~/lib/dsp/window';
 
@@ -90,5 +91,12 @@ describe('median helpers', () => {
         (1 / 15 - 1 / 14),
       14,
     );
+  });
+});
+
+describe('aligoDesignPsd', () => {
+  it("matches the pipeline's noise model", () => {
+    const { freqs, psd } = fixtures.aligo_design_psd;
+    expectClose(freqs.map(aligoDesignPsd), psd, 1e-12, 0);
   });
 });

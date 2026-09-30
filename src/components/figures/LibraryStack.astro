@@ -1,0 +1,98 @@
+---
+/**
+ * The analysis stack, bottom to top (Almost None of It Is About Gravitational Waves).
+ * Versions are the pinned environment of the GW Open Data Workshop, as verified in August
+ * 2026 in the handbook From Strain to Source.
+ */
+const W = 600;
+const H = 300;
+const layers = [
+  {
+    y: 236,
+    x: 10,
+    w: 580,
+    name: 'numpy · scipy · matplotlib',
+    note: 'numerical Python: the ground floor',
+    gold: false,
+  },
+  {
+    y: 176,
+    x: 10,
+    w: 580,
+    name: 'LALSuite 7.25',
+    note: 'C: waveform models and detector response',
+    gold: false,
+  },
+  { y: 116, x: 10, w: 184, name: 'gwosc 0.8.1', note: 'the archive client', gold: true },
+  { y: 116, x: 208, w: 184, name: 'gwpy 3.0.14', note: 'data, spectra, plots', gold: true },
+  {
+    y: 116,
+    x: 406,
+    w: 184,
+    name: 'PyCBC 2.10.0',
+    note: 'waveforms, filtering, searches',
+    gold: true,
+  },
+  {
+    y: 56,
+    x: 208,
+    w: 382,
+    name: 'Bilby 2.6.0 + dynesty 2.1.5',
+    note: 'priors, likelihoods, sampling',
+    gold: true,
+  },
+];
+---
+
+<svg
+  class="fig stack"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="The analysis stack from bottom to top: numpy, scipy and matplotlib; LALSuite, the C library of waveform models; then gwosc for the archive, gwpy for data and spectra, and PyCBC for waveforms and filtering; and on top Bilby with the dynesty sampler for inference."
+>
+  <text class="caps" x="10" y="20">
+    the stack you install, bottom to top
+  </text>
+  {layers.map((l) => (
+    <g>
+      <rect
+        class:list={['layer', { gold: l.gold }]}
+        x={l.x}
+        y={l.y}
+        width={l.w}
+        height="50"
+        rx="8"
+      />
+      <text class="name" x={l.x + 12} y={l.y + 22}>
+        {l.name}
+      </text>
+      <text x={l.x + 12} y={l.y + 39}>
+        {l.note}
+      </text>
+    </g>
+  ))}
+</svg>
+
+<style>
+  .stack {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .stack .layer {
+    fill: var(--surface);
+    stroke: var(--rule);
+  }
+
+  .stack .layer.gold {
+    fill: var(--signal-bg);
+    stroke: var(--signal);
+  }
+
+  .stack .name {
+    font-family: var(--f-body);
+    font-weight: 700;
+    fill: var(--ink);
+  }
+</style>

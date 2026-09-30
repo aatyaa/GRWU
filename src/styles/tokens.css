@@ -1,75 +1,79 @@
 /*
  * GRWU design tokens.
  *
- * The visual identity (type, surfaces, accent) is a placeholder until the design
- * step; the concept colour grammar below is intended to stay.
+ * The identity comes from Attia A. Gadallah's talks (The Shape of Error, The Straightest
+ * Path, What the Wrong Model Knows): Instrument Serif for display, Archivo for text, IBM
+ * Plex Mono for every label, on a blue-grey ground with one warm accent.
  *
- * Theming: every colour is a light-dark() pair. :root follows the OS setting;
- * the theme toggle pins [data-theme] to light or dark, which switches color-scheme.
+ * Colour carries meaning, and the meaning is fixed across the site:
+ *   amber (--signal)     the signal, and anything observed or measured
+ *   blue-grey (--noise)  noise, models, references and schematics
+ *   red (--bias)         bias, disagreement, a glitch
+ *   green (--ok)         agreement, a check that passed
+ * Text stays in ink; colour goes on a marker, a line or a single word.
+ *
+ * The reference palette was darkened slightly where it is used for small text, so every
+ * label passes WCAG AA (4.5:1) on both the ground and the surface. Amber and red can be
+ * confused under deuteranopia: red is always labelled ("bias", "wrong") or dashed.
+ *
+ * Theming: :root follows the OS setting; the theme toggle pins [data-theme].
  */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
-  /* Surfaces and ink */
-  --surface-page: light-dark(#f9f9f7, #0d0d0d);
-  --surface-1: light-dark(#fcfcfb, #1a1a19); /* figure surface */
-  --surface-2: light-dark(#f0efec, #242422); /* raised panels, code */
-  --ink-1: light-dark(#0b0b0b, #ffffff);
-  --ink-2: light-dark(#52514e, #c3c2b7);
-  --ink-muted: #898781;
-  --grid: light-dark(#e1e0d9, #2c2c2a);
-  --axis: light-dark(#c3c2b7, #383835);
-  --border: light-dark(rgb(11 11 11 / 0.1), rgb(255 255 255 / 0.1));
+  --ground: #eef1f5;
+  --surface: #ffffff;
+  --surface-2: #f5f7fa;
+  --ink: #141d2b;
+  --ink-soft: #4b5b71;
+  --ink-faint: #596a81;
+  --line-faint: #8496ac; /* decorative lines only, never text */
+  --rule: #cfd8e3;
+  --rule-soft: #e1e7ef;
 
-  /* UI accent: links, focus, controls. Deliberately not a concept colour. */
-  --accent: light-dark(#4a3aa7, #9085e9);
+  --signal: #8c570c;
+  --signal-bg: rgb(140 87 12 / 0.1);
+  --noise: #74879f;
+  --model: #4f6a8c;
+  --bias: #a93a20;
+  --bias-bg: rgb(169 58 32 / 0.08);
+  --ok: #2c6e49;
+  --ok-bg: rgb(44 110 73 / 0.09);
 
-  /*
-   * Concept colour grammar: a concept keeps its colour on every page, in prose
-   * markers, equations and figures. Prose text stays in ink; the colour rides on
-   * a marker next to it.
-   *
-   * Checked with the dataviz palette validator (all pairs, surfaces above):
-   *   data + signal + template  pass, light and dark
-   *   data + snr + signal       pass, light and dark
-   *   data + signal + glitch    CVD warn: a glitch always carries a label or texture
-   * Never tell template apart from snr or glitch by colour alone.
-   * Noise is neutral on purpose: it is the background every signal sits in.
-   */
-  --c-data: light-dark(#2a78d6, #3987e5);
-  --c-signal: light-dark(#1baf7a, #199e70);
-  --c-template: light-dark(#eb6834, #d95926);
-  --c-snr: light-dark(#eda100, #c98500);
-  --c-glitch: light-dark(#e34948, #e66767);
-  --c-noise: #898781;
+  /* Figures on the dark "instrument" ground (heroes, scenes). Same meanings, brighter. */
+  --space: #05070b;
+  --space-panel: rgb(10 14 21 / 0.62);
+  --space-ink: #e7edf5;
+  --space-soft: #9aa9bc;
+  --space-faint: #7a8da3;
+  --space-signal: #e5a343;
+  --space-cool: #6685ad;
+  --space-line: rgb(231 237 245 / 0.14);
 
-  /* Sequential ramp (magnitude: spectrograms, posteriors). Low end recedes into the surface. */
-  --seq-low: light-dark(#cde2fb, #104281);
-  --seq-mid: light-dark(#3987e5, #3987e5);
-  --seq-high: light-dark(#0d366b, #cde2fb);
+  --shadow: 0 1px 2px rgb(20 29 43 / 0.06), 0 8px 28px rgb(20 29 43 / 0.07);
 
-  /* Diverging (signed quantities) with a neutral midpoint. */
-  --div-neg: light-dark(#2a78d6, #3987e5);
-  --div-mid: light-dark(#f0efec, #383835);
-  --div-pos: light-dark(#e34948, #e66767);
-
-  /* Status: reserved meaning, always paired with an icon and a label. */
-  --status-good: #0ca30c;
-  --status-warning: #fab219;
-  --status-serious: #ec835a;
-  --status-critical: #d03b3b;
+  /* Concept colours used by figures and equation terms. */
+  --c-data: var(--ink-soft);
+  --c-signal: var(--signal);
+  --c-template: var(--model);
+  --c-snr: var(--signal);
+  --c-glitch: var(--bias);
+  --c-noise: var(--noise);
 
   /* Type */
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --f-display: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --f-body: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --text-xs: 0.72rem; /* mono labels */
   --text-sm: 0.875rem;
   --text-base: 1.0625rem;
   --text-lg: 1.25rem;
   --text-xl: 1.6rem;
-  --text-2xl: clamp(1.8rem, 4vw, 2.4rem);
-  --text-3xl: clamp(2.2rem, 6vw, 3.4rem);
-  --leading: 1.65;
-  --leading-tight: 1.2;
+  --text-2xl: clamp(1.9rem, 4.4vw, 3.1rem);
+  --text-3xl: clamp(2.75rem, 7.4vw, 5.5rem);
+  --leading: 1.6;
+  --leading-tight: 1.06;
+  --tracking-label: 0.14em;
 
   /* Space */
   --space-1: 0.25rem;
@@ -80,24 +84,69 @@
   --space-8: 2rem;
   --space-12: 3rem;
   --space-16: 4rem;
+  --space-24: 6rem;
 
   /* Layout */
-  --measure: 40rem; /* ~68 characters of body text; rem so smaller text keeps the column */
-  --wide: 72rem;
-  --gutter: 1rem;
+  --measure: 40rem; /* body text column, about 64 characters */
+  --wide: 73.75rem; /* 1180 px: figures and two-column sections */
+  --gutter: clamp(1.125rem, 4vw, 2.875rem);
   --radius-1: 4px;
-  --radius-2: 8px;
+  --radius-2: 6px;
 
   /* Motion (base.css zeroes these under prefers-reduced-motion) */
-  --dur-fast: 120ms;
-  --dur: 220ms;
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-:root[data-theme='light'] {
-  color-scheme: light;
+  --dur-fast: 180ms;
+  --dur: 420ms;
+  --ease: cubic-bezier(0.22, 0.9, 0.3, 1);
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
+
+  --ground: #0c121b;
+  --surface: #141d29;
+  --surface-2: #0f1722;
+  --ink: #e7edf5;
+  --ink-soft: #98a8be;
+  --ink-faint: #7a8da3;
+  --line-faint: #68798f;
+  --rule: #26323f;
+  --rule-soft: #1b2531;
+
+  --signal: #e5a343;
+  --signal-bg: rgb(229 163 67 / 0.13);
+  --noise: #7e91a8;
+  --model: #9db2cf;
+  --bias: #e2694a;
+  --bias-bg: rgb(226 105 74 / 0.11);
+  --ok: #6fbf8e;
+  --ok-bg: rgb(111 191 142 / 0.11);
+
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 34px rgb(0 0 0 / 0.34);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --ground: #0c121b;
+    --surface: #141d29;
+    --surface-2: #0f1722;
+    --ink: #e7edf5;
+    --ink-soft: #98a8be;
+    --ink-faint: #7a8da3;
+    --line-faint: #68798f;
+    --rule: #26323f;
+    --rule-soft: #1b2531;
+
+    --signal: #e5a343;
+    --signal-bg: rgb(229 163 67 / 0.13);
+    --noise: #7e91a8;
+    --model: #9db2cf;
+    --bias: #e2694a;
+    --bias-bg: rgb(226 105 74 / 0.11);
+    --ok: #6fbf8e;
+    --ok-bg: rgb(111 191 142 / 0.11);
+
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 10px 34px rgb(0 0 0 / 0.34);
+  }
 }

@@ -1,0 +1,41 @@
+---
+/** One box of a mathematical layer: the claim, what may be assumed, or what it means. */
+interface Props {
+  kind?: 'claim' | 'given' | 'means';
+}
+
+const { kind = 'claim' } = Astro.props;
+const heading = { claim: 'The claim.', given: 'Assume', means: 'What it means.' }[kind];
+---
+
+<div class:list={['box', kind]}>
+  <b>{heading}</b>
+  <slot />
+</div>
+
+<style>
+  <style > .box {
+    margin: 0 0 0.8rem;
+    font-size: 1rem;
+    color: var(--ink);
+  }
+
+  .box :global(p) {
+    display: inline;
+  }
+
+  .given {
+    color: var(--ink-soft);
+  }
+
+  .means {
+    margin-top: 1rem;
+    color: var(--ink-soft);
+  }
+
+  b {
+    margin-inline-end: 0.35rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+</style>

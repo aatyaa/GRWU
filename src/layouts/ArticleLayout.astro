@@ -7,8 +7,7 @@ interface Props {
 }
 
 const { article } = Astro.props;
-const { title, summary, status, odw, minutes, updated, objectives, sources, reviewers } =
-  article.data;
+const { title, headline, summary, status, minutes, updated, sources } = article.data;
 
 const updatedLabel = updated.toLocaleDateString('en-GB', {
   day: 'numeric',
@@ -20,112 +19,125 @@ const updatedLabel = updated.toLocaleDateString('en-GB', {
 
 <BaseLayout title={title} description={summary}>
   <article class="article">
-    <header class="article__header prose">
-      {status !== 'published' && (
-        <p class="status-banner" role="note">
-          {status === 'draft' ? 'Draft' : 'In review'}: this article is not published yet.
-        </p>
-      )}
+    <header class="article__header">
       <h1>{title}</h1>
-      <p class="article__summary">{summary}</p>
-      <p class="article__meta">
-        {minutes && <span>{minutes} min</span>}
-        {odw && <span>GW Open Data Workshop tutorial {odw}</span>}
-        <span>
-          Updated <time datetime={updated.toISOString()}>{updatedLabel}</time>
-        </span>
+      {headline && <p class="article__headline">{headline}</p>}
+      <p class="article__byline">
+        By <strong>Attia A. Gadallah</strong>
+        <span aria-hidden="true">·</span>
+        <time datetime={updated.toISOString()}>{updatedLabel}</time>
+        {minutes && (
+          <>
+            <span aria-hidden="true">·</span> {minutes} min read
+          </>
+        )}
+        {status !== 'published' && (
+          <>
+            <span aria-hidden="true">·</span> <em>preview</em>
+          </>
+        )}
       </p>
-      <section class="objectives" aria-labelledby="objectives-heading">
-        <h2 id="objectives-heading">You will learn</h2>
-        <ul>
-          {objectives.map((objective) => (
-            <li>{objective}</li>
-          ))}
-        </ul>
-      </section>
     </header>
 
-    <div class="article__body prose">
+    <slot name="hero" />
+
+    <div class="article__body">
       <slot />
     </div>
 
-    {(sources.length > 0 || reviewers.length > 0) && (
-      <footer class="article__footer prose">
-        {reviewers.length > 0 && <p>Scientific review: {reviewers.join(', ')}</p>}
-        {sources.length > 0 && (
-          <section aria-labelledby="sources-heading">
-            <h2 id="sources-heading">Sources</h2>
-            <ul>
-              {sources.map((source) => (
-                <li>
-                  <a href={source.url}>{source.title}</a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+    {sources.length > 0 && (
+      <footer class="article__footer">
+        <h2>References</h2>
+        <ol>
+          {sources.map((source) => (
+            <li>
+              <a href={source.url}>{source.title}</a>
+            </li>
+          ))}
+        </ol>
       </footer>
     )}
   </article>
 </BaseLayout>
 
 <style>
-  .article {
-    padding-inline: var(--gutter);
-    padding-top: var(--space-12);
+  .article__header {
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 8vh, 5rem) var(--gutter) 0;
+    text-align: center;
   }
 
   .article__header h1 {
-    font-size: var(--text-3xl);
-    margin: var(--space-4) 0;
+    margin-bottom: 1rem;
+    font-size: clamp(3rem, 8vw, 5.5rem);
   }
 
-  .article__summary {
-    font-size: var(--text-lg);
-    color: var(--ink-2);
+  .article__headline {
+    margin: 0 auto 1.4rem;
+    max-width: 34ch;
+    font-family: var(--f-display);
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    line-height: 1.2;
+    color: var(--ink-soft);
   }
 
-  .article__meta {
+  .article__byline {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-4);
-    color: var(--ink-2);
-    font-size: var(--text-sm);
-  }
-
-  .status-banner {
-    display: inline-block;
+    justify-content: center;
+    gap: 0.45rem;
     margin: 0;
-    padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-1);
-    background: var(--surface-2);
-    font-size: var(--text-sm);
+    font-size: 0.95rem;
+    color: var(--ink-soft);
   }
 
-  .objectives {
-    margin-block: var(--space-8);
-    padding: var(--space-4) var(--space-6);
-    border-radius: var(--radius-2);
-    background: var(--surface-1);
-    border: 1px solid var(--border);
+  .article__byline strong {
+    font-weight: 600;
   }
 
-  .objectives h2 {
-    margin: 0 0 var(--space-2);
-    font-size: var(--text-base);
+  /* The text column; wide figures and scrolly sections break out of it themselves. */
+  .article__body,
+  .article__footer {
+    width: 100%;
+    max-width: calc(var(--measure) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
   }
 
-  .objectives ul {
-    margin: 0;
-    padding-inline-start: var(--space-6);
+  .article__body {
+    margin-top: var(--space-12);
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .article__body :global(h2) {
+    margin-top: var(--space-16);
+    font-size: clamp(2rem, 4vw, 2.8rem);
+  }
+
+  .article__body :global(ul),
+  .article__body :global(ol) {
+    padding-inline-start: 1.3rem;
   }
 
   .article__footer {
-    margin-top: var(--space-12);
-    padding-top: var(--space-6);
-    border-top: 1px solid var(--border);
-    color: var(--ink-2);
-    font-size: var(--text-sm);
+    margin-top: var(--space-16);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--rule);
+  }
+
+  .article__footer h2 {
+    margin: 0 0 1rem;
+    font-size: 1.6rem;
+  }
+
+  .article__footer ol {
+    margin: 0;
+    padding-inline-start: 1.2rem;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--ink-soft);
   }
 </style>
