@@ -126,6 +126,7 @@ async function main() {
   mkdirSync(ASSETS_OUT, { recursive: true });
 
   const needed = new Set();
+  const inlineCss = new Map();
   const manifest = [];
   for (const slug of slugs) {
     const html = readFileSync(join(pagesDir, slug, 'index.html'), 'utf8');
@@ -139,6 +140,20 @@ async function main() {
       );
     }
     const styles = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((m) => m[1]);
+    // Astro inlines small stylesheets as <style> in the head. The sealed shell has only its
+    // own, so the article's travel as a stylesheet of their own next to its other assets.
+    const outside = html.slice(0, start) + html.slice(end + '</article>'.length);
+    const inline = [...outside.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
+      .map((m) => m[1])
+      .join('\n');
+    if (inline) {
+      const digest = Buffer.from(
+        await crypto.subtle.digest('SHA-256', enc.encode(inline)),
+      ).toString('hex');
+      const name = `${slug}.inline.${digest.slice(0, 10)}.css`;
+      inlineCss.set(name, inline);
+      styles.push(`${BASE}ringdown-assets/${name}`);
+    }
     const modules = [...html.matchAll(/<script type="module" src="([^"]+)"/g)].map((m) => m[1]);
     for (const url of [
       ...styles,
@@ -173,6 +188,8 @@ async function main() {
       );
     else copyFileSync(from, to);
   }
+
+  for (const [name, css] of inlineCss) writeFileSync(join(ASSETS_OUT, name), css);
 
   const codes = JSON.parse(readFileSync(CODES, 'utf8'));
   const keys = { iterations: ITERATIONS, entries: {} };
