@@ -28,7 +28,7 @@ Data pipeline (Python, uv), run from `pipeline/`:
 uv run pytest                     # tests, including "committed outputs are current"
 uv run ruff check . && uv run ruff format --check .
 uv run grwu-pipeline synthetic    # regenerate public/data/synthetic/toy-chirp/
-uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
+uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json and kerr.json
 ```
 
 - `grwu-pipeline fetch` needs gwosc.org, which Claude Code on the web blocks by default.
@@ -81,8 +81,11 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
   - `dsp/chirp.ts`: the pipeline's Newtonian chirp, ported and checked against its injection.
   - `dsp/models.ts`: analytic noise models (Advanced LIGO design PSD). `audio/play.ts`:
     plays 4096 Hz data through Web Audio. `format.ts`: `8.0 × 10⁻²⁴`-style numbers.
+  - `physics/kerr.ts`: Kerr quasinormal modes (Berti fits for 220, 221, 222), the closed-form
+    inverse from a ring (f, τ) to mass and spin, horizon area, detector and source frames.
+    Checked against the qnm package through `tests/fixtures/kerr.json`.
 - `src/styles/tokens.css`: design tokens, including the concept colour grammar.
-- `tests/unit/` (Vitest), `tests/e2e/` (Playwright + axe), `tests/fixtures/` (scipy
+- `tests/unit/` (Vitest), `tests/e2e/` (Playwright + axe), `tests/fixtures/` (scipy and qnm
   reference outputs, generated).
 - `public/data/`: datasets as `<channel>.f32` (little-endian float32, stored as
   physical / `scale`) plus `meta.json`; see `docs/adr/0004-data-format.md`.
@@ -102,7 +105,8 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json
   Keep the talks' substance: history before formalism and honest limits.
 - Interactive figures: draw at real pixel size (`bind:clientWidth`), every draggable handle
   is also a keyboard slider (`stepKey`), and state is exposed as `data-*` attributes.
-- Any DSP function must be tested against scipy/gwpy reference output before it is used.
+- Any DSP function must be tested against scipy/gwpy reference output before it is used, and
+  any black-hole physics against the qnm package (or another independent reference).
 - Every page must pass axe (checked in e2e, light and dark) and respect
   `prefers-reduced-motion`. In Playwright emulate it with `page.emulateMedia()`: the
   `reducedMotion` test option does not take effect with the pinned Chromium.

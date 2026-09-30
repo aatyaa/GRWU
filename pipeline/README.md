@@ -6,7 +6,7 @@ Run everything from this directory with [uv](https://docs.astral.sh/uv/).
 ```sh
 uv sync
 uv run grwu-pipeline synthetic   # toy chirp in coloured noise -> ../public/data/synthetic/
-uv run grwu-pipeline fixtures    # scipy reference outputs -> ../tests/fixtures/dsp.json
+uv run grwu-pipeline fixtures    # scipy and qnm reference outputs -> ../tests/fixtures/
 uv run grwu-pipeline fetch --event GW150914 --detectors H1 L1   # needs gwosc.org
 uv run pytest
 uv run ruff check && uv run ruff format --check
