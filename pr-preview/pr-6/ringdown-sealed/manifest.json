@@ -1,21 +1,91 @@
 [
   {
-    "slug": "three-masses",
-    "title": "Heavier Than Its Parents",
-    "headline": "What does a fit measure when it returns a mass no black hole can have?",
-    "summary": "Fit the ringdown of GW250114 with one tone and the black hole weighs more than the two that made it. Three different masses hide behind that sentence, and only two of them belong to the black holes.",
+    "slug": "weighing-the-ring",
+    "title": "Weighing the Ring",
+    "headline": "A black hole that has just formed rings like a bell. What does the ring say it weighs, and can that be right?",
+    "summary": "GW250114 is the loudest black-hole merger yet recorded, and its new black hole rang clearly enough to be weighed by ear. Weigh it from the very first moment of the ring and it comes out heavier than the two black holes that made it. This chapter shows how a ring is weighed, and why that answer cannot be a mass.",
     "order": 1,
+    "minutes": 22,
+    "status": "review",
+    "updated": "2026-09-30"
+  },
+  {
+    "slug": "the-answer-moves",
+    "title": "The Answer Moves",
+    "headline": "Start the fit a little later, and a little later again. What happens to the black hole it describes?",
+    "summary": "The paper repeats the single-tone fit at twenty-one start times after the peak. Mass, spin and horizon area all fall together as the start moves, through the remnant's value and past it. This chapter walks the trajectory point by point, shows how each point is made, and sorts what the pattern shows from what it cannot.",
+    "order": 2,
+    "minutes": 24,
+    "status": "review",
+    "updated": "2026-09-30"
+  },
+  {
+    "slug": "the-convergence-that-wasnt",
+    "title": "The Convergence That Wasn’t",
+    "headline": "An earlier version of this analysis watched the mass settle neatly onto the right answer. Why was that the warning sign?",
+    "summary": "A signal from a billion light-years away arrives stretched, and a mass read from its ring comes out heavier by the same stretch. An earlier version of the paper compared the stretched masses with an unstretched reference, and saw the mass converge while spin and area did not. This chapter rebuilds that mistake, lets you move the stretch yourself, and sorts the paper's claims into those the stretch cannot touch and those it can.",
+    "order": 3,
+    "minutes": 18,
+    "status": "review",
+    "updated": "2026-09-30"
+  },
+  {
+    "slug": "it-does-not-settle",
+    "title": "It Does Not Settle",
+    "headline": "Once the fitted mass reaches the right answer, where does it go next?",
+    "summary": "After the single-tone mass passes through the remnant's value, it keeps falling. Before you see how far, you are asked to predict it. The late fits sit below the remnant in all three channels, but they are fits to a short, quiet stretch of data, and this chapter is about reading their sign without over-reading their size.",
+    "order": 4,
+    "minutes": 14,
+    "status": "review",
+    "updated": "2026-09-30"
+  },
+  {
+    "slug": "a-relaxation-time",
+    "title": "Can We Measure a Relaxation Time?",
+    "headline": "The excess fades as the fit starts later. Can its fading be timed, and would the time mean anything?",
+    "summary": "Fitting a decaying exponential to the early excess gives a timescale, and it is tempting to compare it with how fast the black hole's tones fade. This chapter hands you the fit. Change which start times it uses, or how it weighs them, and the timescale changes with you; after the crossing, no decaying exponential can follow the data at all; and a straight line describes the points at least as well. The data do not contain a timescale, which is why the paper refuses to call it a measurement.",
+    "order": 5,
     "minutes": 15,
     "status": "review",
     "updated": "2026-09-30"
   },
   {
-    "slug": "from-a-ring",
-    "title": "From a Ring to a Black Hole",
-    "headline": "How does one fit turn a few milliseconds of data into a mass and a spin?",
-    "summary": "Every point on the paper's trajectory is a complete Bayesian analysis. What each one sees, what it is allowed to vary, and how a tone becomes a black hole.",
-    "order": 2,
-    "minutes": 18,
+    "slug": "the-missing-voice",
+    "title": "The Missing Voice",
+    "headline": "If the one-tone template is missing something, can the data say what it is?",
+    "summary": "The obvious suspect is the overtones, the fast tones struck with the fundamental that die within milliseconds. The paper asks the data three questions about them. Do the data want an overtone, and when? If the fit is allowed overtones, does the excess go away? And does the excess track their power? The answers are yes, mostly, and a question about method.",
+    "order": 6,
+    "minutes": 24,
+    "status": "review",
+    "updated": "2026-09-30"
+  },
+  {
+    "slug": "a-black-hole-that-never-changes",
+    "title": "Can a Stationary Black Hole Fool the Analysis?",
+    "headline": "Take a black hole whose mass is known and never changes, and put it through the same analysis. What happens?",
+    "summary": "Everything so far argues from behaviour. This chapter is the direct test. A numerical-relativity simulation of a merger, with a remnant that is stationary by construction, is added to detector noise and analysed exactly as GW250114 was. You predict the outcome first. The simulated black hole produces the same early overshoot and the same decline, which shows what kind of thing the trajectory is; some details still differ.",
+    "order": 7,
+    "minutes": 17,
+    "status": "review",
+    "updated": "2026-09-30"
+  },
+  {
+    "slug": "what-did-we-test",
+    "title": "What Did We Actually Test?",
+    "headline": "The horizon area grew in every one of twenty thousand draws, thirty-one standard deviations above no growth. What does that number test?",
+    "summary": "Hawking's area theorem says a black hole merger can only increase the total horizon area. The paper confirms it for GW250114 with a striking significance. This chapter looks at where both areas come from, and finds that the headline number measures how firmly one analysis of the whole signal agrees with the theorem, which is a consistency check and not an independent test. The distinction is the lesson.",
+    "order": 8,
+    "minutes": 15,
+    "status": "review",
+    "updated": "2026-09-30"
+  },
+  {
+    "slug": "what-mass-means",
+    "title": "What Does “Mass” Mean Here?",
+    "headline": "After eight chapters of fits, frames, overtones and controls, what is the number these fits call a mass, and what can a reader take away?",
+    "summary": "The last chapter gathers the argument. It names what the single-mode \"mass\" is, lays out every claim the track has made with the strength of its evidence, and says plainly which questions are still with the authors. The ledger can be filtered, and every entry leads back to the chapter and the evidence behind it.",
+    "order": 9,
+    "minutes": 14,
     "status": "review",
     "updated": "2026-09-30"
   }
