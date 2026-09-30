@@ -6,6 +6,9 @@ import Misconception from '~/components/learn/Misconception.astro';
 import Predict from '~/components/learn/Predict.svelte';
 import PreparesFor from '~/components/learn/PreparesFor.astro';
 import Term from '~/components/learn/Term.astro';
+import Exercise from '~/components/learn/Exercise.svelte';
+import { qualityFactor } from '~/lib/exercises/quality-factor';
+import { welchPeak } from '~/lib/exercises/welch-peak';
 
 const colours = [
   { token: 'signal', meaning: 'the signal; anything observed or measured' },
@@ -70,6 +73,23 @@ const colours = [
           },
         ]}
       />
+    </section>
+
+    <section aria-labelledby="practice-heading">
+      <h2 id="practice-heading">Practice in the page</h2>
+      <Exercise client:visible exercise={qualityFactor} title="How long does a ring last?">
+        <p>
+          A ring's quality factor Q counts how many oscillations it lasts. Complete{' '}
+          <code>quality_factor(f, tau)</code> so it returns Q for a ring of frequency f and damping
+          time tau, then press Check.
+        </p>
+      </Exercise>
+      <Exercise client:visible exercise={welchPeak} title="Find the hidden tone">
+        <p>
+          The data <code>x</code> hide one steady tone under noise. Welch's method gives the power
+          at each frequency; set <code>peak</code> to the frequency where it is largest.
+        </p>
+      </Exercise>
     </section>
 
     <section aria-labelledby="colours-heading">

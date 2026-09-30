@@ -8,7 +8,9 @@
     "playwright-report",
     "test-results",
     "private/paper",
-    "public/ringdown-assets"
+    "public/ringdown-assets",
+    "public/pyodide",
+    ".cache"
   ],
   "compilerOptions": {
     "paths": {

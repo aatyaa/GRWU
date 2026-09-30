@@ -13,3 +13,4 @@ coverage/
 tests/fixtures/
 # Vendored from the overture engine of "What the Wrong Model Knows"; kept close to the original.
 src/lib/hero/engine.js
+.cache/

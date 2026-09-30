@@ -65,6 +65,11 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundati
   - `learn/` (ADR 0009): `Predict` (guess before the answer shows), `CheckYourself` (graded
     questions at the end), `Misconception` (a labelled caveat), `PreparesFor` (where the
     article leads; unknown ids fail the build), `Term` (a glossary symbol linked to `/start/`).
+  - `learn/Exercise.svelte` (ADR 0010): a coding exercise in the page. Pyodide runs in a worker
+    (`lib/python/`: `runtime.ts` starts and stops it, `core.ts` + `runner.py` run code and
+    checkers, `editor.ts` is CodeMirror 6); exercises are defined in `lib/exercises/` (setup,
+    starter, solution, wrong answers, checker, hints) and tested in `tests/unit/exercises.test.ts`.
+    `scripts/pyodide-assets.mjs` puts the verified runtime in `public/pyodide/` (git-ignored).
   - `figures/`: the essays' figures. Astro components are static SVG computed at build
     time; Svelte ones are interactive islands (`client:visible`).
   - `brand/`: the AG monogram and the signature. `site/`: header, footer, card `Thumb`s.
