@@ -1,0 +1,22 @@
+[
+  {
+    "slug": "three-masses",
+    "title": "Heavier Than Its Parents",
+    "headline": "What does a fit measure when it returns a mass no black hole can have?",
+    "summary": "Fit the ringdown of GW250114 with one tone and the black hole weighs more than the two that made it. Three different masses hide behind that sentence, and only two of them belong to the black holes.",
+    "order": 1,
+    "minutes": 15,
+    "status": "review",
+    "updated": "2026-09-30"
+  },
+  {
+    "slug": "from-a-ring",
+    "title": "From a Ring to a Black Hole",
+    "headline": "How does one fit turn a few milliseconds of data into a mass and a spin?",
+    "summary": "Every point on the paper's trajectory is a complete Bayesian analysis. What each one sees, what it is allowed to vary, and how a tone becomes a black hole.",
+    "order": 2,
+    "minutes": 18,
+    "status": "review",
+    "updated": "2026-09-30"
+  }
+]
