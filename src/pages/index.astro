@@ -103,7 +103,13 @@ const moreThumbs: Record<string, Kind> = {
   'almost-none-of-it': 'map',
   'laplace-closes-the-circle': 'bell',
 };
-const more = articles.filter((a) => !planned.some((p) => p.id === a.id));
+const more = articles.filter(
+  (a) => !planned.some((p) => p.id === a.id) && a.data.track !== 'foundations',
+);
+// The foundations series links each article once it is written.
+const writtenFoundations = new Set(
+  articles.filter((a) => a.data.track === 'foundations').map((a) => a.id),
+);
 
 // The ringdown track (ADR 0007): only its public teaser, the chapter titles and questions
 // that /ringdown/ already shows. The chapters themselves stay sealed.
@@ -229,7 +235,13 @@ const envelope = (sign: 1 | -1) =>
               {i + 1}
             </span>
             <span>
-              <span class="start__title">{a.title}</span>
+              <span class="start__title">
+                {writtenFoundations.has(a.id) ? (
+                  <a href={withBase(`articles/${a.id}/`)}>{a.title}</a>
+                ) : (
+                  a.title
+                )}
+              </span>
               <span class="start__q">{a.question}</span>
             </span>
           </li>

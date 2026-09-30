@@ -40,3 +40,8 @@ Strain data and event catalogues come from the
 CC BY 4.0: this research has made use of data or software obtained from the Gravitational
 Wave Open Science Center (gwosc.org), a service of the LIGO Scientific Collaboration, the
 Virgo Collaboration, and KAGRA.
+
+## Licence
+
+Code: [MIT](LICENSE). Articles and figures: [CC BY 4.0](LICENSE-CONTENT.md), except the
+access-gated ringdown track. Third-party work: [CREDITS.md](CREDITS.md).
