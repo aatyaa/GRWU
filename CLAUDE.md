@@ -62,6 +62,9 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundati
   - `math/`: `Eq` (KaTeX at build time; tagged terms defined underneath and linked to
     figures through `highlightedTerm`), and the mathematical layer: `MathLayer` with
     `Claim`, `Given`, `Steps`/`Step` (`hinge` marks the step the argument turns on), `Means`.
+  - `learn/` (ADR 0009): `Predict` (guess before the answer shows), `CheckYourself` (graded
+    questions at the end), `Misconception` (a labelled caveat), `PreparesFor` (where the
+    article leads; unknown ids fail the build), `Term` (a glossary symbol linked to `/start/`).
   - `figures/`: the essays' figures. Astro components are static SVG computed at build
     time; Svelte ones are interactive islands (`client:visible`).
   - `brand/`: the AG monogram and the signature. `site/`: header, footer, card `Thumb`s.

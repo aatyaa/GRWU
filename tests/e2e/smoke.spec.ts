@@ -87,6 +87,33 @@ test('the home page presents every track', async ({ page }) => {
   }
 });
 
+test('the learning components answer, explain and tally', async ({ page }) => {
+  await page.goto('lab/');
+  const predict = page.locator('.predict');
+  await predict.scrollIntoViewIfNeeded();
+  await expect(predict).toHaveAttribute('data-hydrated', 'true');
+  await expect(predict.getByText('Half: the frequency')).toHaveCount(0);
+  await predict.getByLabel('half the frequency').check();
+  await expect(predict.getByText('Half: the frequency')).toBeVisible();
+
+  const check = page.locator('.check');
+  await check.scrollIntoViewIfNeeded();
+  await expect(check).toHaveAttribute('data-hydrated', 'true');
+  await check.getByLabel('About 10').check();
+  await expect(check.locator('.choice').first()).toHaveAttribute('data-correct', 'false');
+  await check.getByLabel('About 31').check();
+  await check.getByLabel('19 Hz').check();
+  await expect(check).toHaveAttribute('data-right', '2');
+  await expect(check.locator('.check__tally')).toContainText('2 of 2 right');
+
+  await expect(page.locator('a.term[href$="start/#term-spin"]')).toHaveText('its spin');
+  await expect(page.locator('.prepares a')).toHaveCount(2);
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await expectNoA11yViolations(page);
+  }
+});
+
 test('the signal under the scene is a map of the articles', async ({ page }) => {
   await page.goto('');
   const stage = page.locator('grwu-binary-hero .ovh');

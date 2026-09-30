@@ -1,6 +1,11 @@
 ---
 import BaseLayout from '~/layouts/BaseLayout.astro';
 import IslandCheck from '~/components/lab/IslandCheck.svelte';
+import CheckYourself from '~/components/learn/CheckYourself.svelte';
+import Misconception from '~/components/learn/Misconception.astro';
+import Predict from '~/components/learn/Predict.svelte';
+import PreparesFor from '~/components/learn/PreparesFor.astro';
+import Term from '~/components/learn/Term.astro';
 
 const colours = [
   { token: 'signal', meaning: 'the signal; anything observed or measured' },
@@ -20,6 +25,51 @@ const colours = [
     <section aria-labelledby="islands-heading">
       <h2 id="islands-heading">Islands</h2>
       <IslandCheck client:visible />
+    </section>
+
+    <section aria-labelledby="learn-heading" class="learn">
+      <h2 id="learn-heading">Learning components</h2>
+      <p>
+        A black hole's ring has a frequency <Term id="frequency" /> and a damping time{' '}
+        <Term id="damping-time" />; together they give its mass <Term id="mass" /> and spin{' '}
+        <Term id="spin">its spin</Term>.
+      </p>
+      <Predict
+        client:visible
+        id="lab"
+        question="A black hole twice as heavy rings at…"
+        options={[
+          { label: 'twice the frequency' },
+          { label: 'the same frequency' },
+          { label: 'half the frequency' },
+        ]}
+      >
+        <p>Half: the frequency of the ring scales as one over the mass.</p>
+      </Predict>
+      <Misconception claim="A 90% credible interval means the true value is inside it 90% of the time.">
+        <p>It describes what is believed given the model, the prior and the data.</p>
+      </Misconception>
+      <PreparesFor to={['hidden-in-the-noise', 'ringdown/weighing-the-ring']} />
+      <CheckYourself
+        client:visible
+        id="lab"
+        questions={[
+          {
+            question: 'A ring completes 10 cycles in one damping time. What is its quality factor?',
+            options: [
+              { label: 'About 10', why: 'Q = π f τ, and f τ is the 10 cycles: about 31.' },
+              { label: 'About 31', correct: true, why: 'Q = π f τ = π × 10.' },
+            ],
+          },
+          {
+            question: 'Sampled at 64 Hz, a 45 Hz tone appears at…',
+            options: [
+              { label: '45 Hz', why: 'Above half the sampling rate a tone folds back.' },
+              { label: '19 Hz', correct: true, why: '64 − 45 = 19: it folds about 32 Hz.' },
+            ],
+          },
+        ]}
+      />
     </section>
 
     <section aria-labelledby="colours-heading">
