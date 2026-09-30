@@ -1,0 +1,4 @@
+channel,tau_full_ms,etau_full,chi2r_full,tau_thin_ms,etau_thin,chi2r_thin,tau220_ms,full_vs_theory_sigma,thin_vs_theory_sigma
+mass,4.6121,1.0621,0.412,3.6439,1.2594,0.220,3.7527,0.81,0.09
+spin,5.6647,4.4749,0.350,3.6234,3.3127,0.254,3.7527,0.43,0.04
+area,4.4712,0.7518,0.411,3.6553,0.9714,0.166,3.7527,0.96,0.10

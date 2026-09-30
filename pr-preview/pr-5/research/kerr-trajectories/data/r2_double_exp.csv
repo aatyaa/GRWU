@@ -1,0 +1,3 @@
+model,params,chi2,dof,chi2_red,AIC,BIC
+single_exp,D0=19.683;tau=4.612,7.825,19,0.412,11.825,13.914
+double_exp,Af=3.855;tau_fast=0.100;As=18.193;tau_slow=5.339,6.509,17,0.383,14.509,18.687
