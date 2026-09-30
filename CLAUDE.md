@@ -90,6 +90,10 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/dsp.json and kerr.
 - `public/data/`: datasets as `<channel>.f32` (little-endian float32, stored as
   physical / `scale`) plus `meta.json`; see `docs/adr/0004-data-format.md`.
 - `pipeline/`: the Python data pipeline (`grwu_pipeline/`, tests in `pipeline/tests/`).
+- `private/` (git-ignored): clone of the private `aatyaa/GRWU-private` repository. Its
+  `track/` holds the access-gated ringdown track (collection `ringdown`, route
+  `/ringdown/<slug>/`, alias `@track`); its `paper/` is reference only. See ADR 0007. Commit
+  track work inside `private/`, never in this repository.
 
 ## Conventions
 

@@ -28,3 +28,6 @@ __pycache__/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Private companion repo (aatyaa/GRWU-private), cloned here for the gated track
+private/

@@ -12,6 +12,7 @@ export default defineConfig(
     '.astro/',
     'node_modules/',
     'pipeline/',
+    'private/paper/',
     'playwright-report/',
     'test-results/',
     'coverage/',

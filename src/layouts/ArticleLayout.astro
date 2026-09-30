@@ -1,12 +1,14 @@
 ---
 import BaseLayout from './BaseLayout.astro';
-import type { Article } from '~/lib/content';
+import type { Article, RingdownArticle } from '~/lib/content';
 
 interface Props {
-  article: Article;
+  article: Article | RingdownArticle;
+  /** Keep the page out of search engines (the gated track). */
+  noindex?: boolean;
 }
 
-const { article } = Astro.props;
+const { article, noindex = false } = Astro.props;
 const { title, headline, summary, status, minutes, updated, sources } = article.data;
 
 const updatedLabel = updated.toLocaleDateString('en-GB', {
@@ -17,7 +19,7 @@ const updatedLabel = updated.toLocaleDateString('en-GB', {
 });
 ---
 
-<BaseLayout title={title} description={summary}>
+<BaseLayout title={title} description={summary} noindex={noindex}>
   <article class="article">
     <header class="article__header">
       <h1>{title}</h1>

@@ -1,0 +1,22 @@
+---
+import { render } from 'astro:content';
+import ArticleLayout from '~/layouts/ArticleLayout.astro';
+import { getRingdownArticles, type RingdownArticle } from '~/lib/content';
+
+// The access-gated ringdown track (ADR 0007). No pages exist without the private repository.
+export async function getStaticPaths() {
+  const articles = await getRingdownArticles();
+  return articles.map((article) => ({ params: { slug: article.id }, props: { article } }));
+}
+
+interface Props {
+  article: RingdownArticle;
+}
+
+const { article } = Astro.props;
+const { Content } = await render(article);
+---
+
+<ArticleLayout article={article} noindex>
+  <Content />
+</ArticleLayout>
