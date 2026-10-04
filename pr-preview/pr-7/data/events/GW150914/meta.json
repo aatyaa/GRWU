@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "GW150914",
+  "kind": "event",
+  "description": "Strain around GW150914 from GWOSC, one channel per detector.",
+  "sample_rate": 4096,
+  "duration": 32.0,
+  "gps_start": 1126259446.0,
+  "gps_event": 1126259462.4,
+  "sources": {
+    "H1": "https://gwosc.org/archive/data/O1/1126170624/H-H1_LOSC_4_V1-1126256640-4096.hdf5",
+    "L1": "https://gwosc.org/archive/data/O1/1126170624/L-L1_LOSC_4_V1-1126256640-4096.hdf5"
+  },
+  "license": "CC-BY-4.0",
+  "attribution": "This research has made use of data or software obtained from the Gravitational Wave Open Science Center (gwosc.org), a service of the LIGO Scientific Collaboration, the Virgo Collaboration, and KAGRA.",
+  "acknowledgement": "https://gwosc.org/acknowledgement/",
+  "n_samples": 131072,
+  "dtype": "float32",
+  "byte_order": "little",
+  "scale": 1e-21,
+  "channels": {
+    "H1": {
+      "file": "H1.f32",
+      "sha256": "197edfbabc8e964ab7e9dfaa3a90214431053f55fea19451ae7fcc38b9c5d2f3"
+    },
+    "L1": {
+      "file": "L1.f32",
+      "sha256": "024e0986e4d63dfcbae442c0fd1e0b0464d1370dffe2abcd2b4aff911daddbde"
+    }
+  }
+}
