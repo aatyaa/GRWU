@@ -89,7 +89,8 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundati
     `fitLine`, `fitLinear`, `normalPdf`, `diceTotals`).
     For the foundations series: `intervals` (numpy quantiles, equal-tailed and highest-density
     intervals), `correlation` (Pearson, Spearman), `autocorr` (emcee's integrated time, ESS),
-    `mcmc` (seeded random-walk Metropolis that records every proposal). Checked against
+    `mcmc` (seeded random-walk Metropolis that records every proposal), `ringfit` (one damped tone
+    fitted by least squares, with its error bars; against scipy's `curve_fit`). Checked against
     `tests/fixtures/foundations.json`, with `dsp/window.ts` `tukey`, `dsp/sampling.ts`
     (aliasing) and `physics/oscillator.ts` (the damped oscillator, against scipy's ODE solver).
   - `figure/pointer.ts`: dragging in SVG units, arrow-key stepping, tweens.

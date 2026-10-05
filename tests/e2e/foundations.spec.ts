@@ -158,3 +158,55 @@ test('How Sure Is Sure?: a sampler walks, intervals differ, correlated samples o
     await expectNoA11yViolations(page);
   }
 });
+
+test('Fitting a Ring in Noise: the fit finds the valley, injections calibrate the error bar', async ({
+  page,
+}) => {
+  await page.goto('articles/fitting-a-ring-in-noise/');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Fitting a Ring in Noise');
+
+  const fit = page.locator('.ring-fit');
+  await fit.scrollIntoViewIfNeeded();
+  await expect(fit).toHaveAttribute('data-hydrated', 'true');
+  await expect(fit).toHaveAttribute('data-fitted', 'false');
+  const before = Number(await fit.getAttribute('data-chi2'));
+  await fit.getByRole('button', { name: 'Fit it for me' }).click();
+  await expect(fit).toHaveAttribute('data-fitted', 'true');
+  const after = Number(await fit.getAttribute('data-chi2'));
+  expect(after).toBeLessThan(before);
+  expect(Math.abs(after - 1)).toBeLessThan(0.25);
+  await fit.getByRole('button', { name: 'Reset' }).click();
+  await fit.getByLabel(/Frequency/).fill('300');
+  await expect(fit).toHaveAttribute('data-f', '300.0');
+
+  const injections = page.locator('.injections');
+  await injections.scrollIntoViewIfNeeded();
+  await expect(injections).toHaveAttribute('data-done', 'true', { timeout: 60_000 });
+  const spread = Number(await injections.getAttribute('data-spread'));
+  const reported = Number(await injections.getAttribute('data-reported'));
+  expect(Math.abs(spread / reported - 1)).toBeLessThan(0.2);
+  expect(Math.abs(Number(await injections.getAttribute('data-mean')) - 250)).toBeLessThan(2);
+  await injections.getByLabel('loud').check();
+  await expect(injections).toHaveAttribute('data-level', 'loud');
+  await expect(injections).toHaveAttribute('data-done', 'true', { timeout: 60_000 });
+  expect(Number(await injections.getAttribute('data-spread'))).toBeLessThan(spread / 1.5);
+
+  const ex = page
+    .locator('.exercise')
+    .filter({ has: page.getByRole('heading', { name: /Score a fit/ }) });
+  await ex.scrollIntoViewIfNeeded();
+  await expect(ex).toHaveAttribute('data-hydrated', 'true');
+  await ex.locator('.cm-content').click();
+  await page.keyboard.press('ControlOrMeta+a');
+  await page.keyboard.press('Delete');
+  await page.keyboard.insertText(
+    'import numpy as np\ndef reduced_chi2(data, model, sigma, k):\n    return np.sum(((data - model) / sigma) ** 2) / (len(data) - k)\n',
+  );
+  await ex.getByRole('button', { name: 'Check' }).click();
+  await expect(ex).toHaveAttribute('data-state', 'passed', { timeout: 150_000 });
+
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await expectNoA11yViolations(page);
+  }
+});

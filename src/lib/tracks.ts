@@ -189,9 +189,9 @@ export const foundations: PlannedArticle[] = [
   {
     id: 'fitting-a-ring-in-noise',
     title: 'Fitting a Ring in Noise',
-    question: 'When does a fit that looks right give the wrong answer?',
+    question: 'How do you read a ring buried in noise, and how do you know the answer is honest?',
     covers:
-      'Models and residuals, when to start the fit, one tone or two, and testing an analysis on an answer you already know.',
+      'Least squares, the reduced χ², where an error bar comes from, and testing an analysis on signals whose answer you already know.',
   },
   {
     id: 'from-data-file-to-claim',

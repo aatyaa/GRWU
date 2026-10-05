@@ -8,6 +8,7 @@ import { autocorrelation, effectiveSampleSize, integratedTime } from '~/lib/stat
 import { pearson, ranks, spearman } from '~/lib/stats/correlation';
 import { equalTailed, hdi, quantile } from '~/lib/stats/intervals';
 import { metropolis } from '~/lib/stats/mcmc';
+import { amplitudes, fitRing, ringErrors, ringModel } from '~/lib/stats/ringfit';
 
 /** Element-wise |a - b| <= atol + rtol * |b|, like numpy.testing.assert_allclose. */
 function expectClose(
@@ -179,5 +180,36 @@ describe('oscillator', () => {
     const ring = { frequency: 250, tau: 0.004 };
     expect(dampedSinusoid(0, ring)).toBe(1);
     expect(dampedSinusoid(0.004, ring)).toBeCloseTo(Math.exp(-1), 12);
+  });
+});
+
+describe('ring fit', () => {
+  const { t, y, fit, rss, errors, sigma } = fx.ringfit;
+  const range = { fMin: 150, fMax: 350, tauMin: 0.001, tauMax: 0.02 };
+
+  it('finds the same best fit as scipy.optimize.curve_fit', () => {
+    const got = fitRing(t, y, range);
+    // Both minimise the same sum of squares; they agree to well under a part in a million.
+    expect(Math.abs(got.f / fit.f - 1)).toBeLessThan(1e-7);
+    expect(Math.abs(got.tau / fit.tau - 1)).toBeLessThan(1e-6);
+    expect(Math.abs(got.amplitude - fit.amplitude)).toBeLessThan(1e-6);
+    expect(Math.abs(got.phase - fit.phase)).toBeLessThan(1e-6);
+    expect(Math.abs(got.rss / rss - 1)).toBeLessThan(1e-10);
+  });
+
+  it('reports the error bars curve_fit reports with absolute_sigma', () => {
+    const got = ringErrors(t, fit, sigma);
+    for (const k of ['f', 'tau', 'amplitude', 'phase'] as const) {
+      expect(Math.abs(got[k] / errors[k] - 1), k).toBeLessThan(1e-6);
+    }
+  });
+
+  it('solves the amplitudes exactly for a given frequency and damping time', () => {
+    const truth = { f: 250, tau: 0.004, a: Math.cos(0.3), b: -Math.sin(0.3) };
+    const clean = ringModel(t, truth);
+    const got = amplitudes(t, clean, truth.f, truth.tau);
+    expect(got.a).toBeCloseTo(truth.a, 12);
+    expect(got.b).toBeCloseTo(truth.b, 12);
+    expect(got.rss).toBeLessThan(1e-20);
   });
 });

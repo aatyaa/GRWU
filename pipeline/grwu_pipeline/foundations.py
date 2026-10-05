@@ -70,6 +70,51 @@ def _oscillator(mass: float, stiffness: float, damping: float, x0: float, v0: fl
     }
 
 
+def _ringfit() -> dict:
+    """One damped tone in white noise of known spread, fitted by scipy.optimize.curve_fit.
+
+    With the noise spread given (absolute_sigma) the covariance is the inverse Fisher matrix,
+    so its diagonal holds the one-sigma error bars a fit reports.
+    """
+    rng = np.random.default_rng(SEED + 1)
+    fs = 4096.0
+    sigma = 0.15
+    t = np.arange(120) / fs
+    truth = {"f": 250.0, "tau": 0.004, "amplitude": 1.0, "phase": 0.3}
+
+    def model(t, f, tau, amplitude, phase):
+        return amplitude * np.exp(-t / tau) * np.cos(2 * np.pi * f * t + phase)
+
+    y = model(t, **truth) + sigma * rng.standard_normal(t.size)
+    popt, pcov = optimize.curve_fit(
+        model,
+        t,
+        y,
+        p0=[240.0, 0.0035, 0.9, 0.2],
+        sigma=np.full(t.size, sigma),
+        absolute_sigma=True,
+        maxfev=20000,
+        ftol=1e-15,
+        xtol=1e-15,
+        gtol=1e-15,
+    )
+    assert popt[2] > 0
+    errors = np.sqrt(np.diag(pcov))
+    residual = y - model(t, *popt)
+    names = ("f", "tau", "amplitude", "phase")
+    fit = dict(zip(names, map(float, popt), strict=True))
+    fit["phase"] = float(np.angle(np.exp(1j * popt[3])))
+    return {
+        "t": _floats(t),
+        "y": _floats(y),
+        "sigma": sigma,
+        "truth": truth,
+        "fit": fit,
+        "errors": dict(zip(names, map(float, errors), strict=True)),
+        "rss": float(residual @ residual),
+    }
+
+
 def build() -> dict[str, Any]:
     rng = np.random.default_rng(SEED)
 
@@ -141,6 +186,7 @@ def build() -> dict[str, Any]:
         },
         "tukey": {"n": 32, "windows": tukey},
         "aliasing": {"sample_rate": fs, "n": n, "tones": tones, "apparent": apparent},
+        "ringfit": _ringfit(),
         "oscillator": {
             "released": _oscillator(1.0, 40.0, 0.8, 1.0, 0.0),
             "struck": _oscillator(0.5, 200.0, 2.0, 0.0, 3.0),
