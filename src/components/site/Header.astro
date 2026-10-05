@@ -95,4 +95,24 @@ const links = [
   nav a[aria-current='page'] {
     font-weight: 600;
   }
+
+  /* On a phone the links get a row of their own, spread across it, instead of wrapping
+     wherever they run out of room. */
+  @media (max-width: 600px) {
+    .site-header {
+      flex-wrap: wrap;
+      row-gap: 0.6rem;
+    }
+
+    nav {
+      flex-basis: 100%;
+      margin-inline-start: 0;
+    }
+
+    ul {
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+  }
 </style>

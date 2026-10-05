@@ -82,8 +82,10 @@ test('the home page presents every track', async ({ page }) => {
   await expect(page.locator('#ringdown-track .track__next')).toContainText('The Code Behind It');
   const open = page.locator('#open-tracks .open__card');
   await expect(open).toHaveCount(5);
+  // Until a track is built its card links nowhere: no title link, no link out to GitHub.
+  await expect(page.locator('#open-tracks .open__card a')).toHaveCount(0);
   for (const project of ['mcmc-demo', 'MatchedFiltering', 'ringdown', 'anesthetic']) {
-    await expect(page.locator('#open-tracks').getByRole('link', { name: project })).toBeVisible();
+    await expect(page.locator('#open-tracks')).toContainText(`Will build on ${project}`);
   }
 });
 
