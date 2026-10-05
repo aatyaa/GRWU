@@ -48,6 +48,8 @@ def compare(a, b, path, rtol):
                 compare(a[key], b[key], f"{path}.{key}", rtol)
     elif isinstance(b, list) and all(isinstance(v, float) for v in b):
         np.testing.assert_allclose(a, b, rtol=rtol, atol=1e-15, err_msg=path)
+    elif isinstance(b, float):
+        assert a == pytest.approx(b, rel=rtol, abs=1e-15), f"{path}: {a!r} != {b!r}. {REGENERATE}"
     else:
         assert a == b, f"{path}: {a!r} != {b!r}. {REGENERATE}"
 
@@ -65,5 +67,9 @@ def test_committed_kerr_fixtures_match_qnm():
 
 def test_committed_foundations_fixtures_match_references():
     committed = json.loads(foundations_fixtures_file(ROOT).read_text())
+    fresh = foundations.build()
+    # A least-squares fit pins its parameters down only to about the square root of the
+    # rounding error, so the last bits of numpy's math on another CPU can move them by ~1e-8.
+    compare(committed.pop("ringfit"), fresh.pop("ringfit"), "foundations.ringfit", rtol=1e-6)
     # The oscillator comes from an adaptive ODE solver; everything else is exact arithmetic.
-    compare(committed, foundations.build(), "foundations", rtol=1e-9)
+    compare(committed, fresh, "foundations", rtol=1e-9)
