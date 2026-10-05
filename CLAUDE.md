@@ -20,6 +20,7 @@ pnpm dev          # dev server at http://localhost:4321/GRWU/ (drafts visible)
 pnpm check        # lint + typecheck + unit tests + build + JS budgets: run before every push
 pnpm test:e2e     # Playwright + axe against the production build (run `pnpm build` first)
 pnpm format       # Prettier
+pnpm links        # check the external links articles cite (needs the network; not in check)
 ```
 
 Data pipeline (Python, uv), run from `pipeline/`:
@@ -102,6 +103,9 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundati
   - `physics/kerr.ts`: Kerr quasinormal modes (Berti fits for 220, 221, 222), the closed-form
     inverse from a ring (f, τ) to mass and spin, horizon area, detector and source frames.
     Checked against the qnm package through `tests/fixtures/kerr.json`.
+- `src/lib/quality/readability.ts` and `tests/unit/quality.test.ts`: every article's prose stays
+  readable (Flesch–Kincaid grade ≤ 12 for `level: beginner`, ≤ 14 otherwise), every `<Term>`
+  names a glossary entry, and each beginner article links at least three terms.
 - `src/styles/tokens.css`: design tokens, including the concept colour grammar.
 - `tests/unit/` (Vitest), `tests/e2e/` (Playwright + axe), `tests/fixtures/` (scipy and qnm
   reference outputs, generated).
