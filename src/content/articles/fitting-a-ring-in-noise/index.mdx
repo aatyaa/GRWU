@@ -1,0 +1,267 @@
+---
+title: Fitting a Ring in Noise
+emphasis: Noise
+headline: How do you read a ring buried in noise, and how do you know the answer is honest?
+summary: A fit turns a noisy ring into a frequency and a damping time, each with an error bar. This article builds the fit by hand, puts a number on what it leaves over, and then tests it the one way its own arithmetic cannot fake, on signals whose answer you already know.
+track: foundations
+order: 4
+level: beginner
+status: review
+minutes: 20
+prerequisites:
+  - how-sure-is-sure
+objectives:
+  - Fit a damped tone by least squares, and explain why the best fit is the most likely one when the noise is bell-shaped.
+  - Read the reduced χ² of a fit, and say what a value near 1 does and does not show.
+  - Run an injection test, and check that an error bar matches how far answers scatter from one stretch of noise to the next.
+prepares:
+  - what-the-wrong-model-knows
+  - ringdown/weighing-the-ring
+  - ringdown/the-answer-moves
+  - ringdown/a-black-hole-that-never-changes
+updated: 2026-10-05
+sources:
+  - title: 'E. Berti, V. Cardoso, J. A. González and U. Sperhake, Mining information from binary black hole mergers: a comparison of estimation methods for complex exponentials in noise, Phys. Rev. D 75, 124017 (2007)'
+    url: https://arxiv.org/abs/gr-qc/0701086
+  - title: 'E. Berti, V. Cardoso and C. M. Will, On gravitational-wave spectroscopy of massive black holes with LISA, Phys. Rev. D 73, 064030 (2006)'
+    url: https://arxiv.org/abs/gr-qc/0512160
+  - title: 'LIGO Scientific and Virgo Collaborations, Tests of general relativity with GW150914, Phys. Rev. Lett. 116, 221101 (2016)'
+    url: https://arxiv.org/abs/1602.03841
+  - title: 'M. Vallisneri, Use and abuse of the Fisher information matrix in the assessment of gravitational-wave parameter-estimation prospects, Phys. Rev. D 77, 042001 (2008)'
+    url: https://arxiv.org/abs/gr-qc/0703086
+  - title: 'LIGO Scientific and Virgo Collaborations, Search for gravitational waves from low mass compact binary coalescence in LIGO’s sixth science run and Virgo’s science runs 2 and 3, Phys. Rev. D 85, 082002 (2012)'
+    url: https://arxiv.org/abs/1111.7314
+  - title: 'C. Biwer et al., Validating gravitational-wave detections: the Advanced LIGO hardware injection system, Phys. Rev. D 95, 062002 (2017)'
+    url: https://arxiv.org/abs/1612.07864
+  - title: 'E. Thrane and C. Talbot, An introduction to Bayesian inference in gravitational-wave astronomy, Publ. Astron. Soc. Aust. 36, e010 (2019)'
+    url: https://arxiv.org/abs/1809.02293
+---
+
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import InjectionTest from '~/components/figures/InjectionTest.svelte';
+import RingFit from '~/components/figures/RingFit.svelte';
+import CheckYourself from '~/components/learn/CheckYourself.svelte';
+import Exercise from '~/components/learn/Exercise.svelte';
+import Misconception from '~/components/learn/Misconception.astro';
+import Predict from '~/components/learn/Predict.svelte';
+import PreparesFor from '~/components/learn/PreparesFor.astro';
+import Term from '~/components/learn/Term.astro';
+import Claim from '~/components/math/Claim.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+import { fitting } from '~/lib/articles/fitting';
+import { injectionRecovery } from '~/lib/exercises/injection-recovery';
+import { reducedChiSquare } from '~/lib/exercises/reduced-chi-square';
+import { INJECTIONS } from '~/lib/figure/ring-in-noise';
+
+export const { best, truth, dof, chi2Spread } = fitting;
+export const { quiet, medium } = fitting.levels;
+
+[A Bell That Weighs Itself](../a-bell-that-weighs-itself/) showed that two numbers weigh a black hole: the <Term id="frequency">frequency</Term> of its ring and its <Term id="damping-time">damping time</Term>. That article read them off a clean ring. A detector never gives you one. The ring arrives with noise on top, and it is gone in a few hundredths of a second.
+
+So the real question is how to get two numbers out of a signal you can barely see, and how much to trust them. The answer has two halves. The first is a fit. The second, which matters more, is a way to check the fit that does not rely on the fit.
+
+## A fit is a question with knobs
+
+The oldest method for this job is older than the steam train. In 1795 Gaspard de Prony, measuring how gases and vapours behave as they heat, wrote his measurements as a sum of exponentials and found a way to read off their rates. Versions of his method are still compared with newer ones on black-hole rings.
+
+The idea used today is simpler to state. Write down the shape you expect, here a wave that fades: a frequency, a damping time, a size and a starting phase. Turn those knobs until the curve misses the data by as little as possible, adding up the squares of the misses as Gauss did in [The Shape of Error](../the-shape-of-error/). The setting with the smallest total is the **best fit**.
+
+Two of the four knobs are easy. For any frequency and damping time, the best size and phase can be solved for directly, with no searching at all. So below you only turn the two that matter, and the figure keeps the other two right for you.
+
+<Predict
+  client:visible
+  id="ring-fit-where"
+  question="Which part of the data tells you most about the frequency?"
+  options={[{ label: 'The first few milliseconds' }, { label: 'The last few milliseconds' }, { label: 'All parts equally' }]}
+>
+  <p>
+    The first few. The ring is loud at the start and has sunk below the noise by about ten
+    milliseconds. After that the data are almost pure noise, and a curve that is nearly flat fits
+    them whatever its frequency. Watch the leftovers below: when the frequency is wrong, they swing
+    at the start and are calm at the end.
+  </p>
+</Predict>
+
+<Figure kind="control" width="wide">
+  <RingFit client:visible />
+  <Fragment slot="caption">
+    Top: a ring at 250 Hz in noise (amber dots) and your ring (dashed). Middle: what your ring
+    leaves over. Bottom: how good the fit is at every frequency, for the damping time you chose.
+    Slide into the lowest point.
+  </Fragment>
+</Figure>
+
+The bottom panel is the whole method in one picture. Each frequency gets a score, and the fit slides downhill to the lowest point. Notice how wide and shallow the valley is. The ring lasts only a few cycles, so frequencies several hertz apart fit it almost equally well. That width is where the error bar on the frequency will come from.
+
+Notice also where the lowest point is. The ring was made at {truth.f} Hz and {truth.tau * 1000} ms. The best fit says about {best.f.toFixed(0)} Hz and {best.tauMs.toFixed(1)} ms. That is not a mistake. With different noise it would have said something else, and the next sections are about how far "something else" can be.
+
+<MathLayer id="m-least-squares" title="why least squares is the most likely answer">
+  <Claim>
+    When the noise is bell-shaped with a known spread σ, the fit that makes the sum of squared
+    misses smallest is also the one under which the data were most likely.
+  </Claim>
+  <Given>
+    data *d*<sub>i</sub> at times *t*<sub>i</sub>, a model *h*(*t*; θ) with knobs θ, and independent
+    noise of spread σ in every sample.
+  </Given>
+  <Steps>
+    <Step tex="p(d \mid \theta) = \prod_i \frac{1}{\sqrt{2\pi}\,\sigma}\, e^{-[d_i - h(t_i;\theta)]^2 / 2\sigma^2}">
+      The likelihood: each sample's miss must be explained by noise, and the samples are independent.
+    </Step>
+    <Step tex="\ln p(d \mid \theta) = -\tfrac{1}{2}\chi^2(\theta) + \text{const},\qquad \chi^2 = \sum_i \left(\frac{d_i - h(t_i;\theta)}{\sigma}\right)^2" hinge>
+      Take the logarithm: everything that depends on θ is the sum of squared misses, each measured
+      in units of the noise.
+    </Step>
+    <Step tex="h = e^{-t/\tau}\,(a\cos 2\pi f t + b\sin 2\pi f t)">
+      For a fading tone, *a* and *b* (size and phase together) enter in a straight line, so for each
+      *f* and τ their best values solve two linear equations.
+    </Step>
+  </Steps>
+  <Means>
+    Minimising χ² and maximising the <Term id="likelihood">likelihood</Term> are the same thing here.
+    That is why least squares is the standard fit for a ring in a detector's noise, once the noise is
+    whitened as in [Hidden in the Noise](../hidden-in-the-noise/).
+  </Means>
+</MathLayer>
+
+## Putting a number on the leftovers
+
+[The Shape of Error](../the-shape-of-error/) ended with a rule: look at what the fit leaves over, and if you can see a pattern, your model is missing something. Looking is a good start. A number is better, and the standard one is the **reduced χ²**.
+
+Measure each leftover in units of the noise, square it, and add them up. That is χ². If the leftovers are only noise, each squared term is about 1 on average, so χ² is about the number of samples. Then divide by the **degrees of freedom**: the number of samples minus the number of knobs the fit turned. Each knob lets the curve follow the noise a little, so it uses up one sample's worth of freedom.
+
+<Pull>
+  A reduced χ² near 1 says the leftovers are the size of the noise, <em>and no bigger.</em>
+</Pull>
+
+Much bigger than 1, and something real is left in the data, or the noise is louder than you thought. Much smaller than 1, and the fit is following the noise, or the noise is quieter than you thought. In the figure the best fit scores {best.chi2.toFixed(2)}. With {dof} degrees of freedom, a fit that is exactly right lands within about ±{chi2Spread.toFixed(2)} of 1 two times in three, so {best.chi2.toFixed(2)} is ordinary.
+
+<Exercise client:visible exercise={reducedChiSquare} title="Score a fit">
+  <p>
+    <code>y</code> holds the noisy ring and <code>model</code> the best fit to it, found by turning
+    four knobs. Write <code>reduced_chi2</code>, which turns the leftovers into one number. The
+    checker tries it on a second, small fit too.
+  </p>
+</Exercise>
+
+<Misconception claim="A reduced χ² of 1 shows the model is right.">
+  <p>
+    It shows the leftovers are no bigger than the noise. A model that is missing something can do
+    that too, because a fit bends the knobs it has to soak up what it lacks.
+    [What the Wrong Model Knows](../what-the-wrong-model-knows/) shows a fit with a perfect score and
+    an answer several error bars from the truth.
+  </p>
+</Misconception>
+
+<MathLayer id="m-chi2" title="why the reduced χ² should be 1, and how far from 1 is normal">
+  <Given>*N* samples of independent noise with spread σ, and a model with *k* knobs that fits them.</Given>
+  <Steps>
+    <Step tex="\chi^2_{\text{noise}} = \sum_{i=1}^{N} z_i^2,\qquad z_i \sim \mathcal{N}(0, 1)">
+      With the true model, χ² is a sum of *N* squared standard bell-curve numbers.
+    </Step>
+    <Step tex="\langle \chi^2 \rangle = N - k,\qquad \operatorname{Var}\chi^2 = 2(N - k)" hinge>
+      Fitting *k* knobs removes *k* directions from the noise: the leftovers live in a space with
+      *N* − *k* dimensions.
+    </Step>
+    <Step tex="\chi^2_\nu = \frac{\chi^2}{N - k} \approx 1 \pm \sqrt{\frac{2}{N - k}}">
+      Divide by the degrees of freedom to get the reduced χ² and its typical spread.
+    </Step>
+  </Steps>
+  <Means>
+    With {dof} degrees of freedom, {(1 - chi2Spread).toFixed(2)} or {(1 + chi2Spread).toFixed(2)} is ordinary. With 6, anything from about 0.4 to 1.6
+    is. A reduced χ² from a short stretch of data says very little.
+  </Means>
+</MathLayer>
+
+## An error bar is a promise about other noise
+
+The fit above reports a frequency of {best.f.toFixed(0)} ± {best.error.toFixed(0)} Hz. The "± {best.error.toFixed(0)}" does not mean the truth is surely inside. It is a promise about noise you did not get: had the same ring arrived with a different stretch of noise, the answer would have moved by about that much.
+
+You cannot replay the universe. But you can replay the noise. Make a fake signal whose answer you chose, add a fresh stretch of noise, and fit it exactly as you fitted the real one. Do it hundreds of times. This is an **injection test**: you put a signal in and see what comes out.
+
+<Figure kind="control" width="wide">
+  <InjectionTest client:visible />
+  <Fragment slot="caption">
+    {INJECTIONS} fits of the same {truth.f} Hz ring, each in different noise. The bars are where the answers
+    landed; the dashed curve is the scatter one fit's error bar promises. Change how loud the ring is.
+  </Fragment>
+</Figure>
+
+Two checks pass at the middle loudness. The answers average {medium.mean.toFixed(0)} Hz, so the method is not pulled to one side. And they scatter by ±{medium.spread.toFixed(1)} Hz, the size one fit's error bar promised: ±{medium.reported.toFixed(1)} Hz. When both hold, the error bar is honest.
+
+Make the ring louder and both shrink together: double the <Term id="snr">signal-to-noise ratio</Term> and the error bar halves. Make it quieter and look closely. The answers scatter by about ±{quiet.spread.toFixed(0)} Hz, but one fit's error bar promises only ±{quiet.reported.toFixed(0)}. For faint signals, the error bar a fit computes from its own valley is too small: the valley is no longer a neat bowl. Michele Vallisneri set out in 2008 when that shortcut can be trusted. The injection test does not need the shortcut. It just counts.
+
+<Exercise client:visible exercise={injectionRecovery} title="Run an injection test">
+  <p>
+    <code>signal</code> is a ring at 250 Hz, and <code>fit_frequency(data)</code> fits a ring with
+    scipy and returns its frequency. Fill in the fake detection, run 150 of them, and see whether
+    the answers land where they should.
+  </p>
+</Exercise>
+
+<MathLayer id="m-error-bar" title="where one fit's error bar comes from">
+  <Given>the score χ²(*f*) near its lowest point, with the other knobs set to their best values.</Given>
+  <Steps>
+    <Step tex="\chi^2(f) \approx \chi^2_{\min} + \frac{(f - \hat f)^2}{\sigma_f^2}">
+      Close to the bottom, every smooth valley is a bowl.
+    </Step>
+    <Step tex="\chi^2(\hat f \pm \sigma_f) = \chi^2_{\min} + 1" hinge>
+      The one-sigma error bar is how far you can move before the score rises by 1: how steep the bowl is.
+    </Step>
+    <Step tex="\sigma_f \propto \frac{\sigma}{A} \propto \frac{1}{\rho}">
+      Louder signals make steeper bowls, so the error bar falls in step with the signal-to-noise ratio ρ.
+    </Step>
+  </Steps>
+  <Means>
+    The bowl is an approximation that holds when the signal is loud. Berti, Cardoso and Will used it in
+    2006 to forecast how well ringdown tones can be measured. For faint signals the valley is lopsided,
+    and only an injection test shows the true scatter.
+  </Means>
+</MathLayer>
+
+## LIGO tests itself the same way
+
+The detectors do this for real. Small forces on the mirrors can make them move exactly as a passing wave would, and the analysis must then find the fake signal and recover what was put in. These are called **hardware injections**.
+
+Sometimes nobody is told. In September 2010 the detectors recorded what looked like two compact objects merging. For months the collaborations studied it as a real event and wrote it up. Then, in March 2011, an envelope was opened: the signal was a **blind injection**, put in on purpose by a small team to see whether the analysis would find and measure it. It did. A method that recovers an answer it was never told is one you can start to trust.
+
+## When the answers do not land on the truth
+
+Sometimes an injection test fails the first check. The answers are tightly grouped, the error bars look fine, and the whole group sits beside the truth. That is **bias**, and with rings it has a usual suspect: a model missing a piece of the signal. A ring has more than one tone, and the fast ones fade first. Start the fit too early with too few tones, and the knobs you have soak up the ones you lack.
+
+That story, and how to catch it with exactly the kind of test you just ran, is [What the Wrong Model Knows](../what-the-wrong-model-knows/). For the same reason, the tests of general relativity on GW150914 fitted its ring at several start times after the peak, to see whether the answer stayed put.
+
+<CheckYourself
+  client:visible
+  id="ring-fit"
+  questions={[
+    {
+      question: 'A fit to 104 samples with 4 knobs gives χ² = 200. What is the reduced χ², and what does it suggest?',
+      options: [
+        { label: 'About 2: something real is left in the data, or the noise is louder than assumed', correct: true, why: '200 / (104 − 4) = 2. The leftovers are bigger than the noise allows.' },
+        { label: 'About 1.9: the fit is fine', why: 'Divide by the degrees of freedom, 104 − 4 = 100, not by 104. And 2 is far outside 1 ± 0.14.' },
+      ],
+    },
+    {
+      question: 'Over 300 injections, the answers average 250 Hz and scatter by ±6 Hz. One fit reports ±6 Hz. What has been shown?',
+      options: [
+        { label: 'For signals like this one, the method is unbiased and its error bar is honest', correct: true, why: 'Both checks pass: the average is the truth and the scatter matches the promise.' },
+        { label: 'The method is right for every real signal', why: 'An injection test speaks for the kind of signal injected. A real signal with a piece the model lacks can still fool it.' },
+      ],
+    },
+    {
+      question: 'A ring is made twice as loud compared with the noise. What happens to the error bar on its frequency?',
+      options: [
+        { label: 'It halves', correct: true, why: 'The error bar falls in step with the signal-to-noise ratio, for loud signals.' },
+        { label: 'It falls to a quarter', why: 'The bowl’s steepness grows as the square of the signal; the error bar goes as one over its square root.' },
+      ],
+    },
+  ]}
+/>
+
+<PreparesFor to={frontmatter.prepares} />

@@ -28,3 +28,10 @@ __pycache__/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Private companion repo (aatyaa/GRWU-private), cloned here for the gated track
+private/
+
+# Pyodide runtime, fetched and verified by scripts/pyodide-assets.mjs (ADR 0010)
+public/pyodide/
+.cache/

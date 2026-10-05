@@ -1,0 +1,55 @@
+---
+/** A raised note. `label` is a mono heading; `tone="caveat"` is for the warnings nobody writes down. */
+interface Props {
+  label?: string;
+  tone?: 'plain' | 'caveat' | 'ok';
+}
+
+const { label, tone = 'plain' } = Astro.props;
+---
+
+<aside class:list={['card', tone]}>
+  {label && <p class="card__label">{label}</p>}
+  <slot />
+</aside>
+
+<style>
+  .card {
+    margin: var(--space-8) 0;
+    padding: 1.2rem 1.4rem;
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--radius-2);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+
+  .card.caveat {
+    border-color: var(--bias);
+    background: var(--bias-bg);
+    box-shadow: none;
+  }
+
+  .card.ok {
+    border-left: 2px solid var(--ok);
+  }
+
+  .card__label {
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .caveat .card__label {
+    color: var(--bias);
+  }
+
+  .ok .card__label {
+    color: var(--ok);
+  }
+
+  .card :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>

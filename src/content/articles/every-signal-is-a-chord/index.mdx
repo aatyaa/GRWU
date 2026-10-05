@@ -1,0 +1,253 @@
+---
+title: Every Signal Is a Chord
+emphasis: Chord
+headline: How do you take a signal apart into its notes?
+summary: Any recording is a sum of steady tones. Learning to see those tones, to record them without fooling yourself, and to measure the noise they sit in is the first skill of data analysis.
+track: foundations
+order: 2
+level: beginner
+status: review
+minutes: 20
+prerequisites:
+  - a-bell-that-weighs-itself
+objectives:
+  - Read a spectrum as the list of tones a signal is made of.
+  - Predict when sampling turns a fast tone into a false slow one, and how long a recording must be to tell two tones apart.
+  - Read a detector's noise spectrum and say where it listens best.
+prepares:
+  - hidden-in-the-noise
+  - from-strain-to-source
+updated: 2026-10-05
+sources:
+  - title: 'H. Nyquist, Certain topics in telegraph transmission theory, Trans. AIEE 47, 617 (1928)'
+    url: https://doi.org/10.1109/T-AIEE.1928.5055024
+  - title: 'C. E. Shannon, Communication in the presence of noise, Proc. IRE 37, 10 (1949)'
+    url: https://doi.org/10.1109/JRPROC.1949.232969
+  - title: 'J. W. Cooley and J. W. Tukey, An algorithm for the machine calculation of complex Fourier series, Math. Comp. 19, 297 (1965)'
+    url: https://doi.org/10.1090/S0025-5718-1965-0178586-1
+  - title: 'P. D. Welch, The use of fast Fourier transform for the estimation of power spectra, IEEE Trans. Audio Electroacoust. 15, 70 (1967)'
+    url: https://doi.org/10.1109/TAU.1967.1161901
+  - title: 'F. J. Harris, On the use of windows for harmonic analysis with the discrete Fourier transform, Proc. IEEE 66, 51 (1978)'
+    url: https://doi.org/10.1109/PROC.1978.10837
+  - title: 'LIGO Scientific and Virgo Collaborations, A guide to LIGO–Virgo detector noise and extraction of transient gravitational-wave signals, Class. Quantum Grav. 37, 055002 (2020)'
+    url: https://arxiv.org/abs/1908.11170
+  - title: 'Gravitational Wave Open Science Center: strain data around GW150914 (CC BY 4.0)'
+    url: https://gwosc.org
+---
+
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import AliasingScope from '~/components/figures/AliasingScope.svelte';
+import PsdExplorer from '~/components/figures/PsdExplorer.svelte';
+import ToneMixer from '~/components/figures/ToneMixer.svelte';
+import WindowLab from '~/components/figures/WindowLab.svelte';
+import CheckYourself from '~/components/learn/CheckYourself.svelte';
+import Exercise from '~/components/learn/Exercise.svelte';
+import Misconception from '~/components/learn/Misconception.astro';
+import Predict from '~/components/learn/Predict.svelte';
+import PreparesFor from '~/components/learn/PreparesFor.astro';
+import Term from '~/components/learn/Term.astro';
+import Claim from '~/components/math/Claim.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+import { aliasFrequency } from '~/lib/exercises/alias-frequency';
+import { twoCloseTones } from '~/lib/exercises/two-close-tones';
+import { welchPeak } from '~/lib/exercises/welch-peak';
+import { ringOf } from '~/lib/physics/kerr';
+import gw150914 from '../../../../public/data/events/GW150914/meta.json';
+
+export const fsLigo = gw150914.sample_rate;
+export const ring = ringOf('220', 60, 0.7);
+export const ringLasts = 3 * ring.tau;
+
+Play a chord on a piano and your ear does something remarkable: it hears three notes, not one tangled sound. The air carries a single wobble, the sum of the three, and your inner ear takes it apart again by pitch.
+
+In 1807 Joseph Fourier claimed that this is not a trick of hearing but a fact about signals. Any reasonable wiggle, the vibration of a string, the temperature around a ring of iron, the stretch of space as a gravitational wave passes, can be written as a sum of steady sine waves, each with its own <Term id="frequency">frequency</Term>, size and starting point. Mathematicians argued about it for decades. Today it is the first tool anyone uses to look at data.
+
+## A signal is a sum of tones
+
+Below are three tones and their sum. The top panel is what a detector records: one line, wiggling in time. The bottom panel is its **spectrum**, which shows how much of each frequency the line contains. Move the sliders and watch the two views change together.
+
+<Figure kind="schematic" width="medium">
+  <ToneMixer client:visible />
+  <Fragment slot="caption">
+    One recording (top) and its spectrum (bottom). Each tone becomes one bar, at its frequency,
+    as tall as the tone is loud.
+  </Fragment>
+</Figure>
+
+Turn a tone off and its bar disappears; make it quieter and its bar shrinks; slide it and the bar slides. In the time view the tones are all mixed up. In the spectrum they are separate again. That is the whole point of the spectrum: it turns a tangle into a list.
+
+## Recording means sampling
+
+A detector does not record a smooth curve. It writes down a number many times a second; at LIGO, {fsLigo} times a second. How often you measure, the <Term id="sampling-rate">sampling rate</Term>, sets a limit you cannot escape. In 1928 Harry Nyquist showed, and in 1949 Claude Shannon proved in general, that samples taken *f*ₛ times a second can only describe tones slower than *f*ₛ/2. Anything faster is not lost quietly. It is recorded as a slower tone that was never there.
+
+<Predict
+  client:visible
+  id="chord-alias"
+  question="You record a 45 Hz tone, sampling 64 times a second. What frequency do your samples show?"
+  options={[
+    { label: '45 Hz: the samples catch it fine' },
+    { label: '19 Hz' },
+    { label: 'Nothing: the tone is lost' },
+  ]}
+>
+  <p>
+    19 Hz. Half of 64 is 32, so 45 Hz is too fast; it folds back to 64 − 45 = 19 Hz. Set the
+    figure below to 45 Hz and 64 samples a second and watch the samples trace the slower tone.
+  </p>
+</Predict>
+
+<Figure kind="schematic" width="medium">
+  <AliasingScope client:visible />
+  <Fragment slot="caption">
+    The dots are what the recorder writes down. Push the tone above half the sampling rate and a
+    slower curve, labelled in red, passes through the same dots: an alias.
+  </Fragment>
+</Figure>
+
+The red curve is not an approximation of the truth; it fits the samples exactly, and so does the real tone. From the samples alone you cannot tell them apart. This is why detectors filter out frequencies above *f*ₛ/2 *before* they sample. At {fsLigo} samples a second LIGO can safely record tones up to {fsLigo / 2} Hz, well above the few hundred hertz at which black holes merge and ring.
+
+<MathLayer id="m-alias" title="why a fast tone and a slow one give the same samples">
+  <Claim>
+    Sampled at times *n*/*f*ₛ, a tone of frequency *f* and a tone of frequency *f* − *m f*ₛ
+    give identical samples, for any whole number *m*.
+  </Claim>
+  <Given>samples taken at *t*ₙ = *n*/*f*ₛ, for whole numbers *n*.</Given>
+  <Steps>
+    <Step tex="\cos\!\left(2\pi (f - m f_s)\,\tfrac{n}{f_s}\right) = \cos\!\left(2\pi f\,\tfrac{n}{f_s} - 2\pi m n\right)">
+      Expand the slower tone at a sample time.
+    </Step>
+    <Step tex="= \cos\!\left(2\pi f\,\tfrac{n}{f_s}\right)" hinge>
+      *m n* is a whole number, and a cosine does not change when its angle moves by a whole number of turns.
+    </Step>
+    <Step tex="f_{\text{seen}} = \left| f - f_s \,\mathrm{round}(f/f_s) \right|">
+      Of all the tones that fit, the one nearest zero is the one a spectrum shows.
+    </Step>
+  </Steps>
+  <Means>
+    Sampling cannot tell *f* from *f* − *f*ₛ. Only tones below *f*ₛ/2 are recorded as themselves,
+    so anything faster must be removed before the samples are taken.
+  </Means>
+</MathLayer>
+
+<Exercise client:visible exercise={aliasFrequency} title="Where does a tone end up?">
+  <p>
+    Complete <code>alias(f, fs)</code> so it returns the frequency at which a tone of f Hz
+    appears when sampled fs times a second. The checker compares it with where numpy's FFT
+    actually finds the tone.
+  </p>
+</Exercise>
+
+## How long you listen decides what you can hear
+
+The spectrum of a recording is computed with the **fast Fourier transform**, published by James Cooley and John Tukey in 1965, which made spectra cheap enough to compute for every recording. It turns *N* samples into the strength of *N*/2 + 1 evenly spaced frequencies. The spacing between them is fixed by how long the recording lasts: a stretch of *T* seconds can only resolve frequencies 1/*T* apart. Two tones closer than that merge into one bump.
+
+This has a sharp consequence for black holes. The ring of a 60 solar-mass black hole lasts only about {(ringLasts * 1e3).toFixed(0)} milliseconds before it fades into the noise, so its spectrum can resolve nothing finer than about {(1 / ringLasts).toFixed(0)} Hz. That is one reason ringdowns are usually analysed directly in time rather than through their spectrum.
+
+<Exercise client:visible exercise={twoCloseTones} title="Tell two close tones apart">
+  <p>
+    Two seconds of data hide two tones a few hertz apart. Use the spectrum to find both. Then try
+    it with only the first quarter of a second (<code>x[:64]</code>) and see why it fails.
+  </p>
+</Exercise>
+
+<MathLayer id="m-resolution" title="why the frequency spacing is 1/T">
+  <Given>*N* samples at rate *f*ₛ, so a stretch of length *T* = *N*/*f*ₛ.</Given>
+  <Steps>
+    <Step tex="X_k = \sum_{n=0}^{N-1} x_n\, e^{-2\pi i k n / N}">
+      The discrete Fourier transform compares the data with one tone per value of *k*.
+    </Step>
+    <Step tex="f_k = \frac{k}{N} f_s = \frac{k}{T}" hinge>
+      Tone *k* completes exactly *k* cycles in the stretch, so its frequency is *k*/*T*.
+    </Step>
+    <Step tex="\Delta f = f_{k+1} - f_k = \frac{1}{T}">Neighbouring tones are 1/*T* apart.</Step>
+  </Steps>
+  <Means>
+    Sampling faster adds frequencies at the top; only listening longer makes the spacing finer.
+  </Means>
+</MathLayer>
+
+## Cutting a stretch out of a signal
+
+There is a catch in taking a spectrum of a stretch of data. The transform assumes the stretch repeats forever, end joined to start. If a tone does not fit a whole number of times into the stretch, that join is a jump, and a jump contains every frequency at once. The tone's energy leaks into frequencies far from its own, and that smear can hide a quiet signal next to a loud one.
+
+The cure, studied in detail by Fredric Harris in 1978, is to fade the data in and out before taking the spectrum: multiply it by a **window** that is small at the ends. Compare the windows below.
+
+<Figure kind="schematic" width="medium">
+  <WindowLab client:visible />
+  <Fragment slot="caption">
+    The spectrum of one tone, in decibels below its peak. Red bars are leakage far from the tone.
+    A window costs a slightly wider peak and removes most of the smear.
+  </Fragment>
+</Figure>
+
+## The sound of the detector
+
+Now point all of this at a real instrument. The noise of a detector is not one tone but a hiss of every frequency at once, and what matters is how loud the hiss is at each frequency: its <Term id="psd">power spectral density</Term>, usually drawn as its square root, the amplitude spectral density, in units of <Term id="strain">strain</Term> per √Hz.
+
+A single spectrum of noise is itself noisy: each frequency's value jumps around by as much as its size, however long the recording. In 1967 Peter Welch suggested cutting the data into many overlapping segments, windowing each, and averaging their spectra. Longer segments give finer frequency resolution; more segments give a smoother average. Below is Welch's method applied to 32 seconds of real LIGO data recorded around the first detection, GW150914.
+
+<Figure kind="measured" width="wide">
+  <PsdExplorer client:visible />
+  <Fragment slot="caption">
+    How loud the detector's noise is at each frequency (lower is quieter). The dashed curve is
+    the design target of Advanced LIGO. Change the segment length and watch the trade between
+    sharpness and smoothness.
+  </Fragment>
+</Figure>
+
+Three things stand out. The noise is enormous at low frequency, where the ground shakes and the mirrors' suspensions move. It rises again at high frequency, where light itself is grainy (shot noise). And between them is a valley, a few hundred hertz wide, where the detector listens best: exactly where merging black holes of tens of solar masses sing. The narrow spikes are lines: the mains electricity and its harmonics, and the violin-like vibration of the wires that hold the mirrors (LIGO and Virgo, 2020).
+
+<Misconception claim="With a long enough recording, the spectrum of noise becomes exact.">
+  <p>
+    A longer stretch makes the frequency spacing finer, but each value stays just as uncertain.
+    Only averaging many spectra, as Welch's method does, makes the estimate steadier. That is why
+    analyses trade resolution for steadiness by choosing the segment length.
+  </p>
+</Misconception>
+
+<Exercise client:visible exercise={welchPeak} title="Find the hidden tone">
+  <p>
+    The data <code>x</code> hide one steady tone under noise. Welch's method gives the power at
+    each frequency; set <code>peak</code> to the frequency where it is largest.
+  </p>
+</Exercise>
+
+## Why the spectrum of the noise matters
+
+A signal at a frequency where the noise is loud is hard to see; the same signal in the quiet valley stands out. So the first thing every search does is divide the data by the noise at each frequency, putting every frequency on an equal footing. That step is called whitening, and it is where the next article, on finding a signal hidden in the noise, begins.
+
+<CheckYourself
+  client:visible
+  id="chord"
+  questions={[
+    {
+      question: 'A recording is sampled 2000 times a second. Which tone is recorded as itself?',
+      options: [
+        { label: '900 Hz', correct: true, why: 'It is below half the sampling rate, 1000 Hz.' },
+        { label: '1500 Hz', why: 'Above 1000 Hz it folds back, to 2000 − 1500 = 500 Hz.' },
+      ],
+    },
+    {
+      question: 'To tell apart two tones 0.5 Hz apart, the recording must last at least…',
+      options: [
+        { label: '2 seconds', correct: true, why: 'The frequency spacing is 1/T, so 1/T ≤ 0.5 Hz needs T ≥ 2 s.' },
+        { label: '0.5 seconds', why: 'That gives a spacing of 2 Hz, too coarse.' },
+        { label: 'It depends only on the sampling rate', why: 'The sampling rate sets the highest frequency, not the spacing.' },
+      ],
+    },
+    {
+      question: 'Why do analyses average the spectra of many short segments instead of taking one long spectrum?',
+      options: [
+        { label: 'To make the noise estimate steadier', correct: true, why: 'Each single spectrum value is as uncertain as it is large; averaging shrinks that.' },
+        { label: 'To make the frequency spacing finer', why: 'Shorter segments make the spacing coarser; the gain is steadiness.' },
+      ],
+    },
+  ]}
+/>
+
+<PreparesFor to={frontmatter.prepares} />

@@ -1,0 +1,7 @@
+---
+/** GW150914 in both detectors, prepared at build time for the island. */
+import { network } from '~/lib/articles/route';
+import NetworkShiftIsland from './NetworkShift.svelte';
+---
+
+<NetworkShiftIsland client:visible data={network()} />

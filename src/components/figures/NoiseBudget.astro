@@ -1,0 +1,110 @@
+---
+/**
+ * How deaf each detector is, frequency by frequency (From Strain to Source): Hanford and
+ * Livingston around GW150914, against the Advanced LIGO design goal. The region labels are
+ * a schematic of which noise owns which decade, not a decomposition of these curves.
+ */
+import { noiseBudget } from '~/lib/articles/route';
+import { linePath, log } from '~/lib/figure/svg';
+
+const b = noiseBudget();
+const W = 560;
+const H = 340;
+const PAD = { l: 50, r: 16, t: 30, b: 44 };
+const fx = log(10, 1500, PAD.l, W - PAD.r);
+const fy = log(1e-24, 1e-19, H - PAD.b, PAD.t);
+const clip = (v: number[]) => v.map((x) => Math.min(Math.max(x, 1e-24), 1e-19));
+const band = [20, 1500];
+---
+
+<svg
+  class="fig noise-budget"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Noise amplitude against frequency for LIGO Hanford and Livingston in September 2015, and the Advanced LIGO design goal below them. Both detectors are loud below about 20 hertz where the ground shakes, quietest between about 50 and 500 hertz, with narrow spectral lines, and rise again at high frequency."
+>
+  <rect
+    class="window"
+    x={fx(band[0])}
+    y={PAD.t}
+    width={fx(band[1]) - fx(band[0])}
+    height={H - PAD.t - PAD.b}
+  ></rect>
+  {[1e-24, 1e-23, 1e-22, 1e-21, 1e-20, 1e-19].map((v, i) => (
+    <g>
+      <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={fy(v)} y2={fy(v)} />
+      <text x={PAD.l - 8} y={fy(v)} dy="4" text-anchor="end">
+        {`10${['⁻²⁴', '⁻²³', '⁻²²', '⁻²¹', '⁻²⁰', '⁻¹⁹'][i]}`}
+      </text>
+    </g>
+  ))}
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+  {[10, 20, 50, 100, 200, 500, 1000].map((f) => (
+    <text x={fx(f)} y={H - PAD.b + 18} text-anchor="middle">
+      {f}
+    </text>
+  ))}
+  <text x={W - PAD.r} y={H - 6} text-anchor="end">
+    frequency (Hz)
+  </text>
+  <text class="caps" x={PAD.l} y={18}>
+    noise amplitude (1/√Hz)
+  </text>
+
+  <path class="design" d={linePath(b.design.f, clip(b.design.v), fx, fy)}></path>
+  <path class="l1" d={linePath(b.l1.f, clip(b.l1.v), fx, fy)}></path>
+  <path class="h1" d={linePath(b.h1.f, clip(b.h1.v), fx, fy)}></path>
+
+  <text x={fx(10.5)} y={fy(6e-22)}>
+    seismic
+  </text>
+  <text x={fx(72)} y={fy(2.5e-22)}>
+    thermal
+  </text>
+  <text x={fx(700)} y={fy(3.5e-22)} text-anchor="middle">
+    quantum
+  </text>
+  <text class="design-label" x={fx(110)} y={fy(1.4e-24)}>
+    design goal
+  </text>
+  <text class="h1-label" x={W - PAD.r} y={PAD.t + 14} text-anchor="end">
+    Hanford
+  </text>
+  <text class="l1-label" x={W - PAD.r} y={PAD.t + 30} text-anchor="end">
+    Livingston
+  </text>
+</svg>
+
+<style>
+  .noise-budget .window {
+    fill: var(--signal-bg);
+    opacity: 0.5;
+  }
+
+  .noise-budget .h1 {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 1.3;
+  }
+
+  .noise-budget .l1 {
+    fill: none;
+    stroke: var(--ink-soft);
+    stroke-width: 1.1;
+  }
+
+  .noise-budget .design {
+    fill: none;
+    stroke: var(--model);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+
+  .noise-budget .h1-label {
+    fill: var(--signal);
+  }
+
+  .noise-budget .design-label {
+    fill: var(--model);
+  }
+</style>

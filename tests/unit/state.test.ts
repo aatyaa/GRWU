@@ -3,11 +3,11 @@ import { detectGpu } from '~/lib/gpu/detect';
 import { createParams, depth, highlightedTerm, parseDepth } from '~/lib/state';
 
 describe('depth', () => {
-  it('starts at intuition and falls back to it for unknown values', () => {
-    expect(depth.get()).toBe('intuition');
+  it('starts at the story and falls back to it for unknown values', () => {
+    expect(depth.get()).toBe('story');
     expect(parseDepth('math')).toBe('math');
-    expect(parseDepth('deep')).toBe('intuition');
-    expect(parseDepth(undefined)).toBe('intuition');
+    expect(parseDepth('code')).toBe('story');
+    expect(parseDepth(undefined)).toBe('story');
   });
 });
 

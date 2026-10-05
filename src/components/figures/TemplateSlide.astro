@@ -1,0 +1,9 @@
+---
+/** Computes the template-slide data at build time and hands it to the island. */
+import { templateSlide } from '~/lib/articles/hidden';
+import TemplateSlideIsland from './TemplateSlide.svelte';
+
+const data = templateSlide();
+---
+
+<TemplateSlideIsland client:visible data={data} />

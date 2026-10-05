@@ -1,0 +1,135 @@
+---
+/**
+ * The access-code box of the ringdown track, inside <grwu-sealed> (elements/sealed.ts).
+ * The element shows the parts that match its data-state.
+ */
+import { withBase } from '~/lib/url';
+
+interface Props {
+  /** The article to open; omit on the index page, where the box only checks the code. */
+  slug?: string;
+}
+const { slug } = Astro.props;
+const id = `code-${slug ?? 'index'}`;
+---
+
+<grwu-sealed class="sealed" data-slug={slug} data-state="checking">
+  <p class="sealed__lead" data-when="locked wrong">
+    This track is open by request. If you have an access code, enter it here.
+    {slug && (
+      <>
+        {' '}
+        If not, <a href={withBase('ringdown/#request')}>ask for access</a>.
+      </>
+    )}
+  </p>
+  <form class="sealed__form" data-when="locked wrong">
+    <label for={id}>Access code</label>
+    <div class="sealed__row">
+      <input
+        id={id}
+        name="code"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="RD-00-XXXX-XXXX-XXXX"
+        required
+      />
+      <button type="submit">Open</button>
+    </div>
+  </form>
+  <p class="sealed__wrong" role="alert" data-when="wrong">
+    That code does not open the track. Check it against the email you received.
+  </p>
+  <p class="sealed__status" data-when="checking" aria-live="polite">
+    Checking your access…
+  </p>
+  <p class="sealed__status" data-when="open">
+    Your code works in this browser: every article below opens directly.
+    <button type="button" class="sealed__forget" data-forget>
+      Forget the code
+    </button>
+  </p>
+</grwu-sealed>
+
+<script>
+  import '~/elements/sealed';
+</script>
+
+<style>
+  .sealed {
+    display: block;
+    margin: var(--space-8) 0;
+    padding: var(--space-6);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-2);
+    background: var(--surface);
+  }
+
+  .sealed [data-when] {
+    display: none;
+  }
+
+  .sealed[data-state='locked'] [data-when~='locked'],
+  .sealed[data-state='wrong'] [data-when~='wrong'],
+  .sealed[data-state='checking'] [data-when~='checking'],
+  .sealed[data-state='open'] [data-when~='open'] {
+    display: block;
+  }
+
+  .sealed__lead {
+    margin: 0 0 var(--space-4);
+  }
+
+  .sealed__form label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+
+  .sealed__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .sealed__row input {
+    flex: 1 1 14rem;
+    min-width: 0;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-1);
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-mono);
+    font-size: var(--text-sm);
+    letter-spacing: 0.04em;
+  }
+
+  .sealed button {
+    padding: 0.55rem 1rem;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-1);
+    background: var(--ink);
+    color: var(--surface);
+    font: inherit;
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+
+  .sealed .sealed__forget {
+    margin-left: var(--space-2);
+    background: none;
+    color: var(--ink);
+  }
+
+  .sealed__wrong {
+    margin: var(--space-3) 0 0;
+    color: var(--bias);
+  }
+
+  .sealed__status {
+    margin: 0;
+    color: var(--ink-soft);
+  }
+</style>
