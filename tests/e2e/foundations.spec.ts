@@ -48,3 +48,61 @@ test('A Bell That Weighs Itself: rings respond, the ring weighs the black hole',
     await expectNoA11yViolations(page);
   }
 });
+
+test('Every Signal Is a Chord: tones, aliases, windows and real detector noise', async ({
+  page,
+}) => {
+  await page.goto('articles/every-signal-is-a-chord/');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Every Signal Is a Chord');
+
+  const mixer = page.locator('.tone-mixer');
+  await mixer.scrollIntoViewIfNeeded();
+  await expect(mixer).toHaveAttribute('data-hydrated', 'true');
+  await expect(mixer).toHaveAttribute('data-peaks', '5,12,30');
+  await mixer.getByRole('checkbox', { name: 'Tone 3' }).uncheck();
+  await expect(mixer).toHaveAttribute('data-peaks', '5,12');
+
+  const scope = page.locator('.aliasing');
+  await scope.scrollIntoViewIfNeeded();
+  await expect(scope).toHaveAttribute('data-hydrated', 'true');
+  await scope.getByLabel(/Frequency of the tone/).fill('45');
+  await scope.getByLabel(/Samples per second/).fill('64');
+  await expect(scope).toHaveAttribute('data-alias', '19');
+  await expect(scope).toHaveAttribute('data-aliased', 'true');
+
+  const lab = page.locator('.window-lab');
+  await lab.scrollIntoViewIfNeeded();
+  await expect(lab).toHaveAttribute('data-hydrated', 'true');
+  const rectangle = Number(await lab.getAttribute('data-leak'));
+  await lab.getByLabel(/Hann/).check();
+  await expect(lab).toHaveAttribute('data-window', 'hann');
+  expect(Number(await lab.getAttribute('data-leak'))).toBeLessThan(rectangle - 20);
+
+  const psd = page.locator('.psd');
+  await psd.scrollIntoViewIfNeeded();
+  await expect(psd).toHaveAttribute('data-state', 'ready', { timeout: 60_000 });
+  const quiet = Number(await psd.getAttribute('data-quietest'));
+  expect(quiet).toBeGreaterThan(50);
+  expect(quiet).toBeLessThan(600);
+  const segments = await psd.getAttribute('data-segments');
+  await psd.getByLabel('4 s').check();
+  await expect(psd).not.toHaveAttribute('data-segments', segments!);
+  await expect(psd).toHaveAttribute('data-state', 'ready');
+
+  const ex = page
+    .locator('.exercise')
+    .filter({ has: page.getByRole('heading', { name: /Where does a tone end up/ }) });
+  await ex.scrollIntoViewIfNeeded();
+  await expect(ex).toHaveAttribute('data-hydrated', 'true');
+  await ex.locator('.cm-content').click();
+  await page.keyboard.press('ControlOrMeta+a');
+  await page.keyboard.press('Delete');
+  await page.keyboard.insertText('def alias(f, fs):\n    return abs(f - fs * round(f / fs))\n');
+  await ex.getByRole('button', { name: 'Check' }).click();
+  await expect(ex).toHaveAttribute('data-state', 'passed', { timeout: 150_000 });
+
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await expectNoA11yViolations(page);
+  }
+});
