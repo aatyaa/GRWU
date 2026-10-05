@@ -106,3 +106,55 @@ test('Every Signal Is a Chord: tones, aliases, windows and real detector noise',
     await expectNoA11yViolations(page);
   }
 });
+
+test('How Sure Is Sure?: a sampler walks, intervals differ, correlated samples overstate', async ({
+  page,
+}) => {
+  await page.goto('articles/how-sure-is-sure/');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('How Sure Is Sure?');
+
+  const sampler = page.locator('.sampler');
+  await sampler.scrollIntoViewIfNeeded();
+  await expect(sampler).toHaveAttribute('data-hydrated', 'true');
+  await sampler.getByLabel(/Step size/).fill('0.05');
+  const timid = Number(await sampler.getAttribute('data-acceptance'));
+  expect(timid).toBeGreaterThan(0.75);
+  await sampler.getByLabel(/Step size/).fill('3');
+  expect(Number(await sampler.getAttribute('data-acceptance'))).toBeLessThan(0.3);
+
+  const intervals = page.locator('.intervals');
+  await intervals.scrollIntoViewIfNeeded();
+  await expect(intervals).toHaveAttribute('data-hydrated', 'true');
+  await intervals.getByLabel('very').check();
+  await expect(intervals).toHaveAttribute('data-shape', '1');
+  const et = Number(await intervals.getAttribute('data-et-width'));
+  const hd = Number(await intervals.getAttribute('data-hdi-width'));
+  expect(hd).toBeLessThan(et);
+
+  const sigma = page.locator('.sigma');
+  await sigma.scrollIntoViewIfNeeded();
+  await expect(sigma).toHaveAttribute('data-hydrated', 'true');
+  await sigma.getByLabel(/remembers/).fill('0');
+  expect(Number(await sigma.getAttribute('data-ratio'))).toBeLessThan(1.3);
+  await sigma.getByLabel(/remembers/).fill('0.95');
+  expect(Number(await sigma.getAttribute('data-ratio'))).toBeGreaterThan(3);
+
+  const ex = page
+    .locator('.exercise')
+    .filter({ has: page.getByRole('heading', { name: /Quote a credible interval/ }) });
+  await ex.scrollIntoViewIfNeeded();
+  await expect(ex).toHaveAttribute('data-hydrated', 'true');
+  await ex.locator('.cm-content').click();
+  await page.keyboard.press('ControlOrMeta+a');
+  await page.keyboard.press('Delete');
+  await page.keyboard.insertText(
+    'import numpy as np\nlo, hi = np.quantile(samples, [0.05, 0.95])\n',
+  );
+  await ex.getByRole('button', { name: 'Check' }).click();
+  await expect(ex).toHaveAttribute('data-state', 'passed', { timeout: 150_000 });
+
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await expectNoA11yViolations(page);
+  }
+});
