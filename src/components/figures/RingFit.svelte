@@ -2,36 +2,29 @@
   import { scaleLinear } from 'd3-scale';
   import { onDestroy, onMount } from 'svelte';
   import { tween } from '~/lib/figure/pointer';
-  import { gaussian, mulberry32 } from '~/lib/stats/random';
+  import {
+    RANGE,
+    ringData,
+    reducedChi2 as reduced,
+    SIGMA,
+    times as t,
+  } from '~/lib/figure/ring-in-noise';
   import { amplitudes, fitRing, ringModel } from '~/lib/stats/ringfit';
 
   /**
    * Fitting a Ring in Noise: one damped tone (250 Hz, τ = 4 ms) in white noise of known spread,
-   * sampled at 4096 Hz. The reader sets the frequency and damping time; for each setting the
-   * best amplitude and phase are solved exactly (stats/ringfit.ts), so the curve always fits as
-   * well as those two numbers allow. Below the data: what is left over, and the reduced χ² at
-   * every frequency for the chosen damping time. "Fit it for me" runs the same least-squares
-   * search the article's exercises do with scipy (checked against curve_fit).
+   * sampled at 4096 Hz (lib/figure/ring-in-noise.ts, shared with the article's text). The
+   * reader sets the frequency and damping time; for each setting the best amplitude and phase
+   * are solved exactly (stats/ringfit.ts), so the curve always fits as well as those two numbers
+   * allow. Below the data: what is left over, and the reduced χ² at every frequency for the
+   * chosen damping time. "Fit it for me" runs the least-squares search, checked against
+   * scipy's curve_fit.
    */
-  const FS = 4096;
-  const N = 160;
-  const SIGMA = 0.15;
-  const TRUTH = { f: 250, tau: 0.004, phase: 0.4 };
-  const RANGE = { fMin: 150, fMax: 350, tauMin: 0.001, tauMax: 0.012 };
   const START = { f: 200, tau: 0.008 };
-
-  const t = Float64Array.from({ length: N }, (_, i) => i / FS);
-  const g = gaussian(mulberry32(4));
-  const clean = ringModel(t, {
-    f: TRUTH.f,
-    tau: TRUTH.tau,
-    a: Math.cos(TRUTH.phase),
-    b: -Math.sin(TRUTH.phase),
-  });
-  const y = Float64Array.from(clean, (v) => v + SIGMA * g());
+  const N = t.length;
+  const FS = 1 / (t[1] - t[0]);
+  const y = ringData();
   const best = fitRing(t, y, RANGE);
-  const dof = N - 4;
-  const reduced = (rss: number) => rss / (SIGMA * SIGMA) / dof;
 
   let f = $state(START.f);
   let tauMs = $state(START.tau * 1000);

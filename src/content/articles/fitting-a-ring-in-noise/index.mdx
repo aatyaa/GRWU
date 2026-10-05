@@ -53,8 +53,13 @@ import MathLayer from '~/components/math/MathLayer.astro';
 import Means from '~/components/math/Means.astro';
 import Step from '~/components/math/Step.astro';
 import Steps from '~/components/math/Steps.astro';
+import { fitting } from '~/lib/articles/fitting';
 import { injectionRecovery } from '~/lib/exercises/injection-recovery';
 import { reducedChiSquare } from '~/lib/exercises/reduced-chi-square';
+import { INJECTIONS } from '~/lib/figure/ring-in-noise';
+
+export const { best, truth, dof, chi2Spread } = fitting;
+export const { quiet, medium } = fitting.levels;
 
 [A Bell That Weighs Itself](../a-bell-that-weighs-itself/) showed that two numbers weigh a black hole: the <Term id="frequency">frequency</Term> of its ring and its <Term id="damping-time">damping time</Term>. That article read them off a clean ring. A detector never gives you one. The ring arrives with noise on top, and it is gone in a few hundredths of a second.
 
@@ -93,7 +98,7 @@ Two of the four knobs are easy. For any frequency and damping time, the best siz
 
 The bottom panel is the whole method in one picture. Each frequency gets a score, and the fit slides downhill to the lowest point. Notice how wide and shallow the valley is. The ring lasts only a few cycles, so frequencies several hertz apart fit it almost equally well. That width is where the error bar on the frequency will come from.
 
-Notice also where the lowest point is. The ring was made at 250 Hz and 4 ms. The best fit says about 256 Hz and 4.9 ms. That is not a mistake. With different noise it would have said something else, and the next sections are about how far "something else" can be.
+Notice also where the lowest point is. The ring was made at {truth.f} Hz and {truth.tau * 1000} ms. The best fit says about {best.f.toFixed(0)} Hz and {best.tauMs.toFixed(1)} ms. That is not a mistake. With different noise it would have said something else, and the next sections are about how far "something else" can be.
 
 <MathLayer id="m-least-squares" title="why least squares is the most likely answer">
   <Claim>
@@ -134,7 +139,7 @@ Measure each leftover in units of the noise, square it, and add them up. That is
   A reduced χ² near 1 says the leftovers are the size of the noise, <em>and no bigger.</em>
 </Pull>
 
-Much bigger than 1, and something real is left in the data, or the noise is louder than you thought. Much smaller than 1, and the fit is following the noise, or the noise is quieter than you thought. In the figure the best fit scores 0.88. With 156 degrees of freedom, a fit that is exactly right lands within about ±0.11 of 1 two times in three, so 0.88 is ordinary.
+Much bigger than 1, and something real is left in the data, or the noise is louder than you thought. Much smaller than 1, and the fit is following the noise, or the noise is quieter than you thought. In the figure the best fit scores {best.chi2.toFixed(2)}. With {dof} degrees of freedom, a fit that is exactly right lands within about ±{chi2Spread.toFixed(2)} of 1 two times in three, so {best.chi2.toFixed(2)} is ordinary.
 
 <Exercise client:visible exercise={reducedChiSquare} title="Score a fit">
   <p>
@@ -168,28 +173,28 @@ Much bigger than 1, and something real is left in the data, or the noise is loud
     </Step>
   </Steps>
   <Means>
-    With 156 degrees of freedom, 0.88 or 1.12 is ordinary. With 6, anything from about 0.4 to 1.6
+    With {dof} degrees of freedom, {(1 - chi2Spread).toFixed(2)} or {(1 + chi2Spread).toFixed(2)} is ordinary. With 6, anything from about 0.4 to 1.6
     is. A reduced χ² from a short stretch of data says very little.
   </Means>
 </MathLayer>
 
 ## An error bar is a promise about other noise
 
-The fit above reports a frequency of 256 ± 5 Hz. The "± 5" does not mean the truth is surely inside. It is a promise about noise you did not get: had the same ring arrived with a different stretch of noise, the answer would have moved by about that much.
+The fit above reports a frequency of {best.f.toFixed(0)} ± {best.error.toFixed(0)} Hz. The "± {best.error.toFixed(0)}" does not mean the truth is surely inside. It is a promise about noise you did not get: had the same ring arrived with a different stretch of noise, the answer would have moved by about that much.
 
 You cannot replay the universe. But you can replay the noise. Make a fake signal whose answer you chose, add a fresh stretch of noise, and fit it exactly as you fitted the real one. Do it hundreds of times. This is an **injection test**: you put a signal in and see what comes out.
 
 <Figure kind="control" width="wide">
   <InjectionTest client:visible />
   <Fragment slot="caption">
-    300 fits of the same 250 Hz ring, each in different noise. The bars are where the answers
+    {INJECTIONS} fits of the same {truth.f} Hz ring, each in different noise. The bars are where the answers
     landed; the dashed curve is the scatter one fit's error bar promises. Change how loud the ring is.
   </Fragment>
 </Figure>
 
-Two checks pass at the middle loudness. The answers average 250 Hz, so the method is not pulled to one side. And they scatter by ±5.9 Hz, the size one fit's error bar promised. When both hold, the error bar is honest.
+Two checks pass at the middle loudness. The answers average {medium.mean.toFixed(0)} Hz, so the method is not pulled to one side. And they scatter by ±{medium.spread.toFixed(1)} Hz, the size one fit's error bar promised: ±{medium.reported.toFixed(1)} Hz. When both hold, the error bar is honest.
 
-Make the ring louder and both shrink together: double the <Term id="snr">signal-to-noise ratio</Term> and the error bar halves. Make it quieter and look closely. The answers scatter by about ±15 Hz, but one fit's error bar promises only ±12. For faint signals, the error bar a fit computes from its own valley is too small: the valley is no longer a neat bowl. Michele Vallisneri set out in 2008 when that shortcut can be trusted. The injection test does not need the shortcut. It just counts.
+Make the ring louder and both shrink together: double the <Term id="snr">signal-to-noise ratio</Term> and the error bar halves. Make it quieter and look closely. The answers scatter by about ±{quiet.spread.toFixed(0)} Hz, but one fit's error bar promises only ±{quiet.reported.toFixed(0)}. For faint signals, the error bar a fit computes from its own valley is too small: the valley is no longer a neat bowl. Michele Vallisneri set out in 2008 when that shortcut can be trusted. The injection test does not need the shortcut. It just counts.
 
 <Exercise client:visible exercise={injectionRecovery} title="Run an injection test">
   <p>

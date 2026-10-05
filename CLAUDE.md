@@ -93,11 +93,15 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundati
     fitted by least squares, with its error bars; against scipy's `curve_fit`). Checked against
     `tests/fixtures/foundations.json`, with `dsp/window.ts` `tukey`, `dsp/sampling.ts`
     (aliasing) and `physics/oscillator.ts` (the damped oscillator, against scipy's ODE solver).
-  - `figure/pointer.ts`: dragging in SVG units, arrow-key stepping, tweens.
+  - `figure/pointer.ts`: dragging in SVG units, arrow-key stepping, tweens. `figure/ring-in-noise.ts`
+    and `figure/seed-spread.ts`: seeded data shared by a figure and its article's text, so the
+    prose quotes exactly what the figure draws.
   - `articles/`: build-time computations behind each article's figures (Node only, cached):
     `hidden.ts` (GW150914 whitening, the toy-chirp matched filter), `wrong.ts` (two-tone
     ringdown fits at every start time), `route.ts` (noise budget, H1/L1 alignment, chirp-mass
-    scan). Figures that only switch states read the scrolly's `data-active` in CSS, no JS.
+    scan), `fitting.ts` (Fitting a Ring in Noise), `claim.ts` (From Data File to Claim: the
+    GW150914 trail; fails the build if the file's SHA-256 changes). Figures that only switch
+    states read the scrolly's `data-active` in CSS, no JS.
   - `dsp/chirp.ts`: the pipeline's Newtonian chirp, ported and checked against its injection.
   - `dsp/models.ts`: analytic noise models (Advanced LIGO design PSD). `audio/play.ts`:
     plays 4096 Hz data through Web Audio. `format.ts`: `8.0 × 10⁻²⁴`-style numbers.

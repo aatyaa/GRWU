@@ -210,3 +210,51 @@ test('Fitting a Ring in Noise: the fit finds the valley, injections calibrate th
     await expectNoA11yViolations(page);
   }
 });
+
+test('From Data File to Claim: the trail, a broken link, honest digits', async ({ page }) => {
+  await page.goto('articles/from-data-file-to-claim/');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('From Data File to Claim');
+
+  const steps = page.locator('#claim [data-step]');
+  await steps.nth(4).scrollIntoViewIfNeeded();
+  await expect(page.locator('#claim')).toHaveAttribute('data-active', '4');
+  await expect(page.locator('.claim-trail .s4')).toBeVisible();
+
+  const link = page.locator('.break-link');
+  await link.scrollIntoViewIfNeeded();
+  await expect(link).toHaveAttribute('data-hydrated', 'true');
+  const quiet = Number(await link.getAttribute('data-claim-f'));
+  await link.getByLabel(/16,384 samples/).check();
+  await expect(link).toHaveAttribute('data-claim-f', String(4 * quiet));
+  await link.getByLabel(/One byte changes/).check();
+  await expect(link).toHaveAttribute('data-hash', 'ready', { timeout: 30_000 });
+  await expect(link).toHaveAttribute('data-original-ok', 'true');
+  await expect(link).toHaveAttribute('data-flipped-ok', 'false');
+
+  const seeds = page.locator('.seed-spread');
+  await seeds.scrollIntoViewIfNeeded();
+  await expect(seeds).toHaveAttribute('data-hydrated', 'true');
+  const wide = Number(await seeds.getAttribute('data-spread'));
+  await seeds.getByLabel('100,000').check();
+  await expect(seeds).toHaveAttribute('data-n', '100000');
+  expect(Number(await seeds.getAttribute('data-spread'))).toBeLessThan(wide / 4);
+
+  const ex = page
+    .locator('.exercise')
+    .filter({ has: page.getByRole('heading', { name: /Read a posterior file/ }) });
+  await ex.scrollIntoViewIfNeeded();
+  await expect(ex).toHaveAttribute('data-hydrated', 'true');
+  await ex.locator('.cm-content').click();
+  await page.keyboard.press('ControlOrMeta+a');
+  await page.keyboard.press('Delete');
+  await page.keyboard.insertText(
+    'import numpy as np\nsamples = np.genfromtxt("posterior.csv", delimiter=",", names=True)\nmass = samples["final_mass"]\nmedian = np.median(mass)\nlo, hi = np.quantile(mass, [0.05, 0.95])\n',
+  );
+  await ex.getByRole('button', { name: 'Check' }).click();
+  await expect(ex).toHaveAttribute('data-state', 'passed', { timeout: 150_000 });
+
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    await expectNoA11yViolations(page);
+  }
+});

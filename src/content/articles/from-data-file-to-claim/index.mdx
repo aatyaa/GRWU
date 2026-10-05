@@ -1,0 +1,249 @@
+---
+title: From Data File to Claim
+emphasis: Claim
+headline: What does the work actually look like, and how do you make a number someone else can check?
+summary: Every result in gravitational-wave astronomy is a chain of steps from a public data file to a sentence. This article follows one claim along that chain, breaks each link on purpose, and shows the habits that make a number traceable, from fingerprints and tests to seeds and honest digits.
+track: foundations
+order: 5
+level: beginner
+status: review
+minutes: 20
+prerequisites:
+  - fitting-a-ring-in-noise
+objectives:
+  - Trace a claim back to the data file, the fingerprint, the method and the test behind it.
+  - Check your own code against a reference, and say which digits of a sampled number are real.
+  - Read a posterior file and report a median with a credible interval.
+prepares:
+  - hidden-in-the-noise
+  - from-strain-to-source
+  - ringdown/what-did-we-test
+updated: 2026-10-05
+sources:
+  - title: 'LIGO Scientific and Virgo Collaborations, Observation of gravitational waves from a binary black hole merger, Phys. Rev. Lett. 116, 061102 (2016)'
+    url: https://doi.org/10.1103/PhysRevLett.116.061102
+  - title: 'LIGO Scientific, Virgo and KAGRA Collaborations, Open data from the first and second observing runs of Advanced LIGO and Advanced Virgo, SoftwareX 13, 100658 (2021)'
+    url: https://arxiv.org/abs/1912.11716
+  - title: 'G. K. Sandve, A. Nekrutenko, J. Taylor and E. Hovig, Ten simple rules for reproducible computational research, PLoS Comput. Biol. 9, e1003285 (2013)'
+    url: https://doi.org/10.1371/journal.pcbi.1003285
+  - title: 'A. Rule et al., Ten simple rules for writing and sharing computational analyses in Jupyter Notebooks, PLoS Comput. Biol. 15, e1007007 (2019)'
+    url: https://doi.org/10.1371/journal.pcbi.1007007
+  - title: 'P. Welch, The use of fast Fourier transform for the estimation of power spectra, IEEE Trans. Audio Electroacoust. 15, 70 (1967)'
+    url: https://doi.org/10.1109/TAU.1967.1161901
+  - title: 'F. J. Harris, On the use of windows for harmonic analysis with the discrete Fourier transform, Proc. IEEE 66, 51 (1978)'
+    url: https://doi.org/10.1109/PROC.1978.10837
+  - title: 'P. Virtanen et al., SciPy 1.0: fundamental algorithms for scientific computing in Python, Nat. Methods 17, 261 (2020)'
+    url: https://doi.org/10.1038/s41592-019-0686-2
+  - title: 'C. Hoy and V. Raymond, PESummary: the code agnostic Parameter Estimation Summary page builder, SoftwareX 15, 100765 (2021)'
+    url: https://arxiv.org/abs/2006.06639
+---
+
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import Scrolly from '~/components/editorial/Scrolly.astro';
+import BreakALink from '~/components/figures/BreakALink.svelte';
+import ClaimTrail from '~/components/figures/ClaimTrail.astro';
+import SeedSpread from '~/components/figures/SeedSpread.svelte';
+import CheckYourself from '~/components/learn/CheckYourself.svelte';
+import Exercise from '~/components/learn/Exercise.svelte';
+import Misconception from '~/components/learn/Misconception.astro';
+import PreparesFor from '~/components/learn/PreparesFor.astro';
+import Term from '~/components/learn/Term.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+import { claimData } from '~/lib/articles/claim';
+import { periodicHann } from '~/lib/exercises/periodic-hann';
+import { CENTRE, medians, spreadOf, WIDTH } from '~/lib/figure/seed-spread';
+import { posteriorFile } from '~/lib/exercises/posterior-file';
+import { scientific } from '~/lib/format';
+
+export const c = claimData();
+export const breakable = {
+  file: c.channelFile,
+  sha256: c.sha256,
+  sampleRate: c.sampleRate,
+  scale: c.scale,
+  event: c.event,
+  quietest: c.quietest,
+  variants: c.variants,
+};
+export const n = (v) => v.toLocaleString('en-US');
+export const spread1k = spreadOf(medians(1000));
+export const spread100k = spreadOf(medians(100000));
+
+The first four articles each taught one skill: reading a ring, taking a signal apart into tones, saying how sure you are, and fitting a model. Real work strings them together, and the result is a sentence in a paper. Between the data and that sentence there are dozens of steps, and any of them can go wrong without a sound.
+
+This article follows one small claim from a public data file to a sentence, then breaks each link on purpose to see which habits would have caught the break. None of the habits is clever. All of them are what separates a number from a number someone else can check.
+
+## One claim, from file to sentence
+
+<Scrolly id="claim">
+  <ClaimTrail slot="figure" />
+  <div data-step>
+
+  It starts at the Gravitational Wave Open Science Center, which publishes the detectors' recordings for anyone to use. This file holds {n(c.source.seconds)} seconds from LIGO Hanford, {n(c.sampleRate)} numbers every second: its <Term id="sampling-rate">sampling rate</Term>. It contains GW150914, the first black-hole merger ever detected.
+
+  </div>
+  <div data-step>
+
+  A short program in this site's data pipeline cuts out {c.seconds} seconds around the event. It stores each number divided by {scientific(c.scale, 0)}, and writes that factor down beside the data, along with the sampling rate. Anyone reading the numbers must put the factor back.
+
+  </div>
+  <div data-step>
+
+  The program also writes down a **fingerprint** of the file: its SHA-256, 64 characters computed from every byte. Change a single byte and the fingerprint changes completely. This site recomputes it every time it loads the file, and refuses a file that does not match.
+
+  </div>
+  <div data-step>
+
+  Then the analysis: the <Term id="psd">spectrum</Term> from [Every Signal Is a Chord](../every-signal-is-a-chord/), averaged over {c.segments} one-second segments by Welch's method. The code was compared with scipy's, number by number, before it was used here.
+
+  </div>
+  <div data-step>
+
+  And the claim. Every part of it can be traced: which file, which seconds, which fingerprint, which method, which test. That trail is what makes it a result rather than an assertion.
+
+  </div>
+</Scrolly>
+
+## Break a link
+
+Now break the chain on purpose. Pick a mistake and watch what it does to the claim, and what would have caught it. The wrong numbers below are not made up: each one was computed from the same file, with the mistake in place.
+
+<Figure kind="control" width="medium">
+  <BreakALink client:visible claim={breakable} />
+  <Fragment slot="caption">
+    Each mistake is applied to the real GW150914 file. The changed byte happens in your browser:
+    the file is downloaded and fingerprinted twice, once as published and once with one byte changed.
+  </Fragment>
+</Figure>
+
+The most dangerous mistakes are the ones that give reasonable-looking numbers. A frequency four times too high still looks like a frequency. That is why each check works *without* knowing the answer: the rate is read from the file, the size is compared with what a detector can measure, and the fingerprint is compared with the one published.
+
+<Pull>
+  A check that needs the right answer to work <em>is not a check.</em>
+</Pull>
+
+The last option is not a mistake at all, and it teaches the most. Averaging four-second segments instead of one-second ones moves the quietest point from {c.quietest.f} Hz to {c.variants.segments.f} Hz. Both computations are correct. The detector was about equally quiet over a broad stretch, and which point is lowest depends on the method. So a better claim is one that survives the choice: between {c.floor.from} and {c.floor.to} Hz, the noise sat near {scientific(c.floor.one)} per √Hz with one-second segments, and {scientific(c.floor.four)} with four-second ones.
+
+## Test your code against a reference
+
+Every function this site applies to data was first run beside an independent program, usually scipy or numpy, on the same inputs, and the two answers compared number by number. It sounds like overkill until you meet the Hann window.
+
+The window that tapers each segment before a spectrum is computed comes in two kinds. The **symmetric** one ends at zero on both sides; it is what `np.hanning` returns. The **periodic** one is what scipy's spectrum uses; it leaves out the final zero, so that copies placed end to end repeat smoothly. Fredric Harris explained in 1978 why spectral estimates need the periodic kind. On a plot they look the same.
+
+<Exercise client:visible exercise={periodicHann} title="Check a window against the reference">
+  <p>
+    Write <code>hann(n)</code> so that it matches the window scipy's <code>welch</code> uses.
+    The last line compares it with the reference; the checker tries four lengths.
+  </p>
+</Exercise>
+
+<Misconception claim="If the plot looks right, the code is right.">
+  <p>
+    The two Hann windows differ by up to a third at length 8, and both look like a smooth hump.
+    Shifted spectra, a factor of two in a normalisation, a window of the wrong kind: none of these
+    shows on a plot. A test against an independent reference shows all of them.
+  </p>
+</Misconception>
+
+## Which digits are real
+
+The spectrum above has no randomness in it: run it twice and you get the same numbers to the last digit. A sampler is different. It draws random numbers, so its median comes out a little different on every run.
+
+A **seed** fixes the random numbers, so the same code gives the same samples every time. That is essential for checking. But it hides a question: which digits would change with a different seed? Below, a made-up <Term id="posterior">posterior</Term>, {WIDTH} Hz wide, is sampled with twenty different seeds.
+
+<Figure kind="schematic" width="medium">
+  <SeedSpread client:visible />
+  <Fragment slot="caption">
+    The median of the same posterior, sampled with twenty seeds. Draw more samples and more digits
+    hold still, but never more than the posterior's width deserves.
+  </Fragment>
+</Figure>
+
+With a thousand samples, the medians wander by about {spread1k.toFixed(1)} Hz, so the digit after the decimal point is noise. With a hundred thousand they wander by {spread100k.toFixed(2)} Hz, and one more digit holds. But the posterior is {WIDTH} Hz wide either way. The honest quote is {CENTRE} ± {WIDTH} Hz, and the extra digits say something about the computer, not about the black hole.
+
+<Pull>
+  Quote a number to the precision of its error bar, <em>not the precision of your computer.</em>
+</Pull>
+
+<MathLayer id="m-mc-error" title="how much a sampled median wanders">
+  <Given>*N* independent samples from a bell-shaped posterior of spread σ.</Given>
+  <Steps>
+    <Step tex="\operatorname{Var}(\hat m) \approx \frac{1}{4 N\, p(m)^2}">
+      The median of *N* samples scatters around the true median by an amount set by how dense the
+      posterior is there, *p*(*m*).
+    </Step>
+    <Step tex="p(m) = \frac{1}{\sqrt{2\pi}\,\sigma} \;\Rightarrow\; \sigma_{\hat m} \approx \sqrt{\frac{\pi}{2}}\,\frac{\sigma}{\sqrt N} \approx 1.25\,\frac{\sigma}{\sqrt N}" hinge>
+      For a bell curve, the median wanders by about 1.25 σ/√*N*: a quarter of a hertz for σ = 6 Hz
+      and *N* = 1000.
+    </Step>
+    <Step tex="N \to N_{\text{eff}}">
+      For samples from a chain that remembers itself, use the effective number of samples from
+      [How Sure Is Sure?](../how-sure-is-sure/), which can be far smaller.
+    </Step>
+  </Steps>
+  <Means>
+    The wander shrinks only as one over √*N*: a hundred times more samples buys one more digit.
+    The width σ of the posterior does not shrink at all.
+  </Means>
+</MathLayer>
+
+## Reading someone else's posterior
+
+For each detection, the collaborations publish their posterior samples alongside the data: thousands of rows, one per sample, with a column for each parameter. The real files are in a format called HDF5, and tools such as PESummary read them. Inside, the job is the same as below: pick a column by its name, take its median, and quote a <Term id="credible-interval">credible interval</Term>.
+
+<Exercise client:visible exercise={posteriorFile} title="Read a posterior file">
+  <p>
+    <code>posterior.csv</code> holds 4000 made-up samples of a black hole's final mass and spin, in
+    the layout real releases use. Report the median final mass and its 90% credible interval.
+  </p>
+</Exercise>
+
+## What a claim should carry
+
+In 2013 Geir Kjetil Sandve and colleagues wrote ten simple rules for computational work that others can repeat. Most of them have appeared in this article already. Record how every result was produced. Never edit data by hand. Note the random seeds. Keep the data behind every plot. Connect every number in the text to the code that made it.
+
+A claim that follows them carries a short trail with it:
+
+- **the data**, with where it came from and its fingerprint;
+- **the method**, with the choices made, such as the segment length;
+- **the code**, with its version and the tests it passed against a reference;
+- **the seeds**, if anything was random;
+- **the uncertainty**, quoted to the precision it deserves;
+- **the assumptions**, including the model, which [What the Wrong Model Knows](../what-the-wrong-model-knows/) showed can fail while every check passes.
+
+This article follows its own advice. Every number it quotes about GW150914 is computed from the file when the site is built, and the build stops if the file's fingerprint changes.
+
+<CheckYourself
+  client:visible
+  id="claim"
+  questions={[
+    {
+      question: 'Data were recorded at 4096 samples a second, but your code assumes 16384. Where does a 250 Hz tone appear?',
+      options: [
+        { label: 'At 1000 Hz', correct: true, why: 'Every frequency is scaled by the ratio of the rates, 16384 / 4096 = 4.' },
+        { label: 'At 250 Hz: the rate does not matter', why: 'The rate turns sample numbers into seconds, and so turns cycles per sample into hertz.' },
+      ],
+    },
+    {
+      question: 'A sampler gives a median of 61.73 with a 90% interval of ±6. A second seed gives 61.58. How should the result be quoted?',
+      options: [
+        { label: '62 ± 6', correct: true, why: 'The digits after the decimal point change with the seed, and the interval is far wider than they are.' },
+        { label: '61.73 ± 6, from the first run', why: 'Those last digits are noise from the random numbers, not information about the black hole.' },
+      ],
+    },
+    {
+      question: 'Your spectrum code matches scipy to twelve digits on test data. What has that shown?',
+      options: [
+        { label: 'That your code computes what scipy computes, for inputs like those', correct: true, why: 'A test against a reference checks the code. Whether the method suits the data is a separate question.' },
+        { label: 'That the detector noise is now known exactly', why: 'The test says nothing about the data, only about the code that reads it.' },
+      ],
+    },
+  ]}
+/>
+
+<PreparesFor to={frontmatter.prepares} />

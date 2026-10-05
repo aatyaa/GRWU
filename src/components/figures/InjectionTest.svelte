@@ -2,38 +2,25 @@
   import { bin } from 'd3-array';
   import { scaleLinear } from 'd3-scale';
   import { onDestroy, onMount } from 'svelte';
+  import {
+    INJECTIONS as COUNT,
+    injector,
+    LEVELS,
+    reportedError,
+    snr as snrOf,
+    TRUTH,
+    type Level,
+  } from '~/lib/figure/ring-in-noise';
   import { reducedMotion } from '~/lib/state';
-  import { gaussian, mulberry32 } from '~/lib/stats/random';
-  import { fitRing, ringErrors, ringModel } from '~/lib/stats/ringfit';
 
   /**
    * Fitting a Ring in Noise: an injection test. The same ring as in RingFit (250 Hz, τ = 4 ms)
    * is added to 300 different stretches of noise, and each is fitted exactly as the reader's
    * one was. The histogram is where the answers land; the dashed curve is the spread the error
    * bar of a single fit predicts (stats/ringfit.ts, both checked against scipy's curve_fit).
-   * The noise is seeded, so the histogram is the same on every visit.
+   * The noise is seeded (lib/figure/ring-in-noise.ts), so the histogram is the same on every
+   * visit and the article's text quotes the same numbers.
    */
-  const FS = 4096;
-  const N = 160;
-  const COUNT = 300;
-  const TRUTH = { f: 250, tau: 0.004, amplitude: 1, phase: 0.4 };
-  const RANGE = { fMin: 150, fMax: 350, tauMin: 0.001, tauMax: 0.012, grid: 8 };
-  const LEVELS = [
-    { id: 'quiet', label: 'quiet', sigma: 0.3 },
-    { id: 'medium', label: 'as before', sigma: 0.15 },
-    { id: 'loud', label: 'loud', sigma: 0.075 },
-  ] as const;
-  type Level = (typeof LEVELS)[number]['id'];
-
-  const t = Float64Array.from({ length: N }, (_, i) => i / FS);
-  const clean = ringModel(t, {
-    f: TRUTH.f,
-    tau: TRUTH.tau,
-    a: Math.cos(TRUTH.phase),
-    b: -Math.sin(TRUTH.phase),
-  });
-  const power = Math.sqrt(clean.reduce((s, v) => s + v * v, 0));
-
   let level = $state<Level>('medium');
   let answers = $state<number[]>([]);
   let shown = $state<number[]>([]);
@@ -51,23 +38,18 @@
   });
 
   const sigma = $derived(LEVELS.find((l) => l.id === level)!.sigma);
-  const snr = $derived(power / sigma);
-  const reported = $derived(ringErrors(t, TRUTH, sigma).f);
+  const snr = $derived(snrOf(sigma));
+  const reported = $derived(reportedError(sigma));
 
   // Fit a few injections per task so the page stays responsive while the histogram fills.
   $effect(() => {
-    const s = sigma;
-    const id = level;
+    const next = injector(level);
     clearTimeout(timer);
-    const g = gaussian(mulberry32(1000 + LEVELS.findIndex((l) => l.id === id)));
     const found: number[] = [];
     answers = [];
     shown = [];
     const batch = () => {
-      for (let k = 0; k < 15 && found.length < COUNT; k++) {
-        const y = Float64Array.from(clean, (v) => v + s * g());
-        found.push(fitRing(t, y, RANGE).f);
-      }
+      for (let k = 0; k < 15 && found.length < COUNT; k++) found.push(next());
       if (!reduce || found.length === COUNT) shown = found.slice();
       if (found.length < COUNT) timer = setTimeout(batch, 0);
       else answers = found.slice();
