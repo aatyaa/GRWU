@@ -1,0 +1,77 @@
+---
+/**
+ * What a filter does at the edges (A Peak Is Only a Candidate): the whole 32 s of GW150914
+ * in LIGO Hanford, whitened with no taper. The file's two ends do not meet, and the filter
+ * rings there, hundreds of times louder than anything real.
+ */
+import { edges } from '~/lib/articles/candidate';
+import { bandPath, linear } from '~/lib/figure/svg';
+
+const e = edges();
+const W = 600;
+const H = 240;
+const PAD = { l: 34, r: 12, t: 30, b: 40 };
+const CLIP = 12;
+const x = linear(0, e.duration, PAD.l, W - PAD.r);
+const y = linear(-CLIP, CLIP, H - PAD.b, PAD.t);
+const clip = (v: number[]) => v.map((a) => Math.max(-CLIP, Math.min(CLIP, a)));
+const crop = 2;
+---
+
+<svg
+  class="fig edge-ringing"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`LIGO Hanford's 32 seconds around GW150914, whitened without a taper. In the middle the whitened data stay within about ${Math.round(e.middlePeak)} units of noise; at both ends the filter rings, reaching ${Math.round(e.edgePeak)}. Two seconds at each end are marked to be cropped.`}
+>
+  <text class="caps" x={PAD.l} y="14">
+    whitened strain, the whole file · clipped at ±{CLIP}
+  </text>
+  <rect class="crop" x={x(0)} y={PAD.t} width={x(crop) - x(0)} height={H - PAD.t - PAD.b}></rect>
+  <rect
+    class="crop"
+    x={x(e.duration - crop)}
+    y={PAD.t}
+    width={x(e.duration) - x(e.duration - crop)}
+    height={H - PAD.t - PAD.b}
+  ></rect>
+  <path class="data" d={bandPath(e.t, clip(e.lo), clip(e.hi), x, y)}></path>
+  <line class="event" x1={x(e.event)} x2={x(e.event)} y1={PAD.t} y2={H - PAD.b}></line>
+  <text class="signal" x={x(e.event) + 6} y={PAD.t + 12}>
+    GW150914 is in here
+  </text>
+  <text class="bias" x={x(crop) + 6} y={H - PAD.b - 8}>
+    ← the filter rings: {Math.round(e.edgePeak)}, clipped
+  </text>
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+  {[0, 4, 8, 12, 16, 20, 24, 28, 32].map((t) => (
+    <text x={x(t)} y={H - PAD.b + 16} text-anchor="middle">
+      {t}
+    </text>
+  ))}
+  <text x={W - PAD.r} y={H - 6} text-anchor="end">
+    seconds into the file
+  </text>
+</svg>
+
+<style>
+  .edge-ringing {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .edge-ringing .crop {
+    fill: var(--bias-bg);
+  }
+
+  .edge-ringing .data {
+    fill: var(--ink-soft);
+  }
+
+  .edge-ringing .event {
+    stroke: var(--signal);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+  }
+</style>

@@ -1,0 +1,35 @@
+---
+/** Runs the time slides at build time, bins the background, and hands the counts to the island. */
+import { timeSlides } from '~/lib/articles/candidate';
+import TimeSlidesIsland from './TimeSlides.svelte';
+
+const s = timeSlides();
+const LO = 4;
+const STEP = 0.25;
+const BINS = 52;
+const bin = (values: number[]) => {
+  const counts = new Array<number>(BINS).fill(0);
+  for (const v of values) {
+    const i = Math.floor((v - LO) / STEP);
+    if (i >= 0 && i < BINS) counts[i]++;
+  }
+  return counts;
+};
+const summary = (values: number[]) => ({
+  counts: bin(values),
+  total: values.length,
+  loudest: Number(Math.max(...values).toFixed(2)),
+  louder: values.filter((v) => v >= s.candidate).length,
+});
+---
+
+<TimeSlidesIsland
+  client:visible
+  lo={LO}
+  step={STEP}
+  exclusive={summary(s.background)}
+  inclusive={summary(s.inclusive)}
+  candidate={s.candidate}
+  hours={(s.slides * s.duration) / 3600}
+  slides={s.slides}
+/>

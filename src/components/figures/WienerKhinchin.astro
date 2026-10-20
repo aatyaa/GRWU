@@ -1,0 +1,109 @@
+---
+/**
+ * Why Fourier (A Peak Is Only a Candidate): the Wiener–Khinchin theorem as a picture. A
+ * noise's memory (its autocorrelation) and its spectrum are one object seen two ways: a
+ * long-lived oscillation in the first is a narrow line in the second, a quickly dying one is
+ * a broad bump, and no memory at all is the flat floor.
+ */
+import { linePath, linear, log } from '~/lib/figure/svg';
+
+const W = 560;
+const H = 410;
+const PAD = { l: 44, r: 14 };
+const TOP = { y0: 34, y1: 170 };
+const BOT = { y0: 236, y1: 360 };
+
+// Two damped oscillations (60 Hz, lasting 50 ms; 180 Hz, lasting 15 ms) and a white floor.
+const lines = [
+  { f0: 60, tc: 0.05, a: 1 },
+  { f0: 180, tc: 0.015, a: 0.6 },
+];
+const floor = 0.002;
+
+const T = 0.08;
+const taus = Array.from({ length: 801 }, (_, i) => -T + (2 * T * i) / 800);
+const memory = taus.map((t) =>
+  lines.reduce(
+    (s, l) => s + l.a * Math.exp(-Math.abs(t) / l.tc) * Math.cos(2 * Math.PI * l.f0 * t),
+    0,
+  ),
+);
+const freqs = Array.from({ length: 501 }, (_, i) => (250 * i) / 500);
+// The Fourier transform of a e^{−|τ|/τc} cos 2πf₀τ is a pair of Lorentzians of width 1/(2πτc).
+const spectrum = freqs.map(
+  (f) =>
+    floor +
+    lines.reduce((s, l) => s + (l.a * 2 * l.tc) / (1 + (2 * Math.PI * (f - l.f0) * l.tc) ** 2), 0),
+);
+
+const tx = linear(-T, T, PAD.l, W - PAD.r);
+const ty = linear(-1.75, 1.8, TOP.y1, TOP.y0);
+const fx = linear(0, 250, PAD.l, W - PAD.r);
+const fy = log(0.0003, 0.3, BOT.y1, BOT.y0);
+---
+
+<svg
+  class="fig wiener"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Top: a noise's autocorrelation, how alike it is to itself a short time later. It has a spike at zero lag, a slow 60 hertz oscillation that lasts about 50 milliseconds and a fast 180 hertz one that dies within about 15. Bottom: the same noise's spectrum. The long-lived oscillation is a narrow line at 60 hertz, the short-lived one a broad bump at 180 hertz, and the spike at zero lag is the flat floor under both."
+>
+  <text class="caps" x={PAD.l} y={TOP.y0 - 16}>
+    the noise's memory · autocorrelation
+  </text>
+  <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={ty(0)} y2={ty(0)}></line>
+  <path class="noise" d={linePath(taus, memory, tx, ty)}></path>
+  <line class="noise spike" x1={tx(0)} x2={tx(0)} y1={ty(0)} y2={ty(1.75)}></line>
+  <text x={tx(0) + 8} y={ty(1.62)}>
+    no memory at all: a spike at zero lag
+  </text>
+  <text x={PAD.l + 4} y={ty(-1.6)}>
+    two rings: a slow one that lasts, a fast one that dies
+  </text>
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={TOP.y1} y2={TOP.y1}></line>
+  {[-0.08, -0.04, 0, 0.04, 0.08].map((t) => (
+    <text x={tx(t)} y={TOP.y1 + 16} text-anchor="middle">
+      {t === 0 ? '0' : `${t > 0 ? '+' : '−'}${Math.abs(t * 1000)}`}
+    </text>
+  ))}
+  <text x={W - PAD.r} y={TOP.y1 + 32} text-anchor="end">
+    lag τ (ms)
+  </text>
+
+  <text class="caps" x={PAD.l} y={BOT.y0 - 16}>
+    the same noise's spectrum · power by frequency
+  </text>
+  <path class="noise" d={linePath(freqs, spectrum, fx, fy)}></path>
+  <text x={fx(66)} y={fy(0.1) + 4}>
+    narrow line: the ring that lasts
+  </text>
+  <text x={fx(180)} y={fy(0.012) - 16} text-anchor="middle">
+    broad bump: the ring that dies
+  </text>
+  <line class="model" x1={fx(0)} x2={fx(250)} y1={fy(floor)} y2={fy(floor)}></line>
+  <text x={fx(105)} y={fy(floor) + 16} text-anchor="middle">
+    flat floor: the spike
+  </text>
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={BOT.y1} y2={BOT.y1}></line>
+  {[0, 50, 100, 150, 200, 250].map((f) => (
+    <text x={fx(f)} y={BOT.y1 + 16} text-anchor="middle">
+      {f}
+    </text>
+  ))}
+  <text x={W - PAD.r} y={BOT.y1 + 32} text-anchor="end">
+    frequency (Hz)
+  </text>
+  <text x={PAD.l - 8} y={BOT.y0 + 4} text-anchor="end">
+    log
+  </text>
+</svg>
+
+<style>
+  .wiener .noise {
+    stroke-width: 1.3;
+  }
+
+  .wiener .spike {
+    stroke-width: 2;
+  }
+</style>

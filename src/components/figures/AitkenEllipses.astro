@@ -1,0 +1,114 @@
+---
+/**
+ * Distance in units of the noise (A Peak Is Only a Candidate, the Aitken layer). Pairs of
+ * neighbouring samples of coloured noise lean along a diagonal; whitening, multiplying by
+ * C^{−1/2}, makes the cloud round. A step across the grain of the noise, small on the page,
+ * turns out to be the surprising one.
+ */
+import { gaussian, mulberry32 } from '~/lib/stats/random';
+
+const RHO = 0.9;
+const draw = gaussian(mulberry32(1935));
+const raw = Array.from({ length: 320 }, () => {
+  const a = draw();
+  return [a, RHO * a + Math.sqrt(1 - RHO * RHO) * draw()] as const;
+});
+// C^{−1/2} for C = [[1, ρ], [ρ, 1]]: eigenvectors along the diagonals, eigenvalues 1 ± ρ.
+const whiten = ([a, b]: readonly [number, number]) => {
+  const u = (a + b) / Math.SQRT2 / Math.sqrt(1 + RHO);
+  const v = (a - b) / Math.SQRT2 / Math.sqrt(1 - RHO);
+  return [(u + v) / Math.SQRT2, (u - v) / Math.SQRT2] as const;
+};
+const white = raw.map(whiten);
+
+const marks = [
+  { name: 'A', at: [2, 2] as const },
+  { name: 'B', at: [1.2, -1.2] as const },
+].map((m) => {
+  const w = whiten(m.at);
+  return { ...m, w, length: Math.hypot(...m.at), sigma: Math.hypot(...w) };
+});
+
+const W = 560;
+const H = 312;
+const S = 27; // pixels per unit
+const panels = [
+  { cx: 145, title: 'two neighbouring samples, as recorded' },
+  { cx: 415, title: 'the same samples, whitened' },
+];
+const CY = 168;
+const px = (cx: number, [a, b]: readonly [number, number]) => [cx + a * S, CY - b * S] as const;
+---
+
+<svg
+  class="fig aitken"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`Left: pairs of neighbouring noise samples form a cloud stretched along the diagonal, because the noise is coloured. Point A lies ${marks[0].length.toFixed(1)} units from the centre, along the stretch; point B lies only ${marks[1].length.toFixed(1)} units away, across it. Right: after whitening the cloud is round, and in units of the noise A is ${marks[0].sigma.toFixed(1)} sigma out while B is ${marks[1].sigma.toFixed(1)} sigma out.`}
+>
+  {panels.map((p, i) => (
+    <g>
+      <text class="caps" x={p.cx} y="22" text-anchor="middle">
+        {p.title}
+      </text>
+      <line class="grid" x1={p.cx - 4.6 * S} x2={p.cx + 4.6 * S} y1={CY} y2={CY} />
+      <line class="grid" x1={p.cx} x2={p.cx} y1={CY - 4.6 * S} y2={CY + 4.6 * S} />
+      {(i === 0 ? raw : white).map((pt) => {
+        const [x, y] = px(p.cx, pt);
+        return <circle class="sample" cx={x.toFixed(1)} cy={y.toFixed(1)} r="1.7" />;
+      })}
+      {[1, 2, 3].map((k) =>
+        i === 0 ? (
+          <ellipse
+            class="model"
+            cx={p.cx}
+            cy={CY}
+            rx={k * Math.sqrt(1 + RHO) * S}
+            ry={k * Math.sqrt(1 - RHO) * S}
+            transform={`rotate(-45 ${p.cx} ${CY})`}
+          />
+        ) : (
+          <circle class="model" cx={p.cx} cy={CY} r={k * S} />
+        ),
+      )}
+      {marks.map((m) => {
+        const [x, y] = px(p.cx, i === 0 ? m.at : m.w);
+        const label =
+          i === 0
+            ? `${m.name} · ${m.length.toFixed(1)} units`
+            : `${m.name} · ${m.sigma.toFixed(1)}σ`;
+        return (
+          <g>
+            <circle class="dot" cx={x} cy={y} r="4.5" />
+            <text
+              class="ink"
+              x={i === 1 && m.at[1] < 0 ? x - 8 : x + 8}
+              y={y + (m.at[1] > 0 ? -6 : 16)}
+              text-anchor={i === 1 && m.at[1] < 0 ? 'end' : 'start'}
+            >
+              {label}
+            </text>
+          </g>
+        );
+      })}
+    </g>
+  ))}
+  <text x={W / 2} y={H - 6} text-anchor="middle">
+    rings: one, two and three standard deviations of the noise
+  </text>
+</svg>
+
+<style>
+  /* A halo in the page colour keeps labels legible where they cross a ring. */
+  .aitken text.ink {
+    paint-order: stroke;
+    stroke: var(--ground);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+
+  .aitken .sample {
+    fill: var(--noise);
+    opacity: 0.45;
+  }
+</style>

@@ -1,0 +1,9 @@
+---
+/** Computes the χ² test for the chirp and for a glitch at build time and hands it to the island. */
+import { chiSquare } from '~/lib/articles/candidate';
+import ChiSquareIsland from './ChiSquareTest.svelte';
+
+const data = chiSquare();
+---
+
+<ChiSquareIsland client:visible edges={data.edges} chirp={data.chirp} glitch={data.glitch} />
