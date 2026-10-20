@@ -1,0 +1,7 @@
+---
+/** The chirp-mass scan, computed at build time, handed to the posterior island. */
+import { chirpMassScan } from '~/lib/articles/route';
+import PosteriorRidgeIsland from './PosteriorRidge.svelte';
+---
+
+<PosteriorRidgeIsland client:visible scan={chirpMassScan()} />

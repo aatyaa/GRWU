@@ -1,0 +1,333 @@
+---
+/**
+ * The GW250114 scene (see lib/hero/engine.js) with the page's own copy laid over it, and the
+ * recorded signal underneath used as a map of the curriculum: each part of the signal (the
+ * noise, the inspiral, the merger, the ringdown) links to the article that explains it.
+ * Pointing at a part lights its stretch of the signal and takes the scene to that moment.
+ */
+import { withBase } from '~/lib/url';
+
+export interface Segment {
+  id: string;
+  /** Part of the signal, e.g. "The inspiral". */
+  part: string;
+  title: string;
+  href: string;
+  /** Stretch of the signal it covers, in seconds from the peak. */
+  from: number;
+  to: number;
+  /** Moment the scene jumps to while the part is pointed at. */
+  at: number;
+}
+
+interface Props {
+  segments: Segment[];
+}
+
+const { segments } = Astro.props;
+
+// The strip's time window; must match SW0 and SW1 in engine.js.
+const SW0 = -0.264;
+const SW1 = 0.059;
+const pct = (t: number) => ((Math.min(SW1, Math.max(SW0, t)) - SW0) / (SW1 - SW0)) * 100;
+---
+
+<grwu-binary-hero class="hero" data-src={withBase('data/gw250114-overture.json')}>
+  <div class="ovh" data-mode="cinematic" data-phase="inspiral" data-paused="false">
+    <canvas
+      class="ovh-gl"
+      role="img"
+      aria-label="GW250114 rendered from its recorded signal: two black holes, to scale with their measured masses, orbit faster and faster, merge into one and ring down, while gravitational waves spread across the orbital plane and starlight bends around the horizons."
+    ></canvas>
+    <div class="ovh-scrim" aria-hidden="true"></div>
+    <div class="ovh-copy">
+      <slot />
+    </div>
+    <div class="ovh-controls">
+      <button type="button" class="ovh-pause" aria-pressed="false" aria-label="Pause the animation">
+        Pause
+      </button>
+    </div>
+    <div class="ovh-wave">
+      <p class="ovh-wave-cap">
+        The recorded signal (LIGO Livingston) drives the scene. Each part of it is an article:
+      </p>
+      {segments.map((seg) => (
+        <span
+          class="ovh-band"
+          data-seg={seg.id}
+          style={`left: ${pct(seg.from).toFixed(2)}%; width: ${(pct(seg.to) - pct(seg.from)).toFixed(2)}%`}
+          aria-hidden="true"
+        />
+      ))}
+      <canvas aria-hidden="true"></canvas>
+    </div>
+    <nav class="ovh-map" aria-label="The signal, part by part">
+      <ol>
+        {segments.map((seg) => (
+          <li>
+            <a href={seg.href} data-seg={seg.id} data-at={seg.at}>
+              <span class="ovh-map-part">{seg.part}</span>
+              <span class="ovh-map-title">{seg.title}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+    <div class="ovh-tip" role="status" hidden></div>
+  </div>
+</grwu-binary-hero>
+
+<script>
+  import '~/elements/binary-hero';
+</script>
+
+<style>
+  .hero {
+    display: block;
+  }
+
+  .ovh {
+    --ovh-pad: var(--gutter);
+    --wave-h: 44px;
+    --map-h: 58px;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    height: min(76svh, 46rem);
+    min-height: 32rem;
+    background: #05070b;
+    color: #e7edf5;
+    touch-action: pan-y;
+    user-select: none;
+  }
+
+  .ovh-gl {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+
+  .ovh:global(.dragging) .ovh-gl {
+    cursor: grabbing;
+  }
+
+  .ovh-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, rgb(5 7 11 / 0.88) 0%, rgb(5 7 11 / 0.6) 32%, rgb(5 7 11 / 0) 55%),
+      linear-gradient(0deg, rgb(5 7 11 / 0.92) 0%, rgb(5 7 11 / 0.6) 22%, rgb(5 7 11 / 0) 40%);
+  }
+
+  .ovh-copy {
+    position: absolute;
+    z-index: 2;
+    left: var(--ovh-pad);
+    top: calc((100% - var(--wave-h) - var(--map-h) - 3rem) / 2);
+    width: min(46%, 36rem);
+    transform: translateY(-50%);
+  }
+
+  .ovh-controls {
+    position: absolute;
+    z-index: 3;
+    top: 1rem;
+    right: var(--ovh-pad);
+  }
+
+  .ovh-pause {
+    min-width: 64px;
+    padding: 5px 12px;
+    border: 1px solid rgb(231 237 245 / 0.14);
+    border-radius: 999px;
+    background: rgb(10 14 21 / 0.45);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: #9aa9bc;
+    cursor: pointer;
+  }
+
+  .ovh-pause:hover {
+    color: #e7edf5;
+  }
+
+  .ovh-pause:focus-visible,
+  .ovh-map a:focus-visible {
+    outline: 2px solid #e5a343;
+    outline-offset: 2px;
+  }
+
+  /* The recorded signal, and under it the same signal as a map of the articles. */
+  .ovh-wave {
+    position: absolute;
+    z-index: 2;
+    left: var(--ovh-pad);
+    right: var(--ovh-pad);
+    bottom: calc(var(--map-h) + 1.25rem);
+    height: var(--wave-h);
+    pointer-events: none;
+  }
+
+  .ovh-wave canvas {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ovh-wave-cap {
+    position: absolute;
+    left: 0;
+    top: -1.5rem;
+    margin: 0;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    color: #9aa9bc;
+  }
+
+  .ovh-band {
+    position: absolute;
+    top: -4px;
+    bottom: -6px;
+    border-bottom: 2px solid transparent;
+    border-radius: 3px;
+    opacity: 0;
+    background: rgb(229 163 67 / 0.14);
+    transition: opacity var(--dur-fast) var(--ease);
+  }
+
+  .ovh[data-seg='noise'] .ovh-band[data-seg='noise'],
+  .ovh[data-seg='inspiral'] .ovh-band[data-seg='inspiral'],
+  .ovh[data-seg='merger'] .ovh-band[data-seg='merger'],
+  .ovh[data-seg='ringdown'] .ovh-band[data-seg='ringdown'] {
+    opacity: 1;
+    border-bottom-color: #e5a343;
+  }
+
+  .ovh-map {
+    position: absolute;
+    z-index: 3;
+    left: var(--ovh-pad);
+    right: var(--ovh-pad);
+    bottom: 0.9rem;
+    height: var(--map-h);
+  }
+
+  .ovh-map ol {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .ovh-map a {
+    display: grid;
+    align-content: center;
+    gap: 3px;
+    height: 100%;
+    padding: 0 12px;
+    border: 0;
+    border-top: 2px solid rgb(231 237 245 / 0.16);
+    border-radius: 0 0 6px 6px;
+    background: rgb(10 14 21 / 0.5);
+    color: #e7edf5;
+    transition:
+      background-color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+
+  .ovh-map a:hover,
+  .ovh-map a:focus-visible {
+    border-top-color: #e5a343;
+    background: rgb(229 163 67 / 0.12);
+  }
+
+  .ovh-map-part {
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #e5a343;
+  }
+
+  .ovh-map-title {
+    overflow: hidden;
+    font-size: 0.92rem;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .ovh-tip {
+    position: absolute;
+    z-index: 4;
+    max-width: 280px;
+    padding: 7px 10px;
+    border: 1px solid rgb(231 237 245 / 0.14);
+    border-radius: 4px;
+    background: rgb(10 14 21 / 0.88);
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: #b4c0d0;
+    pointer-events: none;
+  }
+
+  @media (max-width: 760px) {
+    .ovh {
+      --wave-h: 36px;
+      --map-h: 104px;
+      height: auto;
+      min-height: 46rem;
+    }
+
+    .ovh-scrim {
+      background:
+        linear-gradient(180deg, rgb(5 7 11 / 0.92) 0%, rgb(5 7 11 / 0.6) 40%, rgb(5 7 11 / 0) 58%),
+        linear-gradient(0deg, rgb(5 7 11 / 0.92) 0%, rgb(5 7 11 / 0) 34%);
+    }
+
+    .ovh-copy {
+      top: 1.2rem;
+      right: var(--ovh-pad);
+      width: auto;
+      transform: none;
+    }
+
+    .ovh-controls {
+      top: auto;
+      right: var(--ovh-pad);
+      bottom: calc(var(--map-h) + var(--wave-h) + 3.4rem);
+    }
+
+    .ovh-wave-cap {
+      display: none;
+    }
+
+    .ovh-map ol {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .ovh-map a {
+      padding: 0 8px;
+      border-radius: 4px;
+    }
+
+    .ovh-map-part {
+      font-size: 0.66rem;
+    }
+
+    .ovh-map-title {
+      font-size: 0.8rem;
+    }
+  }
+</style>

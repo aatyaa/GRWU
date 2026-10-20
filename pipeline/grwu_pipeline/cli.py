@@ -5,8 +5,14 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from . import fixtures, gwosc_data, synthetic
-from .paths import find_repo_root, fixtures_file, public_data
+from . import fixtures, foundations, gwosc_data, kerr, synthetic
+from .paths import (
+    find_repo_root,
+    fixtures_file,
+    foundations_fixtures_file,
+    kerr_fixtures_file,
+    public_data,
+)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -36,7 +42,10 @@ def main(argv: list[str] | None = None) -> None:
         help="where downloaded HDF5 files are kept (default: ./.cache)",
     )
 
-    commands.add_parser("fixtures", help="write scipy reference outputs to tests/fixtures/dsp.json")
+    commands.add_parser(
+        "fixtures",
+        help="write reference outputs to tests/fixtures/{dsp,kerr,foundations}.json",
+    )
 
     args = parser.parse_args(argv)
     root = args.repo_root or find_repo_root()
@@ -56,9 +65,13 @@ def main(argv: list[str] | None = None) -> None:
         )
         print(f"{args.event}: {', '.join(meta['channels'])} from GPS {meta['gps_start']}")
     elif args.command == "fixtures":
-        path = fixtures_file(root)
-        fixtures.write(path)
-        print(f"fixtures: {path.relative_to(root)}")
+        for path, module in (
+            (fixtures_file(root), fixtures),
+            (kerr_fixtures_file(root), kerr),
+            (foundations_fixtures_file(root), foundations),
+        ):
+            module.write(path)
+            print(f"fixtures: {path.relative_to(root)}")
 
 
 if __name__ == "__main__":

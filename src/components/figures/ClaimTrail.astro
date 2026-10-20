@@ -1,0 +1,374 @@
+---
+/**
+ * From Data File to Claim: one claim traced from the published file, one state per scrolly
+ * step. Drawn at build time from lib/articles/claim.ts, which reads the GW150914 dataset,
+ * checks its SHA-256 and computes the spectrum with the Welch estimate the tests check against
+ * scipy. The enclosing <grwu-scrolly>'s data-active attribute shows one state at a time; the
+ * states are HTML, so their text wraps and stays legible on a phone.
+ */
+import { claimData } from '~/lib/articles/claim';
+import { bandPath, linear, log } from '~/lib/figure/svg';
+import { powerOfTen, scientific } from '~/lib/format';
+
+const c = claimData();
+const W = 560;
+const steps = ['file', 'cut', 'check', 'spectrum', 'claim'];
+const fmt = (n: number) => n.toLocaleString('en-US');
+
+// The archive file as a bar, with the 32 s cut marked where it sits.
+const BAR_H = 64;
+const bar = linear(0, c.source.seconds, 2, W - 2);
+const cutAt = c.gpsStart - c.source.gpsStart;
+
+// The cut: min-max envelope of the strain.
+const STRAIN_H = 200;
+const tStrain = c.strain.lo.map((_, i) => ((i + 0.5) / c.strain.lo.length) * c.seconds);
+const extent = Math.max(...c.strain.hi.map(Math.abs), ...c.strain.lo.map(Math.abs));
+const xs = linear(0, c.seconds, 2, W - 2);
+const ys = linear(-extent * 1.1, extent * 1.1, STRAIN_H - 24, 6);
+
+// The spectrum, log-log.
+const SPEC_H = 260;
+const PL = 52;
+const fx = log(c.band[0], c.band[1], PL, W - 8);
+const ay = log(3e-24, 3e-20, SPEC_H - 30, 8);
+const clampA = (v: number) => Math.min(3e-20, Math.max(3e-24, v));
+const hex = c.sha256.match(/.{8}/g)!.join(' ');
+const short = c.sha256.slice(0, 8);
+const brief = hex.slice(0, 26);
+---
+
+<div
+  class="claim-trail"
+  role="group"
+  aria-label="One claim traced from its data file, in five steps"
+>
+  <ol class="crumbs">
+    {steps.map((step, i) => (
+      <li class={`c${i}`}>
+        <i />
+        {step}
+      </li>
+    ))}
+  </ol>
+
+  <div class="states">
+    <div class="state s0">
+      <p class="mono ink">{c.source.file}</p>
+      <p class="more">
+        LIGO Hanford · {fmt(c.source.seconds)} s · {fmt(c.sampleRate)} samples a second ·
+        {fmt(c.source.seconds * c.sampleRate)} numbers, from GPS time {c.source.gpsStart}
+      </p>
+      <svg
+        class="fig"
+        viewBox={`0 0 ${W} ${BAR_H}`}
+        role="img"
+        aria-label={`The ${fmt(c.source.seconds)}-second file, with the ${c.seconds} seconds used here marked ${fmt(cutAt)} seconds in.`}
+      >
+        <rect
+          class="archive"
+          x={bar(0)}
+          y="14"
+          width={bar(c.source.seconds) - bar(0)}
+          height="24"
+        ></rect>
+        <rect
+          class="slice"
+          x={bar(cutAt)}
+          y="6"
+          width={Math.max(3, bar(cutAt + c.seconds) - bar(cutAt))}
+          height="40"
+        ></rect>
+        <text x={bar(0)} y="60">
+          0 s
+        </text>
+        <text x={bar(cutAt)} y="60" text-anchor="middle">
+          the {c.seconds} s used here
+        </text>
+        <text x={bar(c.source.seconds)} y="60" text-anchor="end">
+          {fmt(c.source.seconds)} s
+        </text>
+      </svg>
+    </div>
+
+    <div class="state s1">
+      <svg
+        class="fig"
+        viewBox={`0 0 ${W} ${STRAIN_H}`}
+        role="img"
+        aria-label={`${c.seconds} seconds of Hanford strain around GW150914, swinging by up to ${scientific(extent)}; the event, ${c.event.toFixed(1)} seconds in, is far too small to see at this scale.`}
+      >
+        <path class="strain" d={bandPath(tStrain, c.strain.lo, c.strain.hi, xs, ys)}></path>
+        <line class="event" x1={xs(c.event)} x2={xs(c.event)} y1="0" y2={STRAIN_H - 24}></line>
+        <text x={xs(0)} y={STRAIN_H - 6}>
+          0 s
+        </text>
+        <text x={xs(c.event)} y={STRAIN_H - 6} text-anchor="middle">
+          {c.event.toFixed(1)} s
+        </text>
+        <text x={xs(c.seconds)} y={STRAIN_H - 6} text-anchor="end">
+          {c.seconds} s
+        </text>
+      </svg>
+      <p class="more">
+        GW150914 is at the dashed line, far too small to see under the slow swings of the noise.
+      </p>
+      <p class="more">
+        {fmt(c.samples)} numbers · stored as float32, divided by {powerOfTen(c.scale)} ·{' '}
+        {fmt(c.bytes / 1024)} KB
+      </p>
+    </div>
+
+    <div class="state s2">
+      <p>SHA-256 fingerprint published with the data</p>
+      <p class="mono ink hash">
+        <span class="full">{hex}</span>
+        <span class="brief">{brief}…</span>
+      </p>
+      <p>SHA-256 of the file as it arrived</p>
+      <p class="mono ink hash">
+        <span class="full">{hex}</span>
+        <span class="brief">{brief}…</span>
+      </p>
+      <p class="ok">They match: all {fmt(c.bytes)} bytes are as published.</p>
+      <p class="more">Change any byte and the fingerprint changes completely.</p>
+    </div>
+
+    <div class="state s3">
+      <p class="more">Noise per √Hz, averaged over {c.segments} one-second segments</p>
+      <svg
+        class="fig"
+        viewBox={`0 0 ${W} ${SPEC_H}`}
+        role="img"
+        aria-label={`The amplitude spectral density of Hanford's noise from ${c.band[0]} to ${c.band[1]} hertz, lowest near ${c.quietest.f} hertz at ${scientific(c.quietest.asd)} per root hertz.`}
+      >
+        <line class="axis" x1={PL} x2={W - 8} y1={SPEC_H - 30} y2={SPEC_H - 30}></line>
+        {[10, 100, 1000].map((f) => (
+          <text x={fx(f)} y={SPEC_H - 10} text-anchor={f === 10 ? 'start' : 'middle'}>
+            {f} Hz
+          </text>
+        ))}
+        {[1e-23, 1e-22, 1e-21, 1e-20].map((a) => (
+          <text x={PL - 6} y={ay(a) + 4} text-anchor="end">
+            {powerOfTen(a)}
+          </text>
+        ))}
+        <path
+          class="asd"
+          d={bandPath(c.asd.f, c.asd.lo.map(clampA), c.asd.hi.map(clampA), fx, ay)}
+        ></path>
+        <circle class="dot" cx={fx(c.quietest.f)} cy={ay(c.quietest.asd)} r="5"></circle>
+        <text class="ink" x={fx(c.quietest.f)} y={ay(c.quietest.asd) + 24} text-anchor="middle">
+          quietest: {c.quietest.f} Hz
+        </text>
+      </svg>
+    </div>
+
+    <div class="state s4">
+      <p class="claim">
+        “In the {c.seconds} seconds around GW150914, LIGO Hanford was quietest near {c.quietest.f}{' '}
+        Hz, at {scientific(c.quietest.asd)} per √Hz.”
+      </p>
+      <ul class="trail">
+        <li>
+          <b>file</b> {c.source.file}
+        </li>
+        <li>
+          <b>cut</b> {c.seconds} s from GPS {c.gpsStart}
+        </li>
+        <li>
+          <b>fingerprint</b> {short}…, checked on every load
+        </li>
+        <li>
+          <b>method</b> Welch, {c.segments} Hann-windowed segments of {c.segmentSeconds} s
+        </li>
+        <li>
+          <b>code</b> tested against scipy.signal.welch
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<style>
+  .claim-trail {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+
+  .crumbs {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    margin: 0 0 1.2rem;
+    padding: 0;
+    list-style: none;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    text-align: center;
+    color: var(--ink-faint);
+  }
+
+  .crumbs li {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 0.3rem;
+  }
+
+  .crumbs li + li::before {
+    position: absolute;
+    top: 6px;
+    right: 50%;
+    width: 100%;
+    height: 1px;
+    background: var(--rule);
+    content: '';
+  }
+
+  .crumbs i {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 13px;
+    height: 13px;
+    border: 1.5px solid var(--line-faint);
+    border-radius: 50%;
+    background: var(--surface);
+    transition: background var(--dur) var(--ease);
+  }
+
+  :global(grwu-scrolly:not([data-active])) .claim-trail .c0 i,
+  :global(grwu-scrolly[data-active='0']) .claim-trail .c0 i,
+  :global(grwu-scrolly[data-active='1']) .claim-trail :is(.c0, .c1) i,
+  :global(grwu-scrolly[data-active='2']) .claim-trail :is(.c0, .c1, .c2) i,
+  :global(grwu-scrolly[data-active='3']) .claim-trail :is(.c0, .c1, .c2, .c3) i,
+  :global(grwu-scrolly[data-active='4']) .claim-trail .crumbs i {
+    border-color: var(--signal);
+    background: var(--signal);
+  }
+
+  /* All states share one cell, so the figure keeps one height while they swap. */
+  .states {
+    display: grid;
+  }
+
+  .state {
+    grid-area: 1 / 1;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity var(--dur) var(--ease),
+      visibility var(--dur);
+  }
+
+  :global(grwu-scrolly:not([data-active])) .claim-trail .s0,
+  :global(grwu-scrolly[data-active='0']) .claim-trail .s0,
+  :global(grwu-scrolly[data-active='1']) .claim-trail .s1,
+  :global(grwu-scrolly[data-active='2']) .claim-trail .s2,
+  :global(grwu-scrolly[data-active='3']) .claim-trail .s3,
+  :global(grwu-scrolly[data-active='4']) .claim-trail .s4 {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .state p {
+    margin: 0 0 0.6rem;
+  }
+
+  .mono {
+    font-family: var(--f-mono);
+    font-size: 0.8rem;
+  }
+
+  .ink {
+    color: var(--ink);
+  }
+
+  .hash {
+    margin-bottom: 1rem !important;
+    overflow-wrap: anywhere;
+  }
+
+  .ok {
+    color: var(--ok);
+  }
+
+  .claim {
+    font-size: 1.3rem;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+
+  .trail {
+    display: grid;
+    gap: 0.3rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--f-mono);
+    font-size: 0.78rem;
+    overflow-wrap: anywhere;
+  }
+
+  .trail b {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .archive {
+    fill: color-mix(in srgb, var(--noise) 22%, transparent);
+  }
+
+  .slice {
+    fill: var(--signal);
+  }
+
+  .strain {
+    fill: var(--signal);
+    opacity: 0.8;
+  }
+
+  .event {
+    stroke: var(--ink-faint);
+    stroke-dasharray: 3 3;
+  }
+
+  .asd {
+    fill: var(--signal);
+    stroke: var(--signal);
+    stroke-width: 0.6;
+  }
+
+  .brief {
+    display: none;
+  }
+
+  /* In the narrow layout the figure shares the screen with the step cards: keep it short. */
+  @media (max-width: 54rem) {
+    .crumbs {
+      margin-bottom: 0.6rem;
+    }
+
+    .more,
+    .full {
+      display: none;
+    }
+
+    .brief {
+      display: inline;
+    }
+
+    .hash {
+      margin-bottom: 0.6rem !important;
+    }
+
+    .claim {
+      font-size: 1.05rem;
+    }
+
+    .trail {
+      margin-top: 0.6rem;
+      font-size: 0.72rem;
+    }
+  }
+</style>

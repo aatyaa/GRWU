@@ -12,6 +12,11 @@ export default defineConfig(
     '.astro/',
     'node_modules/',
     'pipeline/',
+    'private/paper/',
+    'public/ringdown-assets/',
+    // Pyodide's runtime, fetched and hash-checked by scripts/pyodide-assets.mjs (ADR 0010).
+    'public/pyodide/',
+    '.cache/',
     'playwright-report/',
     'test-results/',
     'coverage/',

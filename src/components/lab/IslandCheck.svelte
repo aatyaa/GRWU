@@ -25,9 +25,9 @@
     align-items: center;
     gap: var(--space-4);
     padding: var(--space-4);
-    border: 1px dashed var(--border);
+    border: 1px dashed var(--rule);
     border-radius: var(--radius-2);
-    background: var(--surface-1);
+    background: var(--surface);
   }
 
   p {
@@ -36,10 +36,10 @@
 
   button {
     padding: var(--space-1) var(--space-3);
-    border: 1px solid var(--border);
+    border: 1px solid var(--rule);
     border-radius: var(--radius-1);
     background: var(--surface-2);
-    color: var(--ink-1);
+    color: var(--ink);
     cursor: pointer;
   }
 

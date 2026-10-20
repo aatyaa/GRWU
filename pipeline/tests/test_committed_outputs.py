@@ -10,9 +10,15 @@ from dataclasses import asdict
 import numpy as np
 import pytest
 
-from grwu_pipeline import fixtures, synthetic
+from grwu_pipeline import fixtures, foundations, kerr, synthetic
 from grwu_pipeline.dataset import read_channel, read_meta
-from grwu_pipeline.paths import find_repo_root, fixtures_file, public_data
+from grwu_pipeline.paths import (
+    find_repo_root,
+    fixtures_file,
+    foundations_fixtures_file,
+    kerr_fixtures_file,
+    public_data,
+)
 
 ROOT = find_repo_root()
 TOY_CHIRP = public_data(ROOT) / "synthetic" / synthetic.DATASET_ID
@@ -33,19 +39,37 @@ def test_committed_toy_chirp_matches_the_generator():
     assert meta["injection"]["optimal_snr"] == pytest.approx(config.snr, rel=1e-6)
 
 
+def compare(a, b, path, rtol):
+    """Recursive comparison of a committed fixture with a freshly generated one."""
+    if isinstance(b, dict):
+        assert set(a) == set(b), f"{path}: keys differ. {REGENERATE}"
+        for key in b:
+            if key != "generator":
+                compare(a[key], b[key], f"{path}.{key}", rtol)
+    elif isinstance(b, list) and all(isinstance(v, float) for v in b):
+        np.testing.assert_allclose(a, b, rtol=rtol, atol=1e-15, err_msg=path)
+    elif isinstance(b, float):
+        assert a == pytest.approx(b, rel=rtol, abs=1e-15), f"{path}: {a!r} != {b!r}. {REGENERATE}"
+    else:
+        assert a == b, f"{path}: {a!r} != {b!r}. {REGENERATE}"
+
+
 def test_committed_fixtures_match_scipy():
     committed = json.loads(fixtures_file(ROOT).read_text())
-    expected = fixtures.build()
+    compare(committed, fixtures.build(), "dsp", rtol=1e-12)
 
-    def compare(a, b, path="fixtures"):
-        if isinstance(b, dict):
-            assert set(a) == set(b), f"{path}: keys differ. {REGENERATE}"
-            for key in b:
-                if key != "generator":
-                    compare(a[key], b[key], f"{path}.{key}")
-        elif isinstance(b, list):
-            np.testing.assert_allclose(a, b, rtol=1e-12, atol=1e-15, err_msg=path)
-        else:
-            assert a == b, f"{path}: {a!r} != {b!r}. {REGENERATE}"
 
-    compare(committed, expected)
+def test_committed_kerr_fixtures_match_qnm():
+    committed = json.loads(kerr_fixtures_file(ROOT).read_text())
+    # Leaver's continued fraction converges to a tolerance, not to the last bit.
+    compare(committed, kerr.build(), "kerr", rtol=1e-9)
+
+
+def test_committed_foundations_fixtures_match_references():
+    committed = json.loads(foundations_fixtures_file(ROOT).read_text())
+    fresh = foundations.build()
+    # A least-squares fit pins its parameters down only to about the square root of the
+    # rounding error, so the last bits of numpy's math on another CPU can move them by ~1e-8.
+    compare(committed.pop("ringfit"), fresh.pop("ringfit"), "foundations.ringfit", rtol=1e-6)
+    # The oscillator comes from an adaptive ODE solver; everything else is exact arithmetic.
+    compare(committed, fresh, "foundations", rtol=1e-9)

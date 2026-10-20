@@ -1,10 +1,21 @@
 {
   "extends": "astro/tsconfigs/strict",
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist", "node_modules", "pipeline", "playwright-report", "test-results"],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "pipeline",
+    "playwright-report",
+    "test-results",
+    "private/paper",
+    "public/ringdown-assets",
+    "public/pyodide",
+    ".cache"
+  ],
   "compilerOptions": {
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "@track/*": ["./private/track/*"]
     },
     "types": ["node"]
   }

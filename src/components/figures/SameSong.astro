@@ -1,0 +1,15 @@
+---
+/** The toy waveform, computed once at build time in units of M, handed to the island. */
+import { T_SUN } from '~/lib/dsp/chirp';
+import { F_ISCO, F_RING, T_MERGE, toyWaveform } from '~/lib/articles/skills';
+import SameSongIsland from './SameSong.svelte';
+---
+
+<SameSongIsland
+  client:visible
+  wave={toyWaveform()}
+  fIsco={F_ISCO}
+  fRing={F_RING}
+  tMerge={T_MERGE}
+  tSun={T_SUN}
+/>

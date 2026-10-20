@@ -1,0 +1,77 @@
+---
+/**
+ * Bayes' rule as a rectangle (Laplace Closes the Circle, after The Shape of Error M7): the
+ * same corner of the same square, reached by cutting it two ways.
+ */
+const W = 560;
+const H = 250;
+const S = 170;
+const left = { x: 30, y: 44 };
+const right = { x: 320, y: 44 };
+const pB = 0.42; // how often B happens
+const pAgivenB = 0.55; // how often A happens when B does
+const pA = 0.38; // how often A happens
+const pBgivenA = (pAgivenB * pB) / pA;
+---
+
+<svg
+  class="fig bayes-rect"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Two copies of the same square of all possibilities. On the left it is cut first by whether B happens, then by whether A happens within B. On the right it is cut first by A, then by B within A. The shaded corner where both happen has the same area in both, which is Bayes' rule."
+>
+  <text class="caps" x={left.x} y="20">
+    first B, then A within it
+  </text>
+  <rect class="all" x={left.x} y={left.y} width={S} height={S}></rect>
+  <rect class="cut" x={left.x} y={left.y} width={S} height={S * pB}></rect>
+  <rect class="both" x={left.x} y={left.y} width={S * pAgivenB} height={S * pB}></rect>
+  <text x={left.x + S + 8} y={left.y + (S * pB) / 2 + 4}>
+    p(B)
+  </text>
+  <text x={left.x + (S * pAgivenB) / 2} y={left.y + S * pB + 18} text-anchor="middle">
+    p(A | B)
+  </text>
+
+  <text class="caps" x={right.x} y="20">
+    first A, then B within it
+  </text>
+  <rect class="all" x={right.x} y={right.y} width={S} height={S}></rect>
+  <rect class="cut" x={right.x} y={right.y} width={S * pA} height={S}></rect>
+  <rect class="both" x={right.x} y={right.y} width={S * pA} height={S * pBgivenA}></rect>
+  <text x={right.x + (S * pA) / 2} y={right.y + S + 18} text-anchor="middle">
+    p(A)
+  </text>
+  <text x={right.x + S * pA + 8} y={right.y + (S * pBgivenA) / 2 + 4}>
+    p(B | A)
+  </text>
+
+  <text x={W / 2} y={H - 6} text-anchor="middle">
+    the gold corner is the same region: p(A | B) p(B) = p(B | A) p(A)
+  </text>
+</svg>
+
+<style>
+  .bayes-rect {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .bayes-rect .all {
+    fill: var(--surface);
+    stroke: var(--rule);
+  }
+
+  .bayes-rect .cut {
+    fill: var(--surface-2);
+    stroke: var(--line-faint);
+    stroke-dasharray: 4 3;
+  }
+
+  .bayes-rect .both {
+    fill: var(--signal-bg);
+    stroke: var(--signal);
+    stroke-width: 2;
+  }
+</style>

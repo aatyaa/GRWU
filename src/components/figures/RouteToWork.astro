@@ -1,0 +1,64 @@
+---
+/** From tutorials to real work, in four stops (The Shape of Error, Coda). Times are indicative. */
+const W = 600;
+const H = 240;
+const stops = [
+  { name: 'reproduce', time: 'a weekend' },
+  { name: 'break it', time: 'a fortnight' },
+  { name: 'contribute', time: 'a few months' },
+  { name: 'ask something new', time: 'the rest of it' },
+];
+const x = (i: number) => 60 + i * 150;
+const y = (i: number) => 180 - i * 42;
+const path = stops.map((_, i) => `${i ? 'L' : 'M'}${x(i)},${y(i)}`).join('');
+---
+
+<svg
+  class="fig route-to-work"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="A rising route with four stops: reproduce a known result, in a weekend; break it on purpose, in a fortnight; contribute to the open-source tools, over a few months; then ask something nobody has checked, which takes the rest of it."
+>
+  <path class="route" d={path}></path>
+  {stops.map((s, i) => (
+    <g>
+      <circle class="stop" cx={x(i)} cy={y(i)} r="7" />
+      <text class="name" x={x(i)} y={y(i) - 16} text-anchor="middle">
+        {s.name}
+      </text>
+      <text x={x(i)} y={y(i) + 24} text-anchor="middle">
+        {s.time}
+      </text>
+    </g>
+  ))}
+  <text x={W - 10} y={H - 6} text-anchor="end">
+    time — not the hard part →
+  </text>
+  <text x="10" y="20">
+    ↑ how little supervision you need
+  </text>
+</svg>
+
+<style>
+  .route-to-work {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .route-to-work .route {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 2;
+  }
+
+  .route-to-work .stop {
+    fill: var(--signal);
+  }
+
+  .route-to-work .name {
+    font-family: var(--f-body);
+    font-weight: 700;
+    fill: var(--ink);
+  }
+</style>

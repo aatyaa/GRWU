@@ -1,0 +1,41 @@
+---
+/** The AG monogram. Inherits its colour from `currentColor`; decorative unless labelled. */
+interface Props {
+  size?: number;
+  label?: string;
+  class?: string;
+}
+
+const { size = 24, label, class: className } = Astro.props;
+---
+
+<svg
+  class:list={['mark', className]}
+  viewBox="0 0 100 100"
+  width={size}
+  height={size}
+  xmlns="http://www.w3.org/2000/svg"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+>
+  <g
+    fill="none"
+    stroke="currentColor"
+    stroke-width="3.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M 87.24 28.50 A 43.0 43.0 0 1 0 87.24 71.50"></path>
+    <path d="M 27.00 74.00 L 50.00 21.00 L 73.00 74.00"></path>
+    <path d="M 37.42 50.00 L 87.24 50.00"></path>
+    <path d="M 87.24 50.00 L 87.24 71.50"></path>
+  </g>
+</svg>
+
+<style>
+  .mark {
+    flex: none;
+    color: var(--signal);
+  }
+</style>

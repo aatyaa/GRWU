@@ -5,9 +5,11 @@ description = "Prepares gravitational-wave data and reference outputs for the GR
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "emcee>=3.1.6",
     "gwosc>=0.8",
     "h5py>=3.10",
     "numpy>=2.0",
+    "qnm>=0.4",
     "scipy>=1.13",
 ]
 
@@ -33,3 +35,7 @@ select = ["E", "F", "W", "I", "UP", "B", "NPY", "RUF"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = [
+    # qnm unpickles a table that names scipy.optimize.optimize; harmless until SciPy 2.
+    "ignore:Please import `OptimizeResult`:DeprecationWarning",
+]

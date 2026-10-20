@@ -1,0 +1,136 @@
+[
+  {
+    "id": "strain",
+    "symbol": "h",
+    "name": "strain",
+    "definition": "The fractional change in length a passing gravitational wave makes, ΔL/L. The loudest signals seen so far reach about 10⁻²¹.",
+    "unit": "dimensionless"
+  },
+  {
+    "id": "frequency",
+    "symbol": "f",
+    "name": "frequency",
+    "definition": "How many times per second something oscillates.",
+    "unit": "Hz"
+  },
+  {
+    "id": "damping-time",
+    "symbol": "\\tau",
+    "name": "damping time",
+    "definition": "The time an oscillation takes for its amplitude to fall by a factor e ≈ 2.72.",
+    "unit": "s"
+  },
+  {
+    "id": "quality-factor",
+    "symbol": "Q",
+    "name": "quality factor",
+    "definition": "How long a ring lasts, counted in oscillations: Q = π f τ. A large Q rings for many cycles.",
+    "unit": "dimensionless"
+  },
+  {
+    "id": "solar-mass",
+    "symbol": "M_\\odot",
+    "name": "solar mass",
+    "definition": "The mass of the Sun, about 1.99 × 10³⁰ kg. In the units of general relativity it is also a length, G M☉/c² ≈ 1.48 km, and a time, G M☉/c³ ≈ 4.93 μs.",
+    "unit": "kg"
+  },
+  {
+    "id": "mass",
+    "symbol": "M",
+    "name": "mass",
+    "definition": "Here, the mass of a black hole, usually in solar masses. Its ring's frequency scales as 1/M: a heavier black hole rings lower.",
+    "unit": "M☉"
+  },
+  {
+    "id": "spin",
+    "symbol": "\\chi",
+    "name": "dimensionless spin",
+    "definition": "How fast a black hole rotates, χ = cJ/(GM²) for angular momentum J. Zero for a black hole that does not rotate; always below 1.",
+    "unit": "dimensionless"
+  },
+  {
+    "id": "horizon-area",
+    "symbol": "A",
+    "name": "horizon area",
+    "definition": "The area of a black hole's event horizon, A = 8π (GM/c²)² (1 + √(1 − χ²)). Hawking's area theorem says the total can only grow.",
+    "unit": "m², or (G M☉/c²)²"
+  },
+  {
+    "id": "redshift",
+    "symbol": "z",
+    "name": "redshift",
+    "definition": "How much the expansion of the universe has stretched a signal on its way. Times and masses read in the detector are larger than at the source by a factor 1 + z.",
+    "unit": "dimensionless"
+  },
+  {
+    "id": "qnm",
+    "symbol": "(\\ell, m, n)",
+    "name": "quasinormal mode",
+    "definition": "One tone of a ringing black hole: a frequency and a damping time, both fixed by the mass and spin. Labelled (ℓ, m, n); n = 0 is the fundamental and n ≥ 1 are overtones, which fade faster."
+  },
+  {
+    "id": "sampling-rate",
+    "symbol": "f_s",
+    "name": "sampling rate",
+    "definition": "How many samples of a signal are recorded per second. Frequencies above half the sampling rate, the Nyquist frequency, cannot be told apart from lower ones (aliasing).",
+    "unit": "Hz"
+  },
+  {
+    "id": "psd",
+    "symbol": "S_n(f)",
+    "name": "power spectral density",
+    "definition": "How much noise power the detector has at each frequency. Its square root, the amplitude spectral density, is the curve usually plotted.",
+    "unit": "1/Hz (for strain)"
+  },
+  {
+    "id": "snr",
+    "symbol": "\\mathrm{SNR}",
+    "name": "signal-to-noise ratio",
+    "definition": "How far a signal stands above the noise, measured in units of the noise's typical size after filtering with the expected shape.",
+    "unit": "dimensionless"
+  },
+  {
+    "id": "likelihood",
+    "symbol": "p(d \\mid \\theta)",
+    "name": "likelihood",
+    "definition": "How probable the data d would be if the parameters were θ. Read as a function of θ with d fixed."
+  },
+  {
+    "id": "prior",
+    "symbol": "p(\\theta)",
+    "name": "prior",
+    "definition": "What was believed about the parameters θ before looking at these data."
+  },
+  {
+    "id": "posterior",
+    "symbol": "p(\\theta \\mid d)",
+    "name": "posterior",
+    "definition": "What is believed about the parameters θ after the data d: prior times likelihood, normalised. In practice, a large set of samples."
+  },
+  {
+    "id": "credible-interval",
+    "symbol": "90\\%\\ \\mathrm{CI}",
+    "name": "credible interval",
+    "definition": "A range that holds a stated share of the posterior, often 90%. It describes belief given the model, prior and data, not a guarantee."
+  },
+  {
+    "id": "evidence",
+    "symbol": "Z",
+    "name": "evidence",
+    "definition": "The probability of the data under a whole model, averaged over its prior. Comparing two models uses the difference ln Z₁ − ln Z₀, the log Bayes factor."
+  },
+  {
+    "id": "sigma",
+    "symbol": "\\sigma",
+    "name": "standard deviation",
+    "definition": "The typical spread of a quantity around its mean. “nσ” quotes a result's distance from a reference in these units; it assumes independent, bell-shaped errors.",
+    "unit": "the quantity's own"
+  },
+  {
+    "id": "correlation",
+    "symbol": "\\rho",
+    "name": "correlation coefficient",
+    "definition": "A number from −1 to 1 for how closely two quantities move together. It describes a pattern; on its own it is not a cause or a law.",
+    "unit": "dimensionless"
+  }
+]

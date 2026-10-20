@@ -10,12 +10,15 @@ interface Props {
   description?: string;
   /** Keep this page out of search engines (lab pages). */
   noindex?: boolean;
+  /** Running title in the header rail (article pages). */
+  running?: string;
 }
 
 const {
   title,
   description = 'Visual, interactive explanations of gravitational-wave data analysis.',
   noindex = false,
+  running,
 } = Astro.props;
 
 const fullTitle = title ? `${title} · GRWU` : 'GRWU: gravitational-wave data analysis, explained';
@@ -32,7 +35,10 @@ const isPreview = import.meta.env.BASE_URL.includes('/pr-preview/');
     <meta name="description" content={description} />
     {(noindex || isPreview) && <meta name="robots" content="noindex" />}
     <link rel="icon" href={withBase('favicon.svg')} type="image/svg+xml" />
+    <meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c121b" media="(prefers-color-scheme: dark)" />
     <script is:inline>
+      document.documentElement.classList.add('js');
       try {
         const theme = localStorage.getItem('grwu-theme');
         if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
@@ -45,10 +51,13 @@ const isPreview = import.meta.env.BASE_URL.includes('/pr-preview/');
     <a class="skip-link" href="#main">
       Skip to content
     </a>
-    <Header />
+    <Header running={running} />
     <main id="main">
       <slot />
     </main>
     <Footer />
+    <script>
+      import '~/elements/reveal';
+    </script>
   </body>
 </html>

@@ -1,0 +1,69 @@
+---
+/**
+ * Where an article leads (ADR 0009): links to the articles, or ringdown chapters, it prepares
+ * the reader for. Ids are article ids or `ringdown/<slug>`; an unknown id fails the build.
+ */
+import { getArticles, getRingdownArticles } from '~/lib/content';
+import { sealedArticles, sealedMode } from '~/lib/ringdown';
+import { withBase } from '~/lib/url';
+
+interface Props {
+  to: string[];
+}
+
+const { to } = Astro.props;
+const articles = new Map((await getArticles()).map((a) => [a.id, a.data.title]));
+const chapters = new Map(
+  (sealedMode ? [] : await getRingdownArticles()).map((a) => [a.id, a.data.title]),
+);
+for (const a of sealedArticles()) if (!chapters.has(a.slug)) chapters.set(a.slug, a.title);
+
+const links = to.map((id) => {
+  const slug = id.startsWith('ringdown/') ? id.slice('ringdown/'.length) : null;
+  const title = slug ? chapters.get(slug) : articles.get(id);
+  if (!title) throw new Error(`PreparesFor: unknown article or chapter "${id}"`);
+  return {
+    title,
+    href: withBase(slug ? `ringdown/${slug}/` : `articles/${id}/`),
+    gated: slug !== null,
+  };
+});
+---
+
+<aside class="prepares" aria-label="Where this leads">
+  <p class="prepares__head">This prepares you for</p>
+  <ul>
+    {links.map((l) => (
+      <li>
+        <a href={l.href}>{l.title}</a>
+        {l.gated && <span class="prepares__note"> (ringdown track, open by request)</span>}
+      </li>
+    ))}
+  </ul>
+</aside>
+
+<style>
+  .prepares {
+    margin: var(--space-8) 0;
+    padding: 1rem 1.3rem;
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--radius-2);
+    background: var(--surface);
+  }
+
+  .prepares__head {
+    margin: 0 0 0.4rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.1rem;
+  }
+
+  .prepares__note {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+  }
+</style>

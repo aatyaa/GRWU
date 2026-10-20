@@ -1,0 +1,225 @@
+---
+title: Almost None of It Is About Gravitational Waves
+emphasis: Almost
+headline: What do you actually have to know to do this work?
+summary: A map of what gravitational-wave data analysis is made of. Only two of its leaves belong to the field, waveform models and the field's own libraries, and both are opened up here.
+track: capstone
+order: 2
+status: review
+minutes: 25
+objectives:
+  - Name what the work is made of, and which parts transfer to any field with noisy data.
+  - Say what a waveform model is, why no single theory covers a merger, and how the model families trade speed for fidelity.
+  - Know which library does which step, from the archive to a posterior, and the trap at each step.
+updated: 2026-09-27
+sources:
+  - title: GW Open Data Workshop tutorials (the notebooks the code here is transcribed from)
+    url: https://github.com/gw-odw/odw
+  - title: Gravitational Wave Open Science Center
+    url: https://gwosc.org/
+  - title: 'G. Ashton et al., Bilby: a user-friendly Bayesian inference library for gravitational-wave astronomy, ApJS 241, 27 (2019)'
+    url: https://arxiv.org/abs/1811.02042
+  - title: 'G. Pratten et al., Computationally efficient models for the dominant and subdominant harmonic modes of precessing binary black holes (IMRPhenomXPHM), Phys. Rev. D 103, 104056 (2021)'
+    url: https://arxiv.org/abs/2004.06503
+  - title: 'V. Varma et al., Surrogate models for precessing binary black hole simulations with unequal masses (NRSur7dq4), Phys. Rev. Research 1, 033015 (2019)'
+    url: https://arxiv.org/abs/1905.09300
+  - title: The SXS collaboration, simulating eXtreme spacetimes
+    url: https://www.black-holes.org/
+---
+
+import Card from '~/components/editorial/Card.astro';
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import FourierCostumes from '~/components/figures/FourierCostumes.astro';
+import LibraryRoute from '~/components/figures/LibraryRoute.astro';
+import LibraryStack from '~/components/figures/LibraryStack.astro';
+import ModelFamilies from '~/components/figures/ModelFamilies.astro';
+import PriorPosterior from '~/components/figures/PriorPosterior.svelte';
+import RouteToWork from '~/components/figures/RouteToWork.astro';
+import SameSong from '~/components/figures/SameSong.astro';
+import SkillMap from '~/components/figures/SkillMap.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+
+People assume the barrier to working on gravitational waves is the physics. It is not. A working week here is spent writing Python, reading somebody else's code, waiting for jobs on a cluster, and arguing about whether a number is real.
+
+This article is the map of what the work is actually made of. Of its fourteen leaves, only two are specific to this field, and they are the fastest part to learn. Both get a close look below, because they are also the parts that are rarely explained: the **waveform models** and the field's own **libraries**.
+
+## The map
+
+<Figure kind="schematic" width="wide">
+  <SkillMap />
+  <Fragment slot="caption">
+    Choose any leaf to see what it is for and where this site uses it. The gold leaves are the
+    only ones that belong to gravitational waves.
+  </Fragment>
+</Figure>
+
+Everything else transfers. Fourier analysis, probability, linear algebra, Python, the habit of distrusting your own best fit: they are the same in climate science, medical imaging and machine learning. That is good news twice over. The field is more open to newcomers than its reputation, and nothing you learn here is wasted if you leave.
+
+Three pieces of advice follow from the map.
+
+## Do not skip Fourier
+
+The noise spectrum, whitening and the matched filter look like three techniques. They are one Fourier argument in three different costumes. Each starts by writing the data as a sum of frequencies. Each then treats every frequency on its own, which is allowed only because stationary noise makes different frequencies independent. Two of them finish by transforming back.
+
+<Figure kind="schematic" width="medium">
+  <FourierCostumes />
+  <Fragment slot="caption">
+    The amber box is the same step in every row. Learn it once and the three techniques become
+    one idea.
+  </Fragment>
+</Figure>
+
+Once that is yours, [Hidden in the Noise](../hidden-in-the-noise/) reads as one idea instead of three.
+
+## Learn statistics properly, once
+
+Not recipes. The distinction that stays with you for a career is between a **likelihood** and a **posterior**. The likelihood says how probable your data would be for each value of a parameter. It is a function of the parameter, but it is not a probability distribution over it. The posterior is: the likelihood multiplied by what you believed beforehand, the **prior**.
+
+<Figure kind="schematic" width="medium">
+  <PriorPosterior client:visible />
+  <Fragment slot="caption">
+    The same measurement every time. Only what you believed before changes, and with it the answer.
+  </Fragment>
+</Figure>
+
+With a flat prior, the posterior is the likelihood, renormalised. A hunch pulls the answer toward the hunch, and more data pulls it back. A physical bound cuts the posterior off, and that is legitimate: a black hole cannot outweigh what formed it. But a fixed value is an infinitely strong prior. The data can say anything and the answer does not move. That is why setting a black hole's spin to zero in an analysis is not "ignoring spin": it is asserting, with certainty, that the spin is zero.
+
+<h2 id="waveform-models">The first gold leaf: waveform models</h2>
+
+A waveform model is a function. Give it the parameters of a source and it returns the signal the detectors should record. For two black holes that means fifteen numbers: two masses, three spin components for each object, the distance, two angles for the orientation of the orbit, two for the position on the sky, the arrival time and the phase.
+
+The search slides a bank of these templates along the data. Parameter estimation evaluates the model millions of times, once for every point the sampler visits. So a model has to be right and it has to be fast, and those two pull against each other.
+
+### Three regimes, three theories
+
+No single calculation covers a whole merger. While the black holes are far apart and slow, the **inspiral** can be expanded in powers of their speed over the speed of light: post-Newtonian theory. In the last few orbits nothing is small any more, and only **numerical relativity**, solving Einstein's equations on a supercomputer, can follow the **merger**. After it, the single remnant settles like a struck bell, and black-hole **perturbation theory** predicts the tones of its **ringdown** from its mass and spin alone.
+
+And general relativity has a remarkable property: in empty space, the only scale is the mass. One waveform serves every binary with the same mass ratio and spins. Double the total mass and the whole signal plays twice as slowly, an octave lower. Choose the mass and watch what the detector actually hears.
+
+<Figure kind="model" width="wide">
+  <SameSong />
+  <Fragment slot="caption">
+    A toy assembled from the three regimes for two equal black holes, not a waveform model. The
+    shape never changes with the mass; only the clock and the pitch do.
+  </Fragment>
+</Figure>
+
+A light binary spends seconds and hundreds of cycles of inspiral inside the detector's band, where post-Newtonian theory is at home. For a heavy one, the inspiral ends almost as soon as it becomes audible. What the detector hears is mostly merger and ringdown: the part only numerical relativity can compute. Which regime a model must get right depends on the source.
+
+<MathLayer id="m-scale" title="why heavier binaries sing lower">
+  <Given>vacuum general relativity, in units where G = c = 1, for a binary of total mass *M* at distance *D*.</Given>
+  <Steps>
+    <Step tex="h(t) = \frac{M}{D}\, \mathcal{H}\!\left(\frac{t}{M};\; q,\, \vec\chi_1,\, \vec\chi_2\right)" hinge>
+      The equations contain no other scale, so time enters only as t/M. The shape depends on the
+      mass ratio and spins, never on the total mass.
+    </Step>
+    <Step tex="f_{\rm ISCO} = \frac{c^3}{6^{3/2}\,\pi\, G M} \approx 4.4\ \text{kHz} \times \frac{M_\odot}{M}">
+      Where the inspiral ends: about 68 Hz for GW150914's 65 solar masses.
+    </Step>
+    <Step tex="\tau(f) = \frac{5}{256}\,(\pi f)^{-8/3} \left(\frac{G\mathcal{M}}{c^3}\right)^{-5/3}">
+      How long the inspiral lasts above a frequency f, with 𝓜 the chirp mass: a heavier binary
+      crosses the band far faster.
+    </Step>
+  </Steps>
+  <Means>
+    One simulation at one mass is every mass. This is why numerical-relativity catalogues are
+    labelled by mass ratio and spins, and why a template bank's density depends so strongly on the
+    total mass.
+  </Means>
+</MathLayer>
+
+### Five families
+
+Every waveform model in use is a compromise between the three regimes, and the families differ in where they put the compromise.
+
+<Figure kind="schematic" width="medium">
+  <ModelFamilies />
+  <Fragment slot="caption">
+    Schematic: positions are orders of magnitude, and every family keeps improving. Cost is for one
+    waveform on one processor.
+  </Fragment>
+</Figure>
+
+**Post-Newtonian** models, such as TaylorF2, are closed-form expansions. They take microseconds, are accurate while the objects are far apart, and say nothing about the merger. They matter most for neutron-star binaries, which spend a minute or more in the band.
+
+**Numerical relativity** solves the full equations. One simulation takes weeks on a supercomputer and covers only the last tens of orbits of one particular binary; catalogues such as SXS hold a few thousand of them. It is the ground truth everything else is checked against, and far too slow to use directly.
+
+**Effective-one-body** models, the SEOBNR family, map the two-body problem onto one body moving in a deformed black-hole spacetime, gather in the post-Newtonian information, and calibrate the pieces nobody can calculate against numerical relativity.
+
+**Phenomenological** models, the IMRPhenom family, fit smooth formulas across inspiral, merger and ringdown, calibrated to effective-one-body and numerical-relativity waveforms. They are the fastest complete models, which is why so many catalogue analyses use them.
+
+**Surrogates**, such as NRSur7dq4, interpolate directly between numerical-relativity simulations. Within the range the simulations cover, they are the most faithful fast models. Outside it, they do not apply.
+
+In code you choose one by name, the **approximant**: IMRPhenomT, SEOBNRv4_opt, IMRPhenomXP. Names with a P include spin precession; PHM adds higher harmonics.
+
+### Where the models are still wrong
+
+The frontier is where the physics gets harder: spins tilted so that the orbit precesses, unequal masses that make the higher harmonics loud, orbits that are still eccentric, and neutron stars whose matter deforms under tides. Each is included in some models and approximated in others. Two good models can disagree about the same signal, and when they do, the difference moves the answer. That is the almost-right template of [What the Wrong Model Knows](../what-the-wrong-model-knows/), and it is why careful analyses repeat a measurement with more than one model and report the spread.
+
+<Pull>
+  The approximant is not a detail. <em>It is the strongest assumption in the analysis.</em>
+</Pull>
+
+<h2 id="the-libraries">The second gold leaf: gwpy · PyCBC · Bilby</h2>
+
+Learn the packages last. A library is a weekend; the thinking underneath it is years, and it transfers to any field that fits models to noisy data. But the weekend does have to happen, so here it is.
+
+<Figure kind="schematic" width="medium">
+  <LibraryStack />
+  <Fragment slot="caption">
+    The pinned versions of the Open Data Workshop environment, checked in August 2026. Pin yours:
+    "latest" is how you spend an afternoon on an error that is not yours.
+  </Fragment>
+</Figure>
+
+Everything sits on numerical Python. **LALSuite**, written in C by the collaborations, holds the waveform models and the response of each detector. Above it, **gwosc** asks the public archive what exists. **gwpy** fetches strain, plots it and computes its spectra. **PyCBC** builds templates and filters data; it grew out of the search pipelines themselves. **Bilby** turns a waveform and some data into a likelihood and hands it to a sampler, usually **dynesty**. You will use gwpy and PyCBC side by side: they do overlapping jobs with different objects, and converting between them is routine.
+
+Here is the whole route from the archive to a posterior, one step at a time.
+
+<Figure kind="schematic" width="wide">
+  <LibraryRoute />
+  <Fragment slot="caption">
+    Code transcribed from the GW Open Data Workshop tutorials, shown to read rather than run. The
+    tutorials themselves run as notebooks in Colab with nothing to install.
+  </Fragment>
+</Figure>
+
+Read the traps again. Almost none of them is about a library. Crop what your filter corrupted; estimate the noise robustly; do not mistake a picture for a detection; know what your prior asserts. The library only decides where you type it.
+
+<Card label="The warning everybody hits first">
+  Importing pycbc or lalsuite prints a wall of Wswiglal-redir-stdio messages. They are harmless,
+  and the official notebooks silence them on their first line.
+</Card>
+
+## From here to real work
+
+Nobody hands you a problem. You take one, and the route there has four stops.
+
+**Reproduce something already known.** The strain data for every published detection is public. Download an event, whiten it, filter it against a template, and watch a signal come out of noise you cannot see through. You are not discovering anything: you are proving to yourself that the machinery is real.
+
+**Then break it on purpose.** Build a signal whose answer you chose, and recover it. Now make the template slightly wrong, drop a component or shift a frequency, and measure how far the answer moves. This is where you stop following tutorials.
+
+**Contribute to the tools.** The whole analysis stack is open source and imperfect. Fix a bug, add the test that should have existed, improve the docstring that misled you. It is small and real, and it puts you inside the community instead of reading about it.
+
+**Ask something nobody has checked.** Not a grand question: a small one with a definite answer. Almost every real paper is one honest small question, answered carefully.
+
+<Figure kind="schematic" width="medium">
+  <RouteToWork />
+  <Fragment slot="caption">
+    The times are indicative, and the last stop has no end. What changes along the way is not how
+    much you know. It is how little supervision you need.
+  </Fragment>
+</Figure>
+
+<Card label="Two honest notes">
+  The last stop is far easier inside a research group, and that is what a master's or a PhD is
+  really for: supervision, a community, and permission to spend years on one question. Summer
+  research programmes and the collaborations' open data workshops are the usual door in. And if
+  you leave for industry, none of it is wasted. Inference from noisy data under a model you are
+  not sure of is the whole of applied machine learning, described in different words.
+</Card>

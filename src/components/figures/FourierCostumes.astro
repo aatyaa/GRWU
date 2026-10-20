@@ -1,0 +1,133 @@
+---
+/**
+ * One Fourier argument in three costumes (Almost None of It Is About Gravitational Waves):
+ * the noise spectrum, whitening and the matched filter share the same first step.
+ */
+const W = 640;
+const rows = [
+  {
+    name: 'The noise spectrum',
+    input: 'data',
+    op: 'square and average',
+    output: 'how loud each frequency is',
+    back: false,
+  },
+  {
+    name: 'Whitening',
+    input: 'data',
+    op: '÷ √(noise spectrum)',
+    output: 'data in units of its noise',
+    back: true,
+  },
+  {
+    name: 'The matched filter',
+    input: 'data, template',
+    op: 'data × template* ÷ noise',
+    output: 'a score at every time shift',
+    back: true,
+  },
+];
+const ROW = 86;
+const H = 40 + rows.length * ROW;
+const box = { in: [8, 118], fft: [140, 96], op: [260, 176], back: [460, 64], out: [540, 96] };
+---
+
+<svg
+  class="fig costumes"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Three rows. The noise spectrum: data, Fourier transform, square and average. Whitening: data, Fourier transform, divide by the square root of the noise spectrum, transform back. The matched filter: data and template, Fourier transform, multiply the data by the conjugate template and divide by the noise, transform back to a score at every time shift. The Fourier transform is the same first step in all three."
+>
+  <text class="caps" x="8" y="18">
+    the same first step, three times
+  </text>
+  {rows.map((r, i) => {
+    const y = 40 + i * ROW;
+    const mid = y + 26;
+    return (
+      <g>
+        <text class="row-name" x="8" y={y - 4}>
+          {r.name}
+        </text>
+        <rect class="box" x={box.in[0]} y={y + 6} width={box.in[1]} height="40" rx="6" />
+        <text x={box.in[0] + box.in[1] / 2} y={mid + 4} text-anchor="middle">
+          {r.input}
+        </text>
+        <line class="arrow" x1={box.in[0] + box.in[1]} x2={box.fft[0] - 4} y1={mid} y2={mid} />
+        <rect class="box fft" x={box.fft[0]} y={y + 6} width={box.fft[1]} height="40" rx="6" />
+        <text x={box.fft[0] + box.fft[1] / 2} y={mid + 4} text-anchor="middle">
+          Fourier
+        </text>
+        <line class="arrow" x1={box.fft[0] + box.fft[1]} x2={box.op[0] - 4} y1={mid} y2={mid} />
+        <rect class="box" x={box.op[0]} y={y + 6} width={box.op[1]} height="40" rx="6" />
+        <text x={box.op[0] + box.op[1] / 2} y={mid + 4} text-anchor="middle">
+          {r.op}
+        </text>
+        {r.back ? (
+          <g>
+            <line class="arrow" x1={box.op[0] + box.op[1]} x2={box.back[0] - 4} y1={mid} y2={mid} />
+            <rect
+              class="box fft"
+              x={box.back[0]}
+              y={y + 6}
+              width={box.back[1]}
+              height="40"
+              rx="6"
+            />
+            <text x={box.back[0] + box.back[1] / 2} y={mid + 4} text-anchor="middle">
+              back
+            </text>
+            <line
+              class="arrow"
+              x1={box.back[0] + box.back[1]}
+              x2={box.out[0] - 4}
+              y1={mid}
+              y2={mid}
+            />
+          </g>
+        ) : (
+          <line class="arrow" x1={box.op[0] + box.op[1]} x2={box.out[0] - 4} y1={mid} y2={mid} />
+        )}
+        <text class="out" x={box.out[0]} y={mid - 4}>
+          {r.output.split(' ').slice(0, 3).join(' ')}
+        </text>
+        <text class="out" x={box.out[0]} y={mid + 12}>
+          {r.output.split(' ').slice(3).join(' ')}
+        </text>
+      </g>
+    );
+  })}
+</svg>
+
+<style>
+  .costumes {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .costumes .box {
+    fill: var(--surface);
+    stroke: var(--rule);
+  }
+
+  .costumes .box.fft {
+    fill: var(--signal-bg);
+    stroke: var(--signal);
+  }
+
+  .costumes .arrow {
+    stroke: var(--ink-faint);
+    stroke-width: 1.2;
+  }
+
+  .costumes .row-name {
+    font-family: var(--f-body);
+    font-weight: 700;
+    fill: var(--ink);
+  }
+
+  .costumes .out {
+    fill: var(--ink-soft);
+  }
+</style>

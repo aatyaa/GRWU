@@ -1,0 +1,67 @@
+---
+/** Piazzi's nine degrees, to scale against the orbit they belong to (The Shape of Error, Act I). */
+const W = 560;
+const H = 380;
+const cx = 300;
+const cy = 190;
+const a = 222; // semi-major axis in px
+const b = 158;
+const sunX = cx + 38; // the Sun at a focus, roughly
+
+// Ceres's arc: 9 degrees of the ellipse, in the upper left.
+const start = (140 * Math.PI) / 180;
+const span = (9 * Math.PI) / 180;
+const pointAt = (t: number) => ({ x: cx + a * Math.cos(t), y: cy - b * Math.sin(t) });
+const arc = Array.from({ length: 30 }, (_, i) => pointAt(start + (span * i) / 29));
+const arcPath = arc.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('');
+const observations = Array.from({ length: 6 }, (_, i) => pointAt(start + (span * i) / 5));
+---
+
+<svg
+  class="fig"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="An orbit drawn as a dashed ellipse around the Sun. A short amber arc at the upper left carries six observations and is labelled nine degrees observed; the rest of the orbit is unknown."
+>
+  <defs>
+    <radialGradient id="sun-glow">
+      <stop offset="0%" stop-color="var(--signal)" stop-opacity="0.32"></stop>
+      <stop offset="100%" stop-color="var(--signal)" stop-opacity="0"></stop>
+    </radialGradient>
+  </defs>
+  <ellipse class="orbit" cx={cx} cy={cy} rx={a} ry={b}></ellipse>
+  <circle cx={sunX} cy={cy} r="64" fill="url(#sun-glow)"></circle>
+  <circle cx={sunX} cy={cy} r="11" fill="var(--signal)"></circle>
+  <text x={sunX} y={cy + 32} text-anchor="middle" class="caps">
+    Sun
+  </text>
+  <path class="signal" d={arcPath} stroke-width="4"></path>
+  {observations.map((p, i) => (
+    <circle class="dot fade" cx={p.x} cy={p.y} r="4" style={`--i: ${i}`} />
+  ))}
+  <line
+    x1={observations[0].x - 10}
+    y1={observations[0].y + 4}
+    x2={observations[0].x - 60}
+    y2={observations[0].y + 40}
+    class="axis"
+  ></line>
+  <text x={observations[0].x - 140} y={observations[0].y - 34} class="ink">
+    41 nights
+  </text>
+  <text x={observations[0].x - 140} y={observations[0].y - 16} class="signal">
+    9° observed
+  </text>
+  <text x={cx} y={H - 10} text-anchor="middle">
+    everything else — inferred, never seen
+  </text>
+</svg>
+
+<style>
+  .orbit {
+    fill: none;
+    stroke: var(--line-faint);
+    stroke-width: 1.2;
+    stroke-dasharray: 4 5;
+  }
+</style>

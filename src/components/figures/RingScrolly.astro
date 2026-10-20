@@ -1,0 +1,167 @@
+---
+/**
+ * The ring taken apart, one state per scrolly step (What the Wrong Model Knows). Drawn at
+ * build time from lib/articles/wrong.ts; the enclosing <grwu-scrolly>'s data-active
+ * attribute shows one state at a time, so the figure has no JavaScript of its own.
+ */
+import { ring, scan, TRUTH } from '~/lib/articles/wrong';
+import { linePath, linear } from '~/lib/figure/svg';
+
+const r = ring();
+const points = scan();
+const W = 560;
+const H = 340;
+const PAD = { l: 20, r: 18, t: 50, b: 44 };
+const ms = r.t.map((t) => t * 1e3);
+const x = linear(0, ms[ms.length - 1], PAD.l, W - PAD.r);
+const peak = Math.max(...r.data.map(Math.abs));
+const mid = (PAD.t + H - PAD.b) / 2;
+const y = linear(0, peak * 1.05, mid, PAD.t);
+const every = 3;
+const coarseMs = ms.filter((_, i) => i % every === 0);
+
+const early = points[0];
+const late = points.find((p) => Math.abs(p.start - 4e-3) < 1e-9) ?? points[points.length - 1];
+const fastGone = 3; // ms: the fast tone is down to a twentieth of its starting height
+
+const titles = [
+  'What arrives: one ring',
+  'The slow tone: the one the template knows',
+  'The fast tone: the piece the template lacks',
+  'A one-tone template, fitted from the peak',
+  'The same template, fitted from 4 ms',
+];
+const ticks = [0, 2, 4, 6, 8, 10, 12];
+---
+
+<svg
+  class="fig ring-scrolly"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`A ringdown in five stages: the ring as it arrives; its slow tone, which lasts; its fast tone, gone within about ${fastGone} milliseconds; a one-tone template fitted from the peak, which returns ${early.one.answer.toFixed(1)} against a truth of ${TRUTH}; and the same template fitted from 4 milliseconds, which returns ${late.one.answer.toFixed(1)}.`}
+>
+  {titles.map((title, i) => (
+    <text class={`caps state s${i}`} x={PAD.l} y={20}>
+      {title}
+    </text>
+  ))}
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+  {ticks.map((t) => (
+    <g>
+      <line class="axis" x1={x(t)} x2={x(t)} y1={H - PAD.b} y2={H - PAD.b + 5} />
+      <text x={x(t)} y={H - PAD.b + 20} text-anchor="middle">
+        {t}
+      </text>
+    </g>
+  ))}
+  <text x={W - PAD.r} y={H - 6} text-anchor="end">
+    milliseconds after the peak
+  </text>
+  <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={mid} y2={mid}></line>
+
+  <g class="state s0">
+    <path class="data-line" d={linePath(ms, r.data, x, y)}></path>
+    <text x={PAD.l} y={38}>
+      the recorded ring, with a little noise
+    </text>
+  </g>
+
+  <g class="state s1 s2">
+    <path class="slow" d={linePath(ms, r.slow, x, y)}></path>
+  </g>
+  <g class="state s1">
+    <text x={PAD.l} y={38}>
+      still going at 12 ms
+    </text>
+  </g>
+
+  <g class="state s2">
+    <path class="fast" d={linePath(ms, r.fast, x, y)}></path>
+    <line class="gone" x1={x(fastGone)} x2={x(fastGone)} y1={PAD.t} y2={H - PAD.b}></line>
+    <text class="bias" x={x(fastGone) + 6} y={PAD.t + 12}>
+      the fast tone is gone by here
+    </text>
+    <text x={PAD.l} y={38}>
+      struck at the same instant, over within about {fastGone} ms
+    </text>
+  </g>
+
+  <g class="state s3 s4">
+    <path class="data-line faint" d={linePath(ms, r.data, x, y)}></path>
+  </g>
+  <g class="state s3">
+    <path class="model" d={linePath(coarseMs, early.curveOne, x, y)}></path>
+    <text x={PAD.l} y={38}>
+      answer {early.one.answer.toFixed(1)} · the truth is {TRUTH}
+    </text>
+  </g>
+  <g class="state s4">
+    <rect class="excluded" x={x(0)} y={PAD.t} width={x(4) - x(0)} height={H - PAD.t - PAD.b}></rect>
+    <path class="model" d={linePath(coarseMs, late.curveOne, x, y)}></path>
+    <text x={PAD.l} y={38}>
+      answer {late.one.answer.toFixed(1)} · the truth is {TRUTH}
+    </text>
+  </g>
+</svg>
+
+<style>
+  .ring-scrolly {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .ring-scrolly .state {
+    opacity: 0;
+    transition: opacity var(--dur) var(--ease);
+  }
+
+  :global(grwu-scrolly:not([data-active])) .ring-scrolly .s0,
+  :global(grwu-scrolly[data-active='0']) .ring-scrolly .s0,
+  :global(grwu-scrolly[data-active='1']) .ring-scrolly .s1,
+  :global(grwu-scrolly[data-active='2']) .ring-scrolly .s2,
+  :global(grwu-scrolly[data-active='3']) .ring-scrolly .s3,
+  :global(grwu-scrolly[data-active='4']) .ring-scrolly .s4 {
+    opacity: 1;
+  }
+
+  .ring-scrolly .data-line {
+    fill: none;
+    stroke: var(--ink-soft);
+    stroke-width: 1.2;
+  }
+
+  .ring-scrolly .data-line.faint {
+    stroke: var(--line-faint);
+  }
+
+  .ring-scrolly .slow {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 2;
+  }
+
+  .ring-scrolly .fast {
+    fill: none;
+    stroke: var(--bias);
+    stroke-width: 2;
+  }
+
+  .ring-scrolly .gone {
+    stroke: var(--bias);
+    stroke-width: 1;
+    stroke-dasharray: 3 4;
+  }
+
+  .ring-scrolly .model {
+    fill: none;
+    stroke: var(--model);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+
+  .ring-scrolly .excluded {
+    fill: var(--rule-soft);
+    opacity: 0.6;
+  }
+</style>

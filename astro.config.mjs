@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import svelte from '@astrojs/svelte';
+import { fileURLToPath } from 'node:url';
 
 // Production lives at https://aatyaa.github.io/GRWU/. PR previews are served
 // from /GRWU/pr-preview/pr-<n>/, so CI overrides the base path per build.
@@ -22,6 +23,20 @@ export default defineConfig({
   },
   integrations: [mdx(), svelte()],
   vite: {
+    resolve: {
+      // The gated track's own components and data, from the private repository (ADR 0007).
+      alias: {
+        '@track': fileURLToPath(new URL('./private/track', import.meta.url)),
+        // Its exports map lists the Node build (extensionless imports) before the self-contained
+        // browser build, and Vite takes the first match; the site always wants the browser one.
+        '@raspberrypifoundation/python-friendly-error-messages': fileURLToPath(
+          new URL(
+            './node_modules/@raspberrypifoundation/python-friendly-error-messages/dist/index.browser.js',
+            import.meta.url,
+          ),
+        ),
+      },
+    },
     define: {
       __SHOW_DRAFTS__: JSON.stringify(showDrafts),
     },

@@ -1,0 +1,247 @@
+/*
+ * The visual language of figures, shared by every SVG island (class="fig" on the <svg>).
+ * Thin strokes, mono labels, colour by meaning (see tokens.css).
+ */
+.fig {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  font-family: var(--f-mono);
+  touch-action: pan-y;
+}
+
+.fig text {
+  font-size: 11px;
+  fill: var(--ink-faint);
+  letter-spacing: 0.02em;
+}
+
+/* Class names like .signal also style strokes; text is never stroked. */
+.fig text,
+.fig text[class] {
+  stroke: none;
+}
+
+.fig text.caps {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.fig text.ink {
+  fill: var(--ink);
+}
+
+.fig text.signal {
+  fill: var(--signal);
+}
+
+.fig text.bias {
+  fill: var(--bias);
+}
+
+.fig text.ok {
+  fill: var(--ok);
+}
+
+.fig text.display {
+  font-family: var(--f-display);
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+.fig .axis {
+  stroke: var(--rule);
+  stroke-width: 1;
+  fill: none;
+}
+
+.fig .grid {
+  stroke: var(--rule-soft);
+  stroke-width: 1;
+  fill: none;
+}
+
+.fig .data {
+  stroke: var(--ink-soft);
+  stroke-width: 1.2;
+  fill: none;
+  stroke-linejoin: round;
+}
+
+.fig .noise {
+  stroke: var(--noise);
+  stroke-width: 1;
+  fill: none;
+  stroke-linejoin: round;
+}
+
+.fig .signal {
+  stroke: var(--signal);
+  stroke-width: 2;
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.fig .model {
+  stroke: var(--model);
+  stroke-width: 1.6;
+  stroke-dasharray: 6 4;
+  fill: none;
+}
+
+.fig .bias {
+  stroke: var(--bias);
+  stroke-width: 1.6;
+  fill: none;
+}
+
+.fig .ok {
+  stroke: var(--ok);
+  stroke-width: 1.6;
+  fill: none;
+}
+
+.fig .dot {
+  fill: var(--signal);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+
+.fig .dot.ink {
+  fill: var(--ink);
+}
+
+.fig .area-signal {
+  fill: var(--signal-bg);
+  stroke: none;
+}
+
+.fig .area-noise {
+  fill: color-mix(in srgb, var(--noise) 18%, transparent);
+  stroke: none;
+}
+
+.fig .area-bias {
+  fill: var(--bias-bg);
+  stroke: var(--bias);
+  stroke-width: 1;
+}
+
+/* A handle the reader can drag. */
+.fig .handle {
+  fill: var(--surface);
+  stroke: var(--signal);
+  stroke-width: 2;
+  cursor: grab;
+}
+
+.fig .handle:hover,
+.fig .handle:focus-visible {
+  fill: var(--signal);
+  outline: none;
+}
+
+.fig .hit {
+  fill: transparent;
+  cursor: grab;
+}
+
+/* Build-up: paths drawn with pathLength="1" and class="draw" trace themselves in once the
+   figure is revealed; .fade elements appear in order (style="--i: n"). */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] .fig .draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+
+  .js [data-reveal].is-revealed .fig .draw {
+    animation: fig-draw 1.4s var(--ease) forwards;
+    animation-delay: calc(var(--i, 0) * 120ms);
+  }
+
+  .js [data-reveal] .fig .fade {
+    opacity: 0;
+  }
+
+  .js [data-reveal].is-revealed .fig .fade {
+    animation: fig-fade 0.5s ease forwards;
+    animation-delay: calc(var(--i, 0) * 90ms);
+  }
+}
+
+@keyframes fig-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes fig-fade {
+  to {
+    opacity: 1;
+  }
+}
+
+/* A small readout panel over a figure. */
+.readout {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.2rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--rule-soft);
+  border-radius: var(--radius-1);
+  background: var(--surface);
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.readout b {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.readout .signal {
+  color: var(--signal);
+}
+
+.readout .bias {
+  color: var(--bias);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1.2rem;
+  margin-top: 0.8rem;
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+}
+
+.controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+}
+
+.key i {
+  display: block;
+  flex: none;
+  width: 15px;
+  height: 3px;
+  border-radius: 2px;
+}

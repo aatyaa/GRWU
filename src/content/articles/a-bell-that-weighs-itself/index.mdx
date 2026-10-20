@@ -1,0 +1,218 @@
+---
+title: A Bell That Weighs Itself
+emphasis: Bell
+headline: How can a ring tell you what the bell weighs?
+summary: Everything that rings is described by two numbers, how fast it oscillates and how fast it fades. For a black hole those two numbers are enough to weigh it and measure its spin.
+track: foundations
+order: 1
+level: beginner
+status: review
+minutes: 20
+objectives:
+  - Describe any ring by its frequency, its damping time and its quality factor.
+  - Explain why a heavier black hole rings lower, from units alone.
+  - Turn a black hole's ring into its mass and spin, and say why a distant one looks heavier.
+prepares:
+  - what-the-wrong-model-knows
+  - ringdown/weighing-the-ring
+  - ringdown/the-convergence-that-wasnt
+updated: 2026-09-30
+sources:
+  - title: 'R. P. Kerr, Gravitational field of a spinning mass as an example of algebraically special metrics, Phys. Rev. Lett. 11, 237 (1963)'
+    url: https://doi.org/10.1103/PhysRevLett.11.237
+  - title: 'S. W. Hawking, Gravitational radiation from colliding black holes, Phys. Rev. Lett. 26, 1344 (1971)'
+    url: https://doi.org/10.1103/PhysRevLett.26.1344
+  - title: 'E. Berti, V. Cardoso and C. M. Will, On gravitational-wave spectroscopy of massive black holes with LISA, Phys. Rev. D 73, 064030 (2006)'
+    url: https://arxiv.org/abs/gr-qc/0512160
+  - title: 'E. Berti, V. Cardoso and A. O. Starinets, Quasinormal modes of black holes and black branes, Class. Quantum Grav. 26, 163001 (2009)'
+    url: https://arxiv.org/abs/0905.2975
+  - title: 'LIGO, Virgo and KAGRA Collaborations, GW250114: Testing Hawking’s area law and the Kerr nature of black holes (2025)'
+    url: https://dcc.ligo.org/public/0201/P2500421/010/GW250114.pdf
+---
+
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import KerrRing from '~/components/figures/KerrRing.svelte';
+import SpringLab from '~/components/figures/SpringLab.svelte';
+import CheckYourself from '~/components/learn/CheckYourself.svelte';
+import Exercise from '~/components/learn/Exercise.svelte';
+import Misconception from '~/components/learn/Misconception.astro';
+import Predict from '~/components/learn/Predict.svelte';
+import PreparesFor from '~/components/learn/PreparesFor.astro';
+import Term from '~/components/learn/Term.astro';
+import Claim from '~/components/math/Claim.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+import { qualityFactor } from '~/lib/exercises/quality-factor';
+import { weighABlackHole } from '~/lib/exercises/weigh-a-black-hole';
+import { modeShape, ringOf, T_SUN } from '~/lib/physics/kerr';
+
+export const r60 = ringOf('220', 60, 0.7);
+export const r120 = ringOf('220', 120, 0.7);
+export const q0 = modeShape('220', 0).quality;
+export const q9 = modeShape('220', 0.95).quality;
+
+Tap a wine glass and then a church bell. Without looking, you know which is which: the small one rings high and the big one rings low. The sound carries information about the thing that made it.
+
+Physicists have used this idea for a long time. The pitch of a vibrating string tells you its tension; the way a building sways after a gust tells an engineer how stiff it is. In 2015 it became possible to do it with a black hole. When two black holes merge, the new one is born lopsided and shakes itself round, sending out gravitational waves that ring like a bell and fade within milliseconds. That ring is called the **ringdown**, and it is enough to weigh the black hole.
+
+This article builds the idea from a mass on a spring up to a black hole, one step at a time.
+
+## Every ring is two numbers
+
+Pull a weight on a spring and let go. It swings back and forth, and friction makes each swing a little smaller than the last. Two numbers describe everything you see: how many swings it makes per second, its <Term id="frequency">frequency</Term> *f*, and how long it takes for the swing to shrink by a factor *e* ≈ 2.72, its <Term id="damping-time">damping time</Term> τ.
+
+Move the sliders. A heavier weight swings more slowly; a stiffer spring swings faster; more friction makes the ring die sooner without changing its pitch much.
+
+<Figure kind="model" width="medium">
+  <SpringLab client:visible />
+  <Fragment slot="caption">
+    The motion of the weight (solid) inside its fading envelope (dashed). τ is marked where the
+    envelope has fallen to 1/e.
+  </Fragment>
+</Figure>
+
+The two numbers combine into a third that says how bell-like the ring is: the <Term id="quality-factor">quality factor</Term> *Q* = π *f* τ. It counts, roughly, how many oscillations the ring lasts. A good bell has a *Q* in the thousands. A black hole, as we will see, has a *Q* of about 2 to 4: it rings for only a few cycles before it is silent.
+
+<Exercise client:visible exercise={qualityFactor} title="How long does a ring last?">
+  <p>
+    Complete <code>quality_factor(f, tau)</code> so it returns *Q* for a ring of frequency f (in
+    Hz) and damping time tau (in seconds), then press Check.
+  </p>
+</Exercise>
+
+## Why a bigger bell rings lower
+
+Before any equations, there is a way to see why size sets pitch. A black hole in general relativity has no parts, no material, no stiffness: the only things that can set its ring are its mass *M*, the gravitational constant *G* and the speed of light *c*. There is exactly one way to combine them into a time:
+
+<Pull>
+  *GM*/*c*³, about <em>{(T_SUN * 1e6).toFixed(2)} microseconds for every solar mass.</em>
+</Pull>
+
+So every time in the ring, its period and its damping time, must be a number times *GM*/*c*³, and every frequency a number divided by it. Double the mass and every time doubles: the black hole rings an octave lower and fades half as fast. The numbers in front depend only on how fast the black hole spins, which has no units.
+
+<Predict
+  client:visible
+  id="bell-heavier"
+  question="A black hole of 60 solar masses rings at some frequency. One of 120 solar masses, spinning just as fast, rings at…"
+  options={[
+    { label: 'twice that frequency' },
+    { label: 'the same frequency' },
+    { label: 'half that frequency' },
+  ]}
+>
+  <p>
+    Half. With the spin used below, the 60 M☉ black hole rings at {r60.f.toFixed(0)} Hz and the
+    120 M☉ one at {r120.f.toFixed(0)} Hz: twice the mass, half the frequency, and a damping time
+    twice as long ({(r60.tau * 1e3).toFixed(1)} ms against {(r120.tau * 1e3).toFixed(1)} ms).
+  </p>
+</Predict>
+
+<MathLayer id="m-units" title="why the ring must scale with GM/c³">
+  <Claim>
+    For a black hole of mass *M* and spin χ, every frequency of its ring is *c*³/(*GM*) times a
+    number that depends on χ alone.
+  </Claim>
+  <Given>
+    that the only quantities available are *G* (m³ kg⁻¹ s⁻²), *c* (m s⁻¹), *M* (kg) and the
+    dimensionless spin χ.
+  </Given>
+  <Steps>
+    <Step tex="[G]^a [c]^b [M]^d = \mathrm{s}">Look for powers that multiply to a time.</Step>
+    <Step tex="a = 1,\quad b = -3,\quad d = 1" hinge>
+      Metres and kilograms must cancel, leaving seconds: there is only one solution.
+    </Step>
+    <Step tex="f = \frac{c^3}{GM}\,F(\chi),\qquad \tau = \frac{GM}{c^3}\,T(\chi)">
+      Any frequency or time is that scale times a function of the only number without units.
+    </Step>
+    <Step tex="Q = \pi f \tau = \pi F(\chi)\, T(\chi)">
+      The mass cancels from the quality factor: *Q* depends on the spin alone.
+    </Step>
+  </Steps>
+  <Means>
+    Units alone fix how the ring scales with mass. General relativity is needed only for the
+    functions *F* and *T*, which are computed once and tabulated (Berti, Cardoso and Will, 2006).
+  </Means>
+</MathLayer>
+
+## Only mass and spin
+
+A church bell's ring depends on its shape, its metal, its temperature, a crack you cannot see. A black hole is simpler than any bell. General relativity says that once it has settled down, a black hole is described completely by its mass and its <Term id="spin">spin</Term> χ (it could also carry electric charge, but real ones are neutral). Every other detail of the stars that made it is gone. This is the **no-hair** property, and the solution that describes such a black hole was found by Roy Kerr in 1963.
+
+That makes the ring a fingerprint. Each tone of it, a <Term id="qnm">quasinormal mode</Term>, has a frequency and a damping time fixed entirely by *M* and χ. Measure one tone, two numbers, and you can solve for the two unknowns. Spin changes the tone's *Q*, from about {q0.toFixed(1)} for a black hole that does not spin to {q9.toFixed(1)} for one spinning at χ = 0.95, so *Q* tells you the spin, and then the frequency tells you the mass.
+
+<Figure kind="model" width="medium">
+  <KerrRing client:visible />
+  <Fragment slot="caption">
+    The fundamental tone of a Kerr black hole, as a detector would receive it. Change the mass,
+    the spin, and how far away it is; the readouts turn the ring back into a black hole.
+  </Fragment>
+</Figure>
+
+<Exercise client:visible exercise={weighABlackHole} title="Weigh a black hole from its ring">
+  <p>
+    The fit <code>m_omega(chi)</code> gives the mass times the tone's angular frequency, with the
+    mass measured as a time. Complete <code>mass_from_ring(f, chi)</code> so it returns the mass
+    in solar masses of a black hole of spin chi ringing at f Hz. One solar mass, as a time, is
+    <code>T_SUN</code> seconds.
+  </p>
+</Exercise>
+
+## The bell that is far away
+
+There is one catch, and it matters for everything that follows. The black holes LIGO hears are hundreds of millions of light-years away, and while the waves travelled the universe expanded, stretching them. Every time in the signal arrives longer by a factor 1 + *z*, where *z* is the <Term id="redshift">redshift</Term>.
+
+Stretching every time by 1 + *z* is exactly what a black hole 1 + *z* times heavier would do. So the mass you read from a ring in the detector is the **detector-frame** mass, (1 + *z*) *M*. To know the real, **source-frame** mass, you must know the distance and divide. The spin needs no correction: stretching changes *f* and τ together and leaves *Q* alone. Move the redshift slider above and watch the mass change while the spin stays put.
+
+<Misconception claim="The mass a detector measures is the mass of the black hole.">
+  <p>
+    It is the mass stretched by 1 + *z*. A black hole at *z* = 0.1 reads 10% heavier than it
+    is. Comparing a detector-frame mass with a source-frame one is a mistake that looks exactly
+    like a physical effect; the ringdown track shows a real case of it.
+  </p>
+</Misconception>
+
+## The size of the horizon
+
+Mass and spin also fix the size of the black hole's event horizon, the surface from which nothing returns. Its <Term id="horizon-area">area</Term> is *A* = 8π(*GM*/*c*²)²(1 + √(1 − χ²)): it grows with the square of the mass and shrinks a little with spin. The readout above shows it in square kilometres.
+
+In 1971 Stephen Hawking proved that in a merger the total horizon area can only grow: the final black hole's horizon is larger than the two horizons that made it. Measuring the rings of real black holes lets that be checked with data, and in 2025 the loud signal GW250114 did so with high confidence (LIGO, Virgo and KAGRA, 2025). How much such a check really tests is a question the ringdown track takes up.
+
+## What the ring cannot tell you
+
+A ring measures the black hole only if what you fit is really its ring. Right after the merger the signal is not yet a clean set of tones, and the tones that fade fastest, the overtones, overlap with the one you are fitting. Fit too early and the answer drifts; fit too late and the ring is lost in noise. That tension is where real analyses become hard, and where the next articles go.
+
+<CheckYourself
+  client:visible
+  id="bell"
+  questions={[
+    {
+      question: 'Two rings have the same frequency. One fades in 10 ms, the other in 5 ms. Which has the larger Q?',
+      options: [
+        { label: 'The one that fades in 10 ms', correct: true, why: 'Q = π f τ: same f, twice the τ, twice the Q.' },
+        { label: 'The one that fades in 5 ms', why: 'A shorter damping time means fewer cycles before it fades, so a smaller Q.' },
+      ],
+    },
+    {
+      question: 'A black hole three times as heavy, spinning the same, has a damping time…',
+      options: [
+        { label: 'three times as long', correct: true, why: 'Every time in the ring scales with GM/c³.' },
+        { label: 'the same', why: 'Only Q, which has no units, stays the same; times scale with the mass.' },
+        { label: 'a third as long', why: 'That is how the frequency changes, not the time.' },
+      ],
+    },
+    {
+      question: 'A ring arrives from redshift z = 0.5. The mass read from it is…',
+      options: [
+        { label: '1.5 times the true mass', correct: true, why: 'The ring is stretched by 1 + z, as if the black hole were 1 + z times heavier.' },
+        { label: 'the true mass', why: 'Only the spin is read unchanged; the mass carries the stretch.' },
+        { label: 'two thirds of the true mass', why: 'Stretching makes it look heavier, not lighter.' },
+      ],
+    },
+  ]}
+/>
+
+<PreparesFor to={frontmatter.prepares} />

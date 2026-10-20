@@ -1,0 +1,49 @@
+---
+/**
+ * A figure with an evidence label, so a reader always knows what kind of picture it is:
+ *   measured   drawn from detector data
+ *   model      computed from a model or a simulation
+ *   schematic  a drawing that makes a point, not a measurement
+ *   control    a case whose answer is known in advance
+ * `width` lets a figure break out of the text column.
+ */
+interface Props {
+  kind: 'measured' | 'model' | 'schematic' | 'control';
+  width?: 'text' | 'medium' | 'wide';
+  id?: string;
+}
+
+const { kind, width = 'text', id } = Astro.props;
+---
+
+<figure class:list={['figure', width]} id={id} data-kind={kind} data-reveal>
+  <slot />
+  <figcaption>
+    <slot name="caption" />
+  </figcaption>
+</figure>
+
+<style>
+  .figure {
+    margin: var(--space-12) 0;
+  }
+
+  .figure.medium {
+    width: min(52rem, calc(100vw - 2 * var(--gutter)));
+    margin-inline: calc(50% - min(52rem, calc(100vw - 2 * var(--gutter))) / 2);
+  }
+
+  .figure.wide {
+    width: min(var(--wide), calc(100vw - 2 * var(--gutter)));
+    margin-inline: calc(50% - min(var(--wide), calc(100vw - 2 * var(--gutter))) / 2);
+  }
+
+  figcaption {
+    max-width: 40rem;
+    margin: 0.9rem auto 0;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    text-align: center;
+    color: var(--ink-soft);
+  }
+</style>

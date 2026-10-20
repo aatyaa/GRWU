@@ -1,0 +1,239 @@
+---
+title: How Sure Is Sure?
+emphasis: Sure
+headline: What does “68 ± 3” mean, and what does “four sigma” not mean?
+summary: A measurement in gravitational-wave astronomy is a cloud of samples drawn by a computer. Reading it well means knowing how the cloud was drawn, what an interval claims, when two models can be weighed, and when a count of sigmas misleads.
+track: foundations
+order: 3
+level: beginner
+status: review
+minutes: 22
+prerequisites:
+  - laplace-closes-the-circle
+objectives:
+  - Read a posterior as a set of samples, and summarise it with a median and a credible interval.
+  - Explain how a Metropolis sampler explores a posterior, and why more samples are not more data.
+  - Use a Bayes factor to compare models, and recognise when a count of sigmas overstates the case.
+prepares:
+  - what-the-wrong-model-knows
+  - ringdown/the-answer-moves
+  - ringdown/the-missing-voice
+  - ringdown/what-did-we-test
+updated: 2026-10-05
+sources:
+  - title: 'T. Bayes, An essay towards solving a problem in the doctrine of chances, Phil. Trans. R. Soc. 53, 370 (1763)'
+    url: https://doi.org/10.1098/rstl.1763.0053
+  - title: 'N. Metropolis, A. W. Rosenbluth, M. N. Rosenbluth, A. H. Teller and E. Teller, Equation of state calculations by fast computing machines, J. Chem. Phys. 21, 1087 (1953)'
+    url: https://doi.org/10.1063/1.1699114
+  - title: 'W. K. Hastings, Monte Carlo sampling methods using Markov chains and their applications, Biometrika 57, 97 (1970)'
+    url: https://doi.org/10.1093/biomet/57.1.97
+  - title: 'R. E. Kass and A. E. Raftery, Bayes factors, J. Am. Stat. Assoc. 90, 773 (1995)'
+    url: https://doi.org/10.1080/01621459.1995.10476572
+  - title: 'J. Skilling, Nested sampling for general Bayesian computation, Bayesian Anal. 1, 833 (2006)'
+    url: https://doi.org/10.1214/06-BA127
+  - title: 'J. Goodman and J. Weare, Ensemble samplers with affine invariance, Commun. Appl. Math. Comput. Sci. 5, 65 (2010)'
+    url: https://doi.org/10.2140/camcos.2010.5.65
+  - title: 'E. Thrane and C. Talbot, An introduction to Bayesian inference in gravitational-wave astronomy, Publ. Astron. Soc. Aust. 36, e010 (2019)'
+    url: https://arxiv.org/abs/1809.02293
+---
+
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import IntervalCompare from '~/components/figures/IntervalCompare.svelte';
+import SamplerWalk from '~/components/figures/SamplerWalk.svelte';
+import SigmaCounter from '~/components/figures/SigmaCounter.svelte';
+import CheckYourself from '~/components/learn/CheckYourself.svelte';
+import Exercise from '~/components/learn/Exercise.svelte';
+import Misconception from '~/components/learn/Misconception.astro';
+import Predict from '~/components/learn/Predict.svelte';
+import PreparesFor from '~/components/learn/PreparesFor.astro';
+import Term from '~/components/learn/Term.astro';
+import Claim from '~/components/math/Claim.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+import { credibleInterval } from '~/lib/exercises/credible-interval';
+import { metropolisStep } from '~/lib/exercises/metropolis-step';
+
+A paper says a black hole weighs 68 ± 3 solar masses. What does that sentence claim? Not that the mass is exactly 68, and not that it is surely between 65 and 71. It summarises a state of knowledge: given this model of the signal, these assumptions about the noise, and what was believed before, here is how strongly each possible mass is supported by the data.
+
+[Laplace Closes the Circle](../laplace-closes-the-circle/) showed where that state of knowledge comes from: the <Term id="likelihood">likelihood</Term> of the data for each value, times the <Term id="prior">prior</Term>, gives the <Term id="posterior">posterior</Term>. This article is about what happens next, when the posterior has fifteen dimensions and no formula, and a computer has to draw it for you.
+
+## A posterior is a cloud of samples
+
+For a real signal, the posterior depends on masses, spins, distance, sky position, orientation and more. Nobody can write it down. What a computer can do is produce **samples**: thousands of sets of parameter values, scattered so that more of them land where the posterior is high. Every number in a results table is then a count. The median mass is the value with half the samples below it. The probability that the spin exceeds 0.5 is the fraction of samples where it does.
+
+That makes everything simple to compute, and it hides one question that matters: how were the samples drawn, and are they as good as they look?
+
+## How a sampler walks
+
+The most famous answer came from Los Alamos in 1953, when Nicholas Metropolis, Arianna and Marshall Rosenbluth, and Augusta and Edward Teller needed to average over the arrangements of atoms in a liquid. Their recipe, generalised by Keith Hastings in 1970, is a walk. Stand somewhere. Propose a random step. If the posterior is higher there, go. If it is lower, go anyway with a probability equal to the ratio of the two heights; otherwise stay where you are, and count your current spot again.
+
+That is all. Repeated long enough, the places the walker visits are samples from the posterior. Below, the walker explores a posterior whose two parameters are tightly linked, the way a ringdown's mass and spin are.
+
+<Predict
+  client:visible
+  id="sure-steps"
+  question="The walker takes tiny steps, and most of them are accepted. Is that good?"
+  options={[
+    { label: 'Yes: nothing is wasted' },
+    { label: 'No: it crawls, and its samples repeat each other' },
+  ]}
+>
+  <p>
+    It crawls. Set the step size to its smallest value: most proposals are accepted, but
+    after hundreds of steps the walk has covered only a corner of the posterior, and it is worth
+    far fewer independent samples than it took. Make the steps huge and almost every proposal is
+    rejected instead. The useful walks are in between.
+  </p>
+</Predict>
+
+<Figure kind="schematic" width="medium">
+  <SamplerWalk client:visible />
+  <Fragment slot="caption">
+    The walk (amber) through a posterior with two correlated parameters (dashed: 1σ and 2σ).
+    Red dots are proposals that were turned down. Change the step size and count what the walk
+    is really worth.
+  </Fragment>
+</Figure>
+
+<MathLayer id="m-metropolis" title="why the walk ends up sampling the posterior">
+  <Claim>
+    If proposals are symmetric and a move from *a* to *b* is accepted with probability
+    min(1, *p*(*b*)/*p*(*a*)), the walk visits each place in proportion to *p*.
+  </Claim>
+  <Given>a target density *p* and a symmetric proposal *q*(*a* → *b*) = *q*(*b* → *a*).</Given>
+  <Steps>
+    <Step tex="p(a)\,T(a\to b) = p(b)\,T(b\to a)">
+      Detailed balance: if, once settled, the flow from *a* to *b* equals the flow back, the walk
+      stays settled on *p*.
+    </Step>
+    <Step tex="T(a\to b) = q(a\to b)\,\min\!\left(1, \frac{p(b)}{p(a)}\right)">
+      The move probability is the proposal times the acceptance.
+    </Step>
+    <Step tex="p(a)\,q\,\min\!\left(1, \tfrac{p(b)}{p(a)}\right) = q\,\min\!\big(p(a), p(b)\big)" hinge>
+      Multiply out: the result is symmetric in *a* and *b*, so detailed balance holds.
+    </Step>
+  </Steps>
+  <Means>
+    The rule needs only the ratio *p*(*b*)/*p*(*a*), so the posterior never has to be normalised.
+    That is why samplers work when nobody can compute the posterior's total.
+  </Means>
+</MathLayer>
+
+<Exercise client:visible exercise={metropolisStep} title="Write the step that makes it a sampler">
+  <p>
+    The function <code>walk</code> proposes steps but never decides whether to take them. Write
+    the acceptance rule, so that the walk samples a posterior centred on 250 Hz with a spread of
+    10 Hz.
+  </p>
+</Exercise>
+
+## Reading an interval
+
+The most common summary of a posterior is a <Term id="credible-interval">credible interval</Term>: a range holding, say, 90% of the samples. There is more than one way to choose it. The **equal-tailed** interval leaves 5% of the samples out on each side. The **highest-density** interval is the shortest range that holds 90%, so it hugs the peak. For a symmetric posterior they are the same. For a lopsided one, and posteriors for masses and damping times often are, they are not.
+
+<Figure kind="schematic" width="medium">
+  <IntervalCompare client:visible />
+  <Fragment slot="caption">
+    One posterior, two 90% intervals. Make it more lopsided and the shortest interval slides
+    towards the peak while the equal-tailed one keeps its tails even.
+  </Fragment>
+</Figure>
+
+Neither is wrong; they answer different questions. What matters is to say which one you quote, and never to treat the ends of an interval as hard walls. A 90% interval is expected to miss one time in ten.
+
+<Exercise client:visible exercise={credibleInterval} title="Quote a credible interval">
+  <p>
+    <code>samples</code> holds 4000 draws from a lopsided posterior for a damping time. Report
+    its 90% equal-tailed interval. The checker will tell you if your interval holds the wrong
+    share of samples, or sits in the wrong place.
+  </p>
+</Exercise>
+
+## More samples are not more data
+
+Look again at the walk above: each place it visits is close to the last. A chain of samples remembers itself, and a thousand remembering samples carry less information than a thousand independent ones. The useful count is the **effective sample size**: how many independent samples the chain is worth. Below, the same 2000 numbers are read two ways.
+
+<Figure kind="schematic" width="medium">
+  <SigmaCounter client:visible />
+  <Fragment slot="caption">
+    2000 samples whose memory you choose. Counting all of them as independent shrinks the error
+    bar on their mean; counting what they are really worth gives the honest one.
+  </Fragment>
+</Figure>
+
+<Misconception claim="Running the sampler longer makes the measurement more precise.">
+  <p>
+    Running longer makes the *picture of the posterior* sharper: its median and interval are
+    computed with less Monte Carlo jitter. The posterior itself, the uncertainty about the black
+    hole, is set by the data and does not shrink however many samples you draw.
+  </p>
+</Misconception>
+
+## Weighing two models
+
+Sometimes the question is not the value of a parameter but which model is right: does the ring contain one tone or two? Each model has an <Term id="evidence">evidence</Term> *Z*, the probability of the data averaged over everything that model allows. The ratio of two evidences is the **Bayes factor**, usually quoted as its logarithm, ln *B*.
+
+<Pull>
+  An extra tone always fits at least as well. <em>The evidence asks whether it fits better than its freedom deserves.</em>
+</Pull>
+
+A flexible model spreads its prior over many possibilities, so it is rewarded only if the data land where its extra freedom was needed. Robert Kass and Adrian Raftery's widely used scale reads ln *B* below about 1 as barely worth mentioning, 1 to 3 as positive, 3 to 5 as strong, and above 5 as very strong. Computing *Z* takes a sampler built for it; John Skilling's nested sampling (2006) is the workhorse in gravitational-wave astronomy.
+
+<MathLayer id="m-evidence" title="the evidence and the Bayes factor">
+  <Given>data *d*, a model *M* with parameters θ, prior *p*(θ | *M*) and likelihood *p*(*d* | θ, *M*).</Given>
+  <Steps>
+    <Step tex="p(\theta \mid d, M) = \frac{p(d \mid \theta, M)\, p(\theta \mid M)}{Z_M}">Bayes' theorem, with the normalisation written out.</Step>
+    <Step tex="Z_M = \int p(d \mid \theta, M)\, p(\theta \mid M)\, d\theta" hinge>
+      The evidence is the likelihood averaged over the prior: wasted prior space lowers it.
+    </Step>
+    <Step tex="\ln B_{21} = \ln Z_2 - \ln Z_1">Two models are compared by the difference of their log-evidences.</Step>
+  </Steps>
+  <Means>
+    The evidence carries a built-in Occam's razor: a model that needed less freedom to fit as
+    well wins.
+  </Means>
+</MathLayer>
+
+## Counting sigmas
+
+Results are often quoted as "*n* sigma". The phrase comes from the bell curve: for a quantity with a bell-shaped error of spread <Term id="sigma">σ</Term>, a result 1σ from a reference is common (about one time in three), 3σ is rare (about three times in a thousand, both sides together), and 5σ, the traditional bar for a discovery, is about one in 3.5 million on one side. Those odds hold only under assumptions that are easy to break:
+
+- **The error must be bell-shaped.** A lopsided posterior has different odds in each direction.
+- **The samples must be independent.** Correlated samples counted as independent overstate *n*, as the figure above shows.
+- **The two things compared must be independent.** If both numbers come from the same data, a large *n* measures how consistent they are, not how strongly an independent test was passed.
+
+None of this makes a count of sigmas useless. It means that a large number is a reason to ask how it was computed, not a reason to stop asking.
+
+<CheckYourself
+  client:visible
+  id="sure"
+  questions={[
+    {
+      question: '4000 posterior samples of a spin; 3200 of them are above 0.6. What is the probability that the spin is above 0.6?',
+      options: [
+        { label: '0.8', correct: true, why: 'With samples, a probability is a fraction: 3200 / 4000.' },
+        { label: 'It cannot be known without the formula', why: 'The samples are the posterior, as far as the computer is concerned.' },
+      ],
+    },
+    {
+      question: 'A Metropolis walk accepted 99% of its steps. What does that most likely mean?',
+      options: [
+        { label: 'Its steps are too small, so its samples repeat each other', correct: true, why: 'Tiny steps almost never go much downhill, so they are almost always accepted, and the walk crawls.' },
+        { label: 'It has converged perfectly', why: 'A high acceptance rate is a sign of timid steps, not of a good walk.' },
+      ],
+    },
+    {
+      question: 'Two numbers are computed from the same posterior samples and agree at "20σ". What has been shown?',
+      options: [
+        { label: 'That they are consistent with each other', correct: true, why: 'Both come from the same data, so their agreement is a consistency check, not an independent test.' },
+        { label: 'An independent confirmation at 20σ', why: 'Independent confirmation needs independent data or an independent method.' },
+      ],
+    },
+  ]}
+/>
+
+<PreparesFor to={frontmatter.prepares} />

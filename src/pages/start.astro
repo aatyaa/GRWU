@@ -1,0 +1,193 @@
+---
+import 'katex/dist/katex.min.css';
+import { getCollection } from 'astro:content';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { tex } from '~/components/math/tex';
+import { getArticles } from '~/lib/content';
+import { foundations } from '~/lib/tracks';
+import { withBase } from '~/lib/url';
+
+// The foundations series (ADR 0009) in reading order; written articles link, the rest wait.
+const written = new Map(
+  (await getArticles()).filter((a) => a.data.track === 'foundations').map((a) => [a.id, a]),
+);
+const series = foundations.map((plan) => {
+  const article = written.get(plan.id);
+  return {
+    ...plan,
+    title: article?.data.title ?? plan.title,
+    question: article?.data.headline ?? plan.question,
+    href: article ? withBase(`articles/${article.id}/`) : undefined,
+    minutes: article?.data.minutes,
+  };
+});
+const glossary = (await getCollection('glossary')).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name),
+);
+---
+
+<BaseLayout
+  title="Start here"
+  description="Five articles for a first-year student: the physics, statistics and signal analysis behind gravitational-wave research, joined up."
+>
+  <div class="start">
+    <h1>Start here</h1>
+    <p class="lead">
+      Five short articles for a first-year university student. Each joins a piece of physics, a
+      piece of statistics and a piece of signal analysis, with real data where it can, so that by
+      the end you know what a research analysis of a black hole actually does, and why.
+    </p>
+    <p>
+      You need school mathematics: sines, exponentials, logarithms, and what a derivative means.
+      Anything beyond that sits in a mathematical layer you can open when you want it.
+    </p>
+
+    <ol class="series">
+      {series.map((a, i) => (
+        <li class:list={{ soon: !a.href }}>
+          <span class="series__n" aria-hidden="true">
+            {i + 1}
+          </span>
+          <div>
+            <h2>{a.href ? <a href={a.href}>{a.title}</a> : a.title}</h2>
+            <p class="series__q">{a.question}</p>
+            <p class="series__covers">{a.covers}</p>
+            <p class="series__meta">
+              {a.href ? (a.minutes ? `${a.minutes} min read` : 'Read') : 'Coming soon'}
+            </p>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+    <h2 class="after">Where it leads</h2>
+    <p>
+      The <a href={withBase('#articles')}>articles</a> take one idea each further, with the recorded
+      signals. After them comes the research track,{' '}
+      <a href={withBase('ringdown/')}>Heavier Than Its Parents</a>, which follows a paper on
+      GW250114 section by section.
+    </p>
+
+    <h2 class="after" id="glossary">
+      The symbols
+    </h2>
+    <p>Every article uses these symbols the same way.</p>
+    <dl class="glossary">
+      {glossary.map(({ id, data }) => (
+        <div id={`term-${id}`}>
+          <dt>
+            <span class="glossary__symbol" set:html={tex(data.symbol, false)} />
+            <span>{data.name}</span>
+          </dt>
+          <dd>
+            {data.definition}
+            {data.unit && <span class="glossary__unit">Unit: {data.unit}.</span>}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</BaseLayout>
+
+<style>
+  .start {
+    width: 100%;
+    max-width: calc(var(--measure) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding: clamp(2.5rem, 7vh, 5rem) var(--gutter) var(--space-16);
+    color: var(--ink-soft);
+  }
+
+  .series {
+    display: grid;
+    gap: var(--space-4);
+    margin: var(--space-12) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .series li {
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    gap: 1rem;
+    padding: 1.2rem 1.3rem;
+    border: 1px solid var(--rule-soft);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  .series__n {
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 1.5px solid var(--signal);
+    border-radius: 50%;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .series h2 {
+    margin: 0 0 0.3rem;
+    font-size: 1.5rem;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+
+  .series__q {
+    margin: 0 0 0.4rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .series__covers {
+    margin: 0 0 0.6rem;
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .series__meta {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+  }
+
+  .after {
+    margin-top: var(--space-12);
+    font-size: clamp(1.6rem, 3.4vw, 2.2rem);
+    color: var(--ink);
+  }
+
+  .glossary {
+    margin: var(--space-6) 0 0;
+  }
+
+  .glossary > div {
+    padding: 0.8rem 0;
+    border-top: 1px solid var(--rule-soft);
+    scroll-margin-top: 5rem;
+  }
+
+  .glossary dt {
+    display: flex;
+    gap: 0.8rem;
+    align-items: baseline;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .glossary__symbol {
+    min-width: 5.5rem;
+  }
+
+  .glossary dd {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .glossary__unit {
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+</style>

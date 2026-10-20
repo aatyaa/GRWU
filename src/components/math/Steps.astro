@@ -1,0 +1,16 @@
+---
+/** A numbered derivation. Each child is a <Step>. */
+---
+
+<ol class="steps">
+  <slot />
+</ol>
+
+<style>
+  .steps {
+    margin: 1.1rem 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: step;
+  }
+</style>
