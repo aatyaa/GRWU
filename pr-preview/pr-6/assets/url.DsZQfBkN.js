@@ -1,1 +1,0 @@
-function e(e,t=``){return(e.endsWith(`/`)?e:`${e}/`)+t.replace(/^\/+/,``)}function t(t=``){return e(`/GRWU/pr-preview/pr-6/`,t)}export{t};
