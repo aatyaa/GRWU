@@ -1,0 +1,1 @@
+function e(e,t=``){return(e.endsWith(`/`)?e:`${e}/`)+t.replace(/^\/+/,``)}function t(t=``){return e(`/GRWU/`,t)}export{t};
