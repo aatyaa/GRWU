@@ -1,0 +1,291 @@
+---
+title: A Peak Is Only a Candidate
+emphasis: Candidate
+headline: What turns a loud peak into a detection?
+summary: The rest of Hidden in the Noise. Why the whole calculation lives in frequency, how to look at a transient, what a filter does to the edges of the data, and the tests a loud peak must pass before anyone calls it a gravitational wave.
+track: detection
+order: 2
+status: review
+level: core
+minutes: 25
+prerequisites:
+  - hidden-in-the-noise
+objectives:
+  - Say why stationary noise is simple in frequency, and how that makes whitening the right weighting, not just a convenient one.
+  - Read a time–frequency map, and know which part of a filtered file to throw away.
+  - Name the tests a candidate must pass, and say what a false-alarm rate measured by time slides does and does not tell you.
+updated: 2026-10-20
+sources:
+  - title: N. Wiener, Generalized harmonic analysis, Acta Mathematica 55, 117 (1930)
+    url: https://doi.org/10.1007/BF02546511
+  - title: A. Khintchine, Korrelationstheorie der stationären stochastischen Prozesse, Mathematische Annalen 109, 604 (1934)
+    url: https://doi.org/10.1007/BF01449156
+  - title: 'A. C. Aitken, On least squares and linear combinations of observations (1935)'
+    url: https://doi.org/10.1017/S0370164600014346
+  - title: J. Neyman and E. S. Pearson, On the problem of the most efficient tests of statistical hypotheses, Phil. Trans. R. Soc. A 231, 289 (1933)
+    url: https://doi.org/10.1098/rsta.1933.0009
+  - title: S. Chatterji et al., Multiresolution techniques for the detection of gravitational-wave bursts, Class. Quantum Grav. 21, S1809 (2004)
+    url: https://doi.org/10.1088/0264-9381/21/17/024
+  - title: B. Allen, A χ² time-frequency discriminator for gravitational wave detection, Phys. Rev. D 71, 062001 (2005)
+    url: https://doi.org/10.1103/PhysRevD.71.062001
+  - title: 'LIGO and Virgo, GW150914: First results from the search for binary black hole coalescence with Advanced LIGO, Phys. Rev. D 93, 122003 (2016)'
+    url: https://doi.org/10.1103/PhysRevD.93.122003
+  - title: 'LIGO and Virgo, Observation of Gravitational Waves from a Binary Black Hole Merger, Phys. Rev. Lett. 116, 061102 (2016)'
+    url: https://doi.org/10.1103/PhysRevLett.116.061102
+---
+
+import Card from '~/components/editorial/Card.astro';
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import AitkenEllipses from '~/components/figures/AitkenEllipses.astro';
+import CandidateMaps from '~/components/figures/CandidateMaps.astro';
+import ChiSquareTest from '~/components/figures/ChiSquareTest.astro';
+import DetectionThreshold from '~/components/figures/DetectionThreshold.svelte';
+import EdgeRinging from '~/components/figures/EdgeRinging.astro';
+import TimeSlides from '~/components/figures/TimeSlides.astro';
+import WienerKhinchin from '~/components/figures/WienerKhinchin.astro';
+import Claim from '~/components/math/Claim.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+import { chiSquare, edges, timeSlides } from '~/lib/articles/candidate';
+
+export const edge = edges();
+export const chi = chiSquare();
+export const slid = timeSlides();
+export const loudest = (values) => Math.max(...values).toFixed(1);
+
+[Hidden in the Noise](../hidden-in-the-noise/) ended at a peak. A template slid along whitened data, and at one moment its score jumped far above anything the noise had produced. That is where a search starts, not where it ends. A peak is a candidate. Before anyone writes the word detection, it has to survive a set of questions, and most of the craft lies in asking them well.
+
+This article is the rest of that story. It explains why the whole calculation lives in frequency, how to look at a transient with your own eyes, and what a filter does to the edges of your data. Then it walks through the tests a loud peak must pass. Does it look like a chirp? Did the other detector see it? How often does noise alone do this? And where should the line be drawn?
+
+## Why everything happens in frequency
+
+Detector noise has a memory. A sample of strain is not independent of the one before it: if the mirror is swinging slowly at one moment, it is still swinging a millisecond later. In time, every sample is tied to its neighbours, and the table of how each sample relates to every other one has billions of entries.
+
+Norbert Wiener in 1930 and Aleksandr Khinchin in 1934 showed that this tangle comes apart in the right coordinates. For noise whose character does not change over time, its memory and its spectrum are two views of one object: each is the Fourier transform of the other. And in frequency, different frequencies are independent. The whole tangle reduces to one number per frequency, the spectrum.
+
+<Figure kind="schematic" width="medium">
+  <WienerKhinchin />
+  <Fragment slot="caption">
+    One noise, two views. Whatever lasts in its memory is narrow in its spectrum; whatever dies
+    quickly is broad; no memory at all is the flat floor.
+  </Fragment>
+</Figure>
+
+This is why the [skills map](../almost-none-of-it/) says not to skip Fourier. Whitening, the noise spectrum and the matched filter are one argument in three costumes, and this theorem is the argument. Dividing by the spectrum, frequency by frequency, does the same job as untangling that enormous table of relations between samples.
+
+<MathLayer id="m-wiener" title="stationary noise is diagonal in frequency">
+  <Claim>
+    For noise whose statistics do not change in time, the autocorrelation and the power spectrum
+    are a Fourier pair, and the noise at two different frequencies is uncorrelated.
+  </Claim>
+  <Given>noise *n(t)* with mean zero whose second moments depend only on the lag between two times.</Given>
+  <Steps>
+    <Step tex="R(\tau) = \langle n(t)\, n(t+\tau) \rangle">
+      Stationarity: the memory depends on the lag τ, not on when you look.
+    </Step>
+    <Step tex="\langle \tilde n(f)\, \tilde n^*(f') \rangle = \iint R(t'-t)\, e^{-2\pi i f t}\, e^{2\pi i f' t'}\, dt\, dt'">
+      Write the covariance of two Fourier components as a double integral over times.
+    </Step>
+    <Step tex="= \delta(f - f') \int R(\tau)\, e^{-2\pi i f \tau}\, d\tau" hinge>
+      Change variables to the lag τ = t′ − t. The integral over t that is left produces a delta:
+      different frequencies do not talk to each other.
+    </Step>
+    <Step tex="\langle \tilde n(f)\, \tilde n^*(f') \rangle = \tfrac12\, S_n(f)\, \delta(f - f'), \quad S_n(f) = 2\int R(\tau)\, e^{-2\pi i f \tau}\, d\tau">
+      What is left on the diagonal is the one-sided power spectrum.
+    </Step>
+  </Steps>
+  <Means>
+    In time, the noise covariance is a full matrix with as many rows as there are samples. In
+    frequency it is diagonal, and the diagonal is the spectrum. Dividing by S<sub>n</sub>(f) is
+    inverting that matrix, at the cost of one Fourier transform.
+  </Means>
+</MathLayer>
+
+There is a second reason the spectrum belongs in the denominator, and it is older than gravitational-wave astronomy. In 1935 the New Zealand mathematician Alexander Aitken asked what least squares should do when the errors are correlated. His answer: measure every residual in units of the noise. A step across the grain of the noise is far more surprising than the same step along it.
+
+<Figure kind="schematic" width="medium">
+  <AitkenEllipses />
+  <Fragment slot="caption">
+    On the page, B is closer to the centre than A. Measured in units of the noise, B is the one
+    that should surprise you.
+  </Fragment>
+</Figure>
+
+Whitening is exactly this change of ruler. After it, the cloud of noise is round, ordinary least squares applies again, and the [Gauss–Markov theorem](../laplace-closes-the-circle/) says nothing linear can do better.
+
+<MathLayer id="m-aitken" title="weighted least squares is least squares on whitened data">
+  <Claim>
+    With correlated noise, the best linear unbiased fit minimises the residual measured with the
+    inverse of the noise covariance. That is ordinary least squares after whitening, and for
+    stationary noise it is the inner product of Hidden in the Noise.
+  </Claim>
+  <Given>data *d = Xθ + n*, noise with mean zero and covariance *C*, which is not a multiple of the identity.</Given>
+  <Steps>
+    <Step tex="\chi^2(\theta) = (d - X\theta)^{\mathsf T}\, C^{-1}\, (d - X\theta)">
+      Weigh each residual by the inverse covariance: Aitken's generalised least squares.
+    </Step>
+    <Step tex="W = C^{-1/2}: \quad \chi^2(\theta) = \lVert W d - W X \theta \rVert^2" hinge>
+      Whiten first, and the weighted problem becomes the ordinary one. The whitened noise has
+      covariance I, so Gauss–Markov applies to it unchanged.
+    </Step>
+    <Step tex="\hat\theta = (X^{\mathsf T} C^{-1} X)^{-1}\, X^{\mathsf T} C^{-1} d">
+      The best linear unbiased estimate (Aitken, 1935).
+    </Step>
+    <Step tex="(a\,|\,b) = 4\,\mathrm{Re} \int_0^\infty \frac{\tilde a(f)\, \tilde b^*(f)}{S_n(f)}\, df">
+      For stationary noise C is diagonal in frequency, and multiplying by C⁻¹ becomes dividing by
+      the spectrum.
+    </Step>
+  </Steps>
+  <Means>
+    The noise-weighted inner product is not an invention of gravitational-wave physics. It is
+    Aitken's weighted least squares, written in the one basis where the noise is diagonal.
+  </Means>
+</MathLayer>
+
+## Seeing a transient
+
+Before anyone trusts a number, they look. The standard picture is a time–frequency map, often called a Q-transform. It cuts the whitened data into short pieces, a few cycles long at each frequency, and shows how much energy each piece holds compared with what noise usually has. A chirp is a rising arc: low frequencies first, higher ones as the orbit shrinks.
+
+<Figure kind="measured" width="wide">
+  <CandidateMaps which="gw150914" />
+  <Fragment slot="caption">
+    LIGO Hanford, whitened, in the last half second around GW150914. Brighter means more energy
+    than the noise usually has. The arc is the chirp.
+  </Fragment>
+</Figure>
+
+GW150914 is one of the few events loud enough to see by eye. Over two tenths of a second it sweeps from about 35 hertz to about 150 hertz, where it is loudest. Most events since then leave no visible mark on a map like this, and their detection rests entirely on the filter.
+
+<Card tone="caveat" label="A picture, not a detection">
+  The eye finds arcs in noise with ease. A map like this is for checking what the filter found,
+  not for deciding anything. This one is a simplified version with a fixed number of cycles per
+  tile, drawn the same way for every frequency; tools such as gwpy search over that number too.
+</Card>
+
+## Crop what your filter corrupted
+
+Every filter applied through a Fourier transform treats the data as if they wrapped around in a circle. The end of the file is glued to its start, and the two do not meet. Whitening is a long filter, because the spectrum has sharp lines, so that join rings for seconds.
+
+<Figure kind="measured" width="wide">
+  <EdgeRinging />
+  <Fragment slot="caption">
+    Whitening the whole file with no taper. The middle is noise as it should be; the ends are the
+    filter talking to itself. The shaded seconds are what you throw away.
+  </Fragment>
+</Figure>
+
+In the middle of the file the whitened data stay within about {edge.middlePeak.toFixed(0)} units of the noise. At the ends they reach {edge.edgePeak.toFixed(0)}, a glitch-sized lie produced by your own code. The habit that prevents it is short. Remove the seismic rumble below about 15 hertz first, resample to 2048 hertz if nothing you need is higher, whiten, and then crop a couple of seconds from both ends. Libraries help: PyCBC can truncate the whitening filter to a fixed length, so that the damage is confined to a known number of seconds. What it cannot do is decide for you to throw those seconds away.
+
+## Does it look like a chirp?
+
+Real detectors do not only have well-behaved noise. They have glitches: short bursts from the instrument or its surroundings, such as scattered light, a magnetic transient, or a blip whose cause is still unknown. A glitch can be briefly enormous, and an enormous burst scores high against almost any template.
+
+In 2005 Bruce Allen published a test that matched-filter searches still use to tell them apart. Split the template into frequency bands, each of which should carry an equal share of the score. A real chirp delivers its share in every band, because it has the template's shape. A glitch resembles the template only over part of its frequency range, and its score piles up there.
+
+<Figure kind="control" width="medium">
+  <ChiSquareTest />
+  <Fragment slot="caption">
+    The same score, built two ways. The chirp's is spread evenly across the bands; the glitch's
+    is piled into one.
+  </Fragment>
+</Figure>
+
+The two cases score almost the same, {chi.chirp.snr.toFixed(1)} and {chi.glitch.snr.toFixed(1)}. The test does not care about the size of the score, only its shape. For the chirp, the χ² per degree of freedom is {(chi.chirp.chi2 / chi.chirp.dof).toFixed(2)}, what noise alone would give. For the glitch it is {(chi.glitch.chi2 / chi.glitch.dof).toFixed(0)}. Searches fold this into the ranking: a candidate whose score is badly distributed has its score reduced before anyone looks at it.
+
+The test has an honest limit. It compares the data with the template, so a real signal that the template describes poorly also fails it. A large χ² says the data do not look like this template. It does not say which of the two is wrong, and [What the Wrong Model Knows](../what-the-wrong-model-knows/) is about that second possibility.
+
+## Did the other detector see it?
+
+A gravitational wave crosses the Earth at the speed of light, so it reaches the two LIGO sites at most about 10 milliseconds apart. A glitch is local: a truck near Hanford does not shake Livingston. A search therefore keeps only coincidences, triggers in both detectors with the same template, within the light travel time of each other.
+
+GW150914 reached Livingston about 7 milliseconds before Hanford, with the shape flipped by the different orientation of the two detectors. [From Strain to Source](../from-strain-to-source/) lines the two up and shows how much the second detector adds.
+
+## How often does noise do this?
+
+To say that a candidate is rare, you need to know how often noise alone produces something as loud. But the universe cannot be switched off to record pure noise. The trick behind GW150914's significance is to slide one detector's data against the other by much more than the light travel time. After the slide no real signal can line up any more, so every coincidence that survives is an accident. Repeat with many different slides, and you have measured the background from the data themselves.
+
+Below, two simulated detectors record 64 seconds of noise with one chirp in both. The second detector is slid against the first in half-second steps.
+
+<Figure kind="control" width="medium">
+  <TimeSlides />
+  <Fragment slot="caption">
+    Every accidental coincidence found in the slid data, by combined score. The candidate is far
+    to the right of all of them.
+  </Fragment>
+</Figure>
+
+In {slid.slides} slides of {slid.duration} seconds, about {((slid.slides * slid.duration) / 3600).toFixed(1)} hours of noise, the loudest accident scores {loudest(slid.background)}. The candidate scores {slid.candidate.toFixed(1)}. Nothing in the background comes close, so the honest statement is a bound: noise alone does this less than once in that many hours. To claim more you need more slides, more data or both. For GW150914 the bound was less than once in 203,000 years.
+
+The box under the figure raises a real question. When the data are slid, the candidate's own loud trigger in one detector still pairs with noise in the other. Leave it in and the background grows a tail of half-real accidents, reaching {loudest(slid.inclusive)} here. The choice matters for very loud events, and searches have reported both. And time slides make one assumption worth saying out loud: that the noise in the two detectors is independent, so that shifting it changes nothing but the alignment.
+
+## Where to draw the line
+
+Every search ends with a threshold, and a threshold trades two kinds of mistake. Set it low and noise crosses it often. Set it high and quiet signals are missed. In 1933 Jerzy Neyman and Egon Pearson proved which rule makes this trade best. Fix how often you are willing to cry wolf; then the test that catches the most real signals compares the likelihood ratio to a threshold. For a known chirp in Gaussian noise, that likelihood ratio depends on the data only through the matched filter.
+
+<Figure kind="model" width="medium">
+  <DetectionThreshold client:visible />
+  <Fragment slot="caption">
+    How the score is spread in noise alone and with a signal. Moving the line trades false alarms
+    against missed signals; the vertical axis is logarithmic, so the noise's thin tail stays
+    visible.
+  </Fragment>
+</Figure>
+
+The noise tail falls off steeply, so a small move of the line changes the false-alarm rate by orders of magnitude. A search makes enormous numbers of independent tries: every template at every moment is one. That is why the line sits near 8 and not near 3. At a thousand tries per second, a line at 3 would cry wolf hundreds of millions of times a year.
+
+The formula behind this figure assumes Gaussian noise, and real noise is not Gaussian: glitches make the tail far heavier than this curve. That is the reason searches do not set their thresholds from a formula. They measure the background with time slides, as above, and rank candidates against what the data actually produced.
+
+<MathLayer id="m-neyman" title="the matched filter is the most powerful test">
+  <Claim>
+    Among all tests that raise a false alarm no more than a fixed fraction of the time, the one
+    that catches the most signals thresholds the likelihood ratio. For a known chirp in Gaussian
+    noise, the likelihood ratio is a function of the matched filter alone.
+  </Claim>
+  <Given>two hypotheses, noise alone (*d = n*) and a signal present (*d = n + h*), with stationary Gaussian noise of spectrum *S<sub>n</sub>*.</Given>
+  <Steps>
+    <Step tex="\Lambda(d) = \frac{p(d \mid h)}{p(d \mid 0)}">
+      The likelihood ratio: how much better the data are explained with the signal than without.
+    </Step>
+    <Step tex="\text{claim a signal when } \Lambda(d) > \eta" hinge>
+      Neyman–Pearson lemma: at a fixed false-alarm probability, no other rule catches more
+      signals.
+    </Step>
+    <Step tex="p(d \mid h) \propto \exp\!\left[-\tfrac12\,(d - h \,|\, d - h)\right]">
+      Gaussian noise, measured with the noise-weighted inner product.
+    </Step>
+    <Step tex="\ln \Lambda = (d\,|\,h) - \tfrac12\,(h\,|\,h)">
+      Expand the square. The data enter only through (d|h), the matched filter.
+    </Step>
+  </Steps>
+  <Means>
+    The matched filter is more than the filter with the best signal-to-noise ratio: it is the
+    optimal test. When the signal's time, phase and masses are unknown, a search maximises over
+    them, and every extra template is one more chance for noise to look like a signal. That is
+    the look-elsewhere effect, and it is why the threshold has to rise as the template bank grows.
+  </Means>
+</MathLayer>
+
+## Subtract it and look again
+
+One last check closes the loop. Take the template the search found, subtract it from the data, and look at what is left. If the template captured the signal, the residual should be indistinguishable from noise. If something remains, the template missed part of the story.
+
+<Figure kind="control" width="medium">
+  <CandidateMaps which="subtraction" />
+  <Fragment slot="caption">
+    The practice data before and after subtracting the matching template. The arc goes, and the
+    speckle that remains is the noise's own.
+  </Fragment>
+</Figure>
+
+<Pull>A candidate becomes a detection when it has the template's shape in every band, appears in both detectors, and is louder than everything the noise produced, with nothing left behind.</Pull>
+
+For the practice chirp the answer is clean, because the template is exactly the signal. For real events the residual test is part of every analysis, and it is only as strong as what it can see. A residual that looks like noise says the template captured whatever this map can show, not that the template is right.
+
+<Card label="Next: What the Wrong Model Knows">
+  Everything here assumed the template was right. When it is not, the fit does not fail. It
+  quietly moves the error into the answer. [Read it →](../what-the-wrong-model-knows/)
+</Card>

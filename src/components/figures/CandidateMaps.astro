@@ -1,0 +1,50 @@
+---
+/** The build-time energy maps for A Peak Is Only a Candidate, by name. */
+import { gw150914Map, subtraction } from '~/lib/articles/candidate';
+import EnergyMapFigure from './EnergyMapFigure.astro';
+
+interface Props {
+  which: 'gw150914' | 'subtraction';
+}
+
+const { which } = Astro.props;
+const sub = which === 'subtraction' ? subtraction() : undefined;
+---
+
+{which === 'gw150914' && (
+  <EnergyMapFigure
+    map={gw150914Map()}
+    id="map-gw150914"
+    title="GW150914 in LIGO Hanford · energy by time and frequency"
+    label="A time–frequency map of LIGO Hanford around GW150914. Apart from scattered speckle, one bright arc rises from about 35 hertz to about 150 hertz in the last two tenths of a second before the event: the chirp."
+    timeTicks={[-0.4, -0.3, -0.2, -0.1, 0, 0.1]}
+  />
+)}
+{sub && (
+  <div class="map-pair">
+    <EnergyMapFigure
+      map={sub.before}
+      id="map-before"
+      title="the practice data"
+      label="A time–frequency map of the practice data: a faint arc rising in frequency toward the merger."
+      width={300}
+      timeTicks={[-1, -0.5, 0]}
+    />
+    <EnergyMapFigure
+      map={sub.after}
+      id="map-after"
+      title="after subtracting the template"
+      label="The same map after subtracting the matching template: featureless speckle, with no arc left."
+      width={300}
+      timeTicks={[-1, -0.5, 0]}
+    />
+  </div>
+)}
+
+<style>
+  .map-pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--space-6);
+  }
+</style>
