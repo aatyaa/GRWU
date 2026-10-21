@@ -1,0 +1,94 @@
+---
+/**
+ * Two infinities, one of them false (Mass, Spin and Nothing Else). Around a non-rotating hole,
+ * the radial part of Schwarzschild's metric, 1/(1 − r_s/r), blows up at the horizon: that is
+ * the map. The Kretschmann scalar, R_abcd R^abcd = 12 r_s² / r⁶, which every observer computes
+ * alike, is finite there and blows up only at the centre: that is the place.
+ */
+import { linePath, log, linear } from '~/lib/figure/svg';
+
+const W = 600;
+const H = 300;
+const PAD = { l: 52, r: 18, t: 34, b: 40 };
+const x = linear(0, 4, PAD.l, W - PAD.r);
+const y = log(0.002, 3000, H - PAD.b, PAD.t);
+// Off the scale is left undrawn: linePath breaks the line at non-finite points.
+const clamp = (v: number) => (v >= 0.002 && v <= 3000 ? v : NaN);
+
+const outside = Array.from({ length: 300 }, (_, i) => 1.003 + (i / 299) * (4 - 1.003));
+const stretch = outside.map((r) => 1 / (1 - 1 / r));
+const all = Array.from({ length: 400 }, (_, i) => 0.36 + (i / 399) * (4 - 0.36));
+const curvature = all.map((r) => 12 / r ** 6);
+const atHorizon = 12;
+---
+
+<svg
+  class="fig map-place"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Two quantities against distance from the centre, in Schwarzschild radii, on a log scale. The radial stretch of Schwarzschild's coordinates, one over one minus r_s over r, climbs to infinity at the horizon. The curvature every observer agrees on, the Kretschmann scalar, passes through the horizon at a finite value and climbs to infinity only at the centre."
+>
+  <text class="caps" x={PAD.l} y="16">
+    the map and the place
+  </text>
+  {[0.01, 0.1, 1, 10, 100, 1000].map((v) => (
+    <g>
+      <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} />
+      <text x={PAD.l - 8} y={y(v) + 4} text-anchor="end">
+        {v}
+      </text>
+    </g>
+  ))}
+  <line class="horizon" x1={x(1)} x2={x(1)} y1={PAD.t} y2={H - PAD.b}></line>
+  <text class="ink halo" x={x(1) + 6} y={H - PAD.b - 8}>
+    horizon
+  </text>
+
+  <path class="model" d={linePath(outside, stretch.map(clamp), x, y)}></path>
+  <path class="curve" d={linePath(all, curvature.map(clamp), x, y)}></path>
+  <circle class="dot ink" cx={x(1)} cy={y(atHorizon)} r="4"></circle>
+
+  <text class="halo" x={x(1.25)} y={y(5) - 4}>
+    the map: 1 / (1 − rₛ/r)
+  </text>
+  <text class="halo" x={x(1.6)} y={y(1 / (1 - 1 / 1.6)) + 18}>
+    infinite at the horizon
+  </text>
+  <text class="ink halo" x={x(1) + 8} y={y(atHorizon) - 8}>
+    the place: curvature, finite here
+  </text>
+  <text class="ink halo" x={x(0.42) + 10} y={y(1800)}>
+    infinite only at the centre
+  </text>
+
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+  {[0, 1, 2, 3, 4].map((v) => (
+    <text x={x(v)} y={H - PAD.b + 16} text-anchor="middle">
+      {v}
+    </text>
+  ))}
+  <text x={W - PAD.r} y={H - 6} text-anchor="end">
+    distance from the centre, Schwarzschild radii
+  </text>
+</svg>
+
+<style>
+  .map-place .horizon {
+    stroke: var(--ink-soft);
+    stroke-width: 1;
+    stroke-dasharray: 2 3;
+  }
+
+  .map-place .curve {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2;
+  }
+
+  .map-place text.halo {
+    paint-order: stroke;
+    stroke: var(--ground);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+</style>

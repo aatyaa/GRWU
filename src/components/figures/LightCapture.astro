@@ -1,0 +1,109 @@
+---
+/**
+ * The shadow is bigger than the hole (Mass, Spin and Nothing Else). Light rays arriving from
+ * the right at different heights, traced through the exact orbit equation for light around a
+ * non-rotating hole. Rays aimed within (3√3/2) r_s ≈ 2.6 r_s of the centre are caught; a
+ * distant camera sees that whole disc as dark, not just the horizon.
+ */
+import { CRITICAL_IMPACT, lightRay } from '~/lib/physics/blackhole';
+
+const W = 600;
+const H = 330;
+const FAR = 9;
+const k = (H / 2 - 18) / 5.8; // pixels per Schwarzschild radius
+const cx = 250;
+const cy = H / 2 + 4;
+const heights = [0.6, 1.4, 2.0, 2.45, 3.2, 4, 5.2];
+const rays = heights.flatMap((b) => {
+  const ray = lightRay(b, 6.5);
+  // The ray as traced comes in above the axis; its mirror image comes in below.
+  const path = (sign: number) =>
+    `M${(cx + FAR * k).toFixed(1)},${(cy - sign * b * k).toFixed(1)}` +
+    ray.points
+      .map((p) => `L${(cx + p.x * k).toFixed(1)},${(cy - sign * p.y * k).toFixed(1)}`)
+      .join('');
+  return [1, -1].map((sign) => ({ b, captured: ray.captured, d: path(sign) }));
+});
+const shadow = CRITICAL_IMPACT;
+---
+
+<svg
+  class="fig light-capture"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`Light rays arriving from the right at different heights pass a black hole. Rays aimed within ${shadow.toFixed(2)} Schwarzschild radii of the centre are caught; the others are bent and escape. The region of caught rays, the shadow, is ${shadow.toFixed(1)} times the size of the horizon.`}
+>
+  <text class="caps" x="12" y="16">
+    light from one side, traced exactly
+  </text>
+  <rect
+    class="shadow"
+    x={cx + FAR * k}
+    y={cy - shadow * k}
+    width="14"
+    height={2 * shadow * k}
+  ></rect>
+  <clipPath id="light-capture-frame">
+    <rect x="0" y="24" width={W} height={H - 24}></rect>
+  </clipPath>
+  <g clip-path="url(#light-capture-frame)">
+    {rays.map((ray) => (
+      <path class={ray.captured ? 'caught' : 'escapes'} d={ray.d} />
+    ))}
+  </g>
+  <circle class="photon" cx={cx} cy={cy} r={1.5 * k}></circle>
+  <circle class="hole" cx={cx} cy={cy} r={k}></circle>
+  <circle class="hole" cx="22" cy={H - 34} r="5"></circle>
+  <text class="ink" x="34" y={H - 30}>
+    the horizon, rₛ
+  </text>
+  <line class="photon" x1="16" x2="30" y1={H - 14} y2={H - 14}></line>
+  <text x="34" y={H - 10}>
+    light's orbit, 1.5 rₛ
+  </text>
+  <text class="ink halo" x={cx + FAR * k + 20} y={cy - 6}>
+    caught: the
+  </text>
+  <text class="ink halo" x={cx + FAR * k + 20} y={cy + 8}>
+    shadow, {shadow.toFixed(1)} rₛ
+  </text>
+  <text class="halo" x={cx + FAR * k + 20} y={cy - shadow * k - 10}>
+    escapes
+  </text>
+</svg>
+
+<style>
+  .light-capture .shadow {
+    fill: var(--ink);
+  }
+
+  .light-capture .caught {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.4;
+  }
+
+  .light-capture .escapes {
+    fill: none;
+    stroke: var(--noise);
+    stroke-width: 1.2;
+  }
+
+  .light-capture .photon {
+    fill: none;
+    stroke: var(--ink-soft);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+
+  .light-capture .hole {
+    fill: var(--ink);
+  }
+
+  .light-capture text.halo {
+    paint-order: stroke;
+    stroke: var(--ground);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+</style>

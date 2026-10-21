@@ -1,0 +1,103 @@
+---
+/**
+ * How far each thing would have to be squeezed to become a black hole (Mass, Spin and
+ * Nothing Else). For each object its actual size and its Schwarzschild radius 2GM/c², on one
+ * log axis; the gap between them is the squeeze. GW250114's remnant has no gap left.
+ */
+import { scientific } from '~/lib/format';
+import { log } from '~/lib/figure/svg';
+import { C, GM_EARTH, GM_SUN, R_EARTH, R_SUN } from '~/lib/physics/relativity';
+import { M_SUN_KG } from '~/lib/physics/blackhole';
+
+const rs = (gm: number) => (2 * gm) / (C * C);
+const GM_KG = GM_SUN / M_SUN_KG;
+const rows = [
+  // A person's radius: 70 kg of water rolled into a ball.
+  { label: 'a person, 70 kg', size: 0.26, horizon: rs(70 * GM_KG) },
+  { label: 'the Earth', size: R_EARTH, horizon: rs(GM_EARTH) },
+  { label: 'the Sun', size: R_SUN, horizon: rs(GM_SUN) },
+  { label: 'a neutron star', size: 12e3, horizon: rs(1.4 * GM_SUN) },
+  { label: "GW250114's remnant", size: rs(63 * GM_SUN), horizon: rs(63 * GM_SUN) },
+];
+
+const W = 600;
+const H = 254;
+const PAD = { l: 150, r: 18, t: 34, b: 36 };
+const x = log(1e-27, 1e10, PAD.l, W - PAD.r);
+const rowY = (i: number) => PAD.t + 12 + i * 36;
+const ticks = [1e-25, 1e-20, 1e-15, 1e-10, 1e-5, 1, 1e5, 1e10];
+const squeeze = (r: { size: number; horizon: number }) => r.size / r.horizon;
+const factor = (v: number) =>
+  v < 1000 ? v.toFixed(v < 10 ? 1 : 0) : scientific(v, 0).replace(/^1 × /, '');
+const metres = (m: number) =>
+  m >= 1e3
+    ? `${(m / 1e3).toPrecision(3)} km`
+    : m >= 1e-3
+      ? `${(m * 1e3).toPrecision(2)} mm`
+      : `${scientific(m, 0)} m`;
+---
+
+<svg
+  class="fig squeeze-ladder"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`Actual size against Schwarzschild radius, on a log scale of metres. ${rows.map((r) => `${r.label}: Schwarzschild radius ${metres(r.horizon)}${squeeze(r) > 1.01 ? `, ${factor(squeeze(r))} times smaller than it is` : ', no squeeze left'}`).join('; ')}.`}
+>
+  <text class="caps" x={PAD.l} y="16">
+    size, and the size it would need to be
+  </text>
+  {ticks.map((t) => (
+    <line class="grid" x1={x(t)} x2={x(t)} y1={PAD.t} y2={H - PAD.b} />
+  ))}
+  {rows.map((row, i) => {
+    const gap = squeeze(row) > 1.01;
+    return (
+      <g>
+        <text class="ink" x={PAD.l - 12} y={rowY(i) + 4} text-anchor="end">
+          {row.label}
+        </text>
+        {gap && (
+          <line class="model" x1={x(row.horizon)} x2={x(row.size)} y1={rowY(i)} y2={rowY(i)} />
+        )}
+        {gap && <circle class="horizon" cx={x(row.horizon)} cy={rowY(i)} r="5" />}
+        <circle class={gap ? 'dot ink' : 'dot'} cx={x(row.size)} cy={rowY(i)} r="5" />
+        <text
+          class={gap ? undefined : 'signal'}
+          x={
+            !gap
+              ? x(row.size) - 10
+              : x(row.size) > W - 140
+                ? x(row.size) + 4
+                : (x(row.horizon) + x(row.size)) / 2
+          }
+          y={rowY(i) - 8}
+          text-anchor={!gap || x(row.size) > W - 140 ? 'end' : 'middle'}
+        >
+          {gap ? `squeeze by ${factor(squeeze(row))}` : 'already inside'}
+        </text>
+      </g>
+    );
+  })}
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+  {ticks.map((t) => (
+    <text x={x(t)} y={H - PAD.b + 16} text-anchor="middle">
+      {t === 1 ? '1 m' : `10${scientific(t, 0).split('10')[1]}`}
+    </text>
+  ))}
+  <circle class="horizon" cx={PAD.l + 6} cy={H - 8} r="4"></circle>
+  <text x={PAD.l + 14} y={H - 4}>
+    its Schwarzschild radius
+  </text>
+  <circle class="dot ink" cx={PAD.l + 190} cy={H - 8} r="4"></circle>
+  <text x={PAD.l + 198} y={H - 4}>
+    its actual size
+  </text>
+</svg>
+
+<style>
+  .squeeze-ladder .horizon {
+    fill: var(--surface);
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+</style>

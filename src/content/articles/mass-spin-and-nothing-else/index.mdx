@@ -1,0 +1,521 @@
+---
+title: Mass, Spin and Nothing Else
+emphasis: Nothing Else
+headline: What is left of everything that falls into a black hole?
+summary: The rest of The Straightest Path, from the first exact solution to the anatomy of a spinning hole. Why the radius where the equations blow up is not where anything happens, why nothing can stop a heavy enough star from collapsing, and why whatever falls in, only a mass and a spin come out.
+track: orientation
+order: 4
+status: review
+level: core
+minutes: 30
+prerequisites:
+  - the-straightest-path
+objectives:
+  - Tell a singularity of the coordinates from a singularity of spacetime, and say why the horizon is the first kind and the centre the second.
+  - Explain why a dead star above about 1.4 solar masses cannot hold itself up, and what the collapse looks like on two different clocks.
+  - Say what fixes a spinning black hole, what its radii are (horizon, ergosphere, light orbit, last stable orbit), and why that makes the ringdown a test.
+  - Explain why tides, not gravity, destroy what falls in, and why bigger holes are gentler.
+updated: 2026-10-21
+sources:
+  - title: K. Schwarzschild, Über das Gravitationsfeld eines Massenpunktes nach der Einsteinschen Theorie (1916), English translation
+    url: https://arxiv.org/abs/physics/9905030
+  - title: S. Chandrasekhar, The maximum mass of ideal white dwarfs, ApJ 74, 81 (1931)
+    url: https://doi.org/10.1086/143324
+  - title: J. R. Oppenheimer and H. Snyder, On continued gravitational contraction, Phys. Rev. 56, 455 (1939)
+    url: https://doi.org/10.1103/PhysRev.56.455
+  - title: R. Penrose, Gravitational collapse and space-time singularities, Phys. Rev. Lett. 14, 57 (1965)
+    url: https://doi.org/10.1103/PhysRevLett.14.57
+  - title: R. P. Kerr, Gravitational field of a spinning mass as an example of algebraically special metrics, Phys. Rev. Lett. 11, 237 (1963)
+    url: https://doi.org/10.1103/PhysRevLett.11.237
+  - title: J. M. Bardeen, W. H. Press and S. A. Teukolsky, Rotating black holes, ApJ 178, 347 (1972)
+    url: https://doi.org/10.1086/151796
+  - title: Event Horizon Telescope Collaboration, First M87 Event Horizon Telescope results. I, ApJL 875, L1 (2019)
+    url: https://doi.org/10.3847/2041-8213/ab0ec7
+  - title: Event Horizon Telescope Collaboration, First Sagittarius A* Event Horizon Telescope results. I, ApJL 930, L12 (2022)
+    url: https://doi.org/10.3847/2041-8213/ac6674
+---
+
+import Card from '~/components/editorial/Card.astro';
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import CollapsePenrose from '~/components/figures/CollapsePenrose.astro';
+import Efficiency from '~/components/figures/Efficiency.astro';
+import KerrRadii from '~/components/figures/KerrRadii.svelte';
+import LightCapture from '~/components/figures/LightCapture.astro';
+import MapAndPlace from '~/components/figures/MapAndPlace.astro';
+import MassLadder from '~/components/figures/MassLadder.astro';
+import SqueezeLadder from '~/components/figures/SqueezeLadder.astro';
+import TidalStretch from '~/components/figures/TidalStretch.svelte';
+import TippingCones from '~/components/figures/TippingCones.svelte';
+import TwoClocks from '~/components/figures/TwoClocks.svelte';
+import WhiteDwarfLimit from '~/components/figures/WhiteDwarfLimit.svelte';
+import CheckYourself from '~/components/learn/CheckYourself.svelte';
+import Misconception from '~/components/learn/Misconception.astro';
+import Predict from '~/components/learn/Predict.svelte';
+import Claim from '~/components/math/Claim.astro';
+import Eq from '~/components/math/Eq.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+import { scientific } from '~/lib/format';
+import {
+  accretionEfficiency,
+  chandrasekharMass,
+  extractable,
+  horizonCrossing,
+  horizonTide,
+  longestFall,
+} from '~/lib/physics/blackhole';
+import { C, GM_EARTH, GM_SUN } from '~/lib/physics/relativity';
+
+export const rs = (gm) => (2 * gm) / (C * C);
+export const sunKm = (rs(GM_SUN) / 1e3).toFixed(2);
+export const earthMm = (rs(GM_EARTH) * 1e3).toFixed(1);
+export const limit = chandrasekharMass().toFixed(2);
+export const unitMs = (rs(10 * GM_SUN) / C) * 1e3;
+export const crossMs = (horizonCrossing(4) * unitMs).toFixed(2);
+export const centreMs = ((Math.PI / 2) * 8 * unitMs).toFixed(2);
+export const still = (accretionEfficiency(0) * 100).toFixed(1);
+export const fastest = (accretionEfficiency(1) * 100).toFixed(0);
+export const spinShare = (extractable(1) * 100).toFixed(0);
+export const tideSmall = scientific(horizonTide(10 * GM_SUN, 2) / 9.81, 0);
+export const tideGiant = (horizonTide(4.3e6 * GM_SUN, 2) * 1e3).toFixed(1);
+export const fallGiant = (longestFall(1e8 * GM_SUN) / 60).toFixed(0);
+export const fallSmall = (longestFall(10 * GM_SUN) * 1e6).toFixed(0);
+
+[The Straightest Path](../the-straightest-path/) ended with the field equations: ten of them, non-linear, so that gravity is itself a source of gravity and solutions cannot simply be added together. Exact solutions are rare and precious. This article is about the first one, the object it turned out to describe, and why that object is the simplest thing in the universe.
+
+## A soldier finds an exact solution
+
+Einstein published the field equations in November 1915. Within weeks, Karl Schwarzschild had solved them exactly. He was 42, a serving artillery officer on the Russian front computing the paths of shells, and already ill with the disease of the skin that would kill him within months. He read Einstein's paper at the front, found the exact field in the empty space outside any spherical mass, and posted it back.
+
+Einstein had been working with approximations and had not expected a closed-form solution at all. He presented it to the Prussian Academy on Schwarzschild's behalf in January 1916. Schwarzschild died that May. The solution carries his name, and it describes every non-rotating black hole in the universe.
+
+## One length, built from the mass
+
+The solution contains one length made from nothing but the mass:
+
+<Eq tex="r_s = \frac{2GM}{c^2}" />
+
+Every object has one. For the Sun it is {sunKm} kilometres; for the Earth, {earthMm} millimetres. It only matters when the object is squeezed inside it, and for almost everything that never happens.
+
+<Figure kind="model" width="medium">
+  <SqueezeLadder />
+  <Fragment slot="caption">
+    How far each object would have to be squeezed to fit inside its own Schwarzschild radius. A
+    neutron star is a factor of three away; a black hole is already there.
+  </Fragment>
+</Figure>
+
+<Card label="Birkhoff's theorem, 1923">
+  Schwarzschild's solution is not just one spherical solution with no matter in it. It is the
+  only one. So the field outside any spherical mass depends on nothing but the total mass: not on
+  how the density is arranged inside, not on whether the star is pulsing, not on whether it is
+  collapsing. Replace the Sun with a black hole of the same mass and the Earth's orbit would not
+  change. And a star that pulses in a perfectly spherical way sends out no gravitational waves at
+  all, the first hint of why the waves need something lopsided to make them.
+</Card>
+
+## The map and the place
+
+Written in Schwarzschild's coordinates, the solution has terms that blow up at *r* = *r*<sub>s</sub>. For decades this was read as the theory breaking down there, and the radius as a mathematical embarrassment that real matter would never reach.
+
+It was neither. Arthur Eddington in 1924, and more decisively Georges Lemaître in 1933, showed that the blow-up is a fault of the coordinates. It is like the way every direction is south at the North Pole, or the way a Mercator map stretches Antarctica to infinity. The place is fine; the map is bad.
+
+The test is to compute a quantity every observer agrees on. The simplest measure of curvature that does not depend on coordinates, the Kretschmann scalar, grows as 1/*r*⁶. It is perfectly finite at the horizon and infinite only at the centre.
+
+<Figure kind="model" width="medium">
+  <MapAndPlace />
+  <Fragment slot="caption">
+    The radial part of Schwarzschild's map blows up at the horizon. The curvature passes through it
+    as if nothing were there, and blows up only at the centre.
+  </Fragment>
+</Figure>
+
+<Pull>A singularity in the equations is not the same thing as a singularity in the world.</Pull>
+
+## Cones that tip
+
+Better coordinates follow infalling light instead of distant observers. In them, found by Eddington and rediscovered by David Finkelstein in 1958, nothing whatever happens at the horizon. The metric is smooth there, and anything falling in crosses without incident.
+
+What the new coordinates do show is which way light can go. Draw the light cone at each radius: the set of directions a flash of light can travel from there. Far out it opens symmetrically, and light can go out or in. Closer in, it tips towards the hole.
+
+<Figure kind="model" width="medium">
+  <TippingCones client:visible />
+  <Fragment slot="caption">
+    Drag the cone towards the hole. Outward light slows, stands still on the horizon, and inside it
+    moves inward too.
+  </Fragment>
+</Figure>
+
+On the horizon the outward edge of the cone stands vertical: light aimed straight out hovers there for ever, going nowhere. Inside, the whole cone points in. Falling to the centre is not something the hole does to you, and no engine helps, because every direction you could possibly move in leads inward. Moving outward is not hard there; it is the same kind of impossible as travelling into last week.
+
+<MathLayer id="m-ef" title="the horizon is a fault of the clock, not of the place">
+  <Claim>
+    Change the time coordinate and every term of Schwarzschild's metric becomes finite at the
+    horizon. What remains is the tipping of the cones: outward light stands still there.
+  </Claim>
+  <Given>units with *c* = 1, radial motion only, and Schwarzschild's metric outside the mass.</Given>
+  <Steps>
+    <Step tex="ds^2 = -\left(1 - \frac{r_s}{r}\right) dt^2 + \frac{dr^2}{1 - r_s/r}">
+      Schwarzschild's form: the second coefficient blows up at r = rₛ, and t itself runs to
+      infinity as anything approaches it.
+    </Step>
+    <Step tex="\tilde t = t + r_s \ln\left|\frac{r}{r_s} - 1\right|" hinge>
+      A new clock that absorbs the infinity: it runs a logarithm behind the old one near the
+      horizon, exactly enough to cancel the blow-up.
+    </Step>
+    <Step tex="ds^2 = -\left(1 - \frac{r_s}{r}\right) d\tilde t^{\,2} + \frac{2 r_s}{r}\, d\tilde t\, dr + \left(1 + \frac{r_s}{r}\right) dr^2">
+      Substitute dt = dt̃ − rₛ dr / (r − rₛ). Every coefficient is now finite at r = rₛ.
+    </Step>
+    <Step tex="\frac{dr}{d\tilde t} = -1 \quad \text{or} \quad \frac{dr}{d\tilde t} = \frac{1 - r_s/r}{1 + r_s/r}">
+      Setting ds² = 0 gives the two light rays. Inward light always moves at the speed of light;
+      outward light moves out above the horizon, not at all on it, and inward below it.
+    </Step>
+  </Steps>
+  <Means>
+    The infinity at the horizon was in the time coordinate, the clock of an observer infinitely
+    far away. Nothing local happens there. What happens is global: from inside, no future leads out.
+  </Means>
+</MathLayer>
+
+## The whole story on one page
+
+In 1960 Martin Kruskal and George Szekeres found coordinates that cover the whole of the spacetime at once. Roger Penrose then squeezed infinity itself onto a finite page, giving up true distances but keeping every light ray at 45°. Draw a collapsing star in such a diagram and a fact appears that no amount of prose quite conveys.
+
+<Figure kind="schematic" width="medium">
+  <CollapsePenrose />
+  <Fragment slot="caption">
+    A star collapsing to a black hole, with all of space and time on one page. The singularity is
+    a horizontal line: a moment that lies ahead, not a place.
+  </Fragment>
+</Figure>
+
+The singularity is not a point in space that you fall towards. It is a horizontal line across the top of the diagram, which means it lies in your future, like a date. Once you are inside, asking which direction the singularity is in is like asking which direction next Thursday is in. There is no way to steer away from it, because it is not somewhere.
+
+## Can anything stop it?
+
+None of this mattered unless real stars could get that small, and for a long time almost nobody believed they could. A star holds itself up against gravity with the pressure of its hot gas. When the fuel runs out, the core cools and shrinks until something else takes over. In a white dwarf that something is quantum mechanics: electrons packed so tightly that no two can share a state, pushing back however cold the star gets.
+
+In 1930, on the voyage from India to England, the nineteen-year-old Subrahmanyan Chandrasekhar combined that quantum pressure with special relativity. Squeeze the electrons hard enough and they move at nearly the speed of light, and then their pressure grows more slowly as the star shrinks. Above a certain mass, it cannot win.
+
+<Figure kind="model" width="medium">
+  <WhiteDwarfLimit client:visible />
+  <Fragment slot="caption">
+    Every white dwarf that can exist, from Chandrasekhar's equations. Heavier stars are smaller,
+    and the curve reaches zero size at a finite mass.
+  </Fragment>
+</Figure>
+
+The idealised calculation in the figure gives {limit} solar masses; with the details of real stars included, the limit is about 1.4. A white dwarf of the Sun's mass is about the size of the Earth. Make it heavier and it shrinks, until at the limit it has nowhere left to go.
+
+Arthur Eddington, then the most powerful astrophysicist alive and Chandrasekhar's patron, attacked the result in public at the Royal Astronomical Society in 1935. There should be a law of nature, he said, to prevent a star from behaving in this absurd way. He was wrong, and the field followed him anyway. Chandrasekhar moved to Chicago, and received the Nobel Prize for the work in 1983, nearly half a century later.
+
+<MathLayer id="m-landau" title="why there is a largest white dwarf">
+  <Claim>
+    When the electrons move near the speed of light, their energy and the star's gravity both
+    scale as one over the radius. Shrinking then cannot restore the balance, and the number of
+    particles alone decides whether the star holds.
+  </Claim>
+  <Given>a ball of radius *R* holding *N* nucleons, with about one electron per two nucleons, its electrons so compressed that they are relativistic; factors of order one dropped (Landau's argument, 1932).</Given>
+  <Steps>
+    <Step tex="E_F \approx \hbar c\, n^{1/3} \approx \frac{\hbar c\, N^{1/3}}{R}">
+      Packed at density n, each electron has room only about as wide as the spacing between
+      electrons. By the uncertainty principle its momentum is about ħ over that spacing, and its
+      energy is c times its momentum.
+    </Step>
+    <Step tex="E_G \approx -\frac{G M m_u}{R} = -\frac{G N m_u^2}{R}">
+      The gravitational energy of each nucleon in a star of N nucleons, each of mass mᵤ.
+    </Step>
+    <Step tex="E_F + E_G \approx \frac{\hbar c\, N^{1/3} - G N m_u^2}{R}" hinge>
+      Both terms fall as 1/R. If the bracket is positive, the star expands until its electrons are
+      no longer relativistic, and finds a balance. If it is negative, shrinking lowers the energy
+      without end.
+    </Step>
+    <Step tex="N_{\max} \approx \left(\frac{\hbar c}{G m_u^2}\right)^{3/2} \approx 2 \times 10^{57}">
+      The bracket changes sign here: about 1.9 solar masses of nucleons.
+    </Step>
+  </Steps>
+  <Means>
+    The limit comes from nothing but ħ, c, G and the mass of a proton. The careful calculation in
+    the figure, which follows the electrons from slow to fast, lowers the number to 1.46.
+  </Means>
+</MathLayer>
+
+## One collapse, two clocks
+
+In 1939 two papers took the next step. In February, Robert Oppenheimer and George Volkoff showed that neutron stars, the next stage down, have a largest mass too. On 1 September, the day the Second World War began, Oppenheimer and Hartland Snyder published what happens when nothing holds: the collapse of a ball of pressureless matter, solved exactly. Almost nobody read it for twenty years.
+
+Their result contains the whole strangeness of the subject. To an observer far away, the surface of the star slows, reddens and freezes at the horizon, never quite crossing. Soviet physicists called such objects frozen stars for exactly this reason. To an observer riding the surface, the crossing takes a finite time, and nothing special happens at all.
+
+<Figure kind="model" width="medium">
+  <TwoClocks client:visible />
+  <Fragment slot="caption">
+    The surface of a collapsing star of ten solar masses, timed by two clocks. One never sees it
+    reach the horizon; the other carries it to the centre in about a millisecond.
+  </Fragment>
+</Figure>
+
+On its own clock, this surface crosses the horizon {crossMs} milliseconds after it starts to fall and reaches the centre at {centreMs}. On the distant clock it approaches the horizon for ever, and the light it sends out arrives ever later and ever redder, until there is simply nothing more to receive.
+
+<Pull>Both descriptions are correct. They are statements about different clocks.</Pull>
+
+## Lumpy collapse does not escape
+
+Oppenheimer and Snyder had assumed perfect spherical symmetry, and everyone reasonably suspected that was doing the work. Real collapse is lumpy; surely the infalling matter would swirl, miss the centre, and bounce back out.
+
+In 1965 Roger Penrose settled it with an argument about shapes rather than a calculation. He defined a **trapped surface**: a closed surface from which even the light aimed outward is converging. He proved that once one forms, and given only reasonable assumptions about energy and cause and effect, a singularity cannot be avoided. No symmetry is assumed, and no fine tuning. Penrose received the Nobel Prize for it in 2020.
+
+<Card label="What the theorem does and does not say">
+  It says that some paths through spacetime simply end: a falling body's worldline cannot be
+  continued past a certain moment. That is what "singularity" means technically. It does not say
+  that a point of infinite density exists; the theorem is about paths ending, not about density.
+  It is best read as the theory reporting its own limits. Something replaces the singularity, and
+  general relativity cannot say what. Neither, yet, can anyone else.
+</Card>
+
+Between about 1963 and 1975 the subject went from a curiosity to a field. Quasars were discovered in 1963, obviously powered by something very compact and very efficient. Penrose's theorem came in 1965, the results on what a settled hole can look like through the late sixties, and Hawking's area theorem in 1971. For most of that time the objects had no agreed name: frozen stars, collapsed stars, collapsars. John Wheeler popularised *black hole* in a lecture in 1967, and kept it because it was short.
+
+What makes one, in practice, is a star running out of fuel with too much mass left in its core. Below about 1.4 solar masses the core becomes a white dwarf. Up to a little over two, the pressure of neutrons and the strong nuclear force hold it as a neutron star, a city-sized nucleus. Above that, no known pressure stops the collapse, and by Penrose's theorem a horizon forms.
+
+## Real black holes spin
+
+Schwarzschild's solution assumes perfect spherical symmetry, and nothing in the universe has it. Stars rotate, and a collapsing core keeps its angular momentum, so a body shrinking by a factor of a hundred thousand spins up enormously. Every black hole in nature rotates, most of them fast.
+
+Roy Kerr, a New Zealander working in Texas, found the solution for a spinning hole in 1963, after nearly fifty years in which nobody could. Chandrasekhar later called it the most shattering experience of his scientific life: that an exact solution found by pure mathematics should describe, exactly, untold numbers of massive objects in the sky.
+
+A Kerr hole is fixed by its mass and its angular momentum *J*. Combine them into a pure number, the **spin**:
+
+<Eq tex="\chi = \frac{c\, J}{G M^2}, \qquad 0 \le \chi \le 1" />
+
+<Figure kind="model" width="medium">
+  <KerrRadii client:visible />
+  <Fragment slot="caption">
+    A spinning hole cut through its axis. Spin it up: the horizon shrinks, the ergosphere grows
+    round it, and orbits going with the spin move in. Past χ = 1 the horizon disappears.
+  </Fragment>
+</Figure>
+
+Push the spin past 1 and the horizon disappears, leaving the singularity open to the outside universe. Every attempt to do this to a real hole fails: feed it angular momentum and the same process feeds it mass, and the mass wins. Penrose raised this to the **cosmic censorship conjecture**: no singularity is ever visible from outside. It is still unproven.
+
+<MathLayer id="m-kerr" title="where a spinning hole's horizons are">
+  <Claim>
+    A Kerr hole has two horizons, at r = M ± √(M² − a²). They merge at a = M, χ = 1, and past it
+    there are none.
+  </Claim>
+  <Given>Kerr's metric in Boyer–Lindquist coordinates, with *G* = *c* = 1 and *a* = *J*/*M* = χ*M*.</Given>
+  <Steps>
+    <Step tex="g^{rr} = \frac{\Delta}{\Sigma}, \qquad \Delta = r^2 - 2Mr + a^2, \quad \Sigma = r^2 + a^2 \cos^2\theta">
+      The radial part of the metric, written through two functions of r and θ.
+    </Step>
+    <Step tex="\Delta = 0" hinge>
+      A horizon is a surface that light aimed outward cannot leave; there the outward direction
+      stops being a direction anything can travel, and g^rr vanishes.
+    </Step>
+    <Step tex="r_\pm = M \pm \sqrt{M^2 - a^2}">
+      The two roots: the outer horizon, and an inner one hidden behind it.
+    </Step>
+  </Steps>
+  <Means>
+    For a ≤ M there are real roots and a horizon. For a > M the square root has no real value: no
+    horizon, and a singularity anyone could see. Nature seems never to make one.
+  </Means>
+</MathLayer>
+
+## Where standing still stops being possible
+
+Rotation splits Schwarzschild's single surface in two. The inner one is the horizon, and behaves as before. The outer one, flattened at the poles and bulging at the equator, is the static limit. Inside it, spacetime is dragged round so strongly that no amount of thrust holds you still relative to the distant stars. The region between them is the **ergosphere**, from the Greek for work, and the name is a claim. You can still escape from it. What is remarkable is that you can escape with more energy than you brought in.
+
+<Card label="The Penrose process, 1969">
+  Drop an object into the ergosphere and split it in two. Arrange for one piece to fall through
+  the horizon on an orbit that, seen from outside, carries negative energy. The other piece must
+  then leave with more energy than the whole had, and the difference comes out of the hole's
+  rotation, which slows. Up to {spinShare} per cent of a maximally spinning hole's mass can be
+  taken out this way. Magnetic fields threading the hole do something similar, and are the
+  leading explanation of the jets that shoot out of active galaxies for hundreds of thousands of
+  light years.
+</Card>
+
+The full family of solutions has a third number: electric charge. It was added for still holes in 1916–18 and for spinning ones in 1965. Astrophysically it does not matter. A charged hole in a universe full of plasma attracts the opposite charge and neutralises itself almost at once, and the charge needed to matter gravitationally would make the electric repulsion stronger than gravity. So: mass and spin. Two numbers.
+
+## Whatever fell in, only two numbers come out
+
+Throw in a star, a library, an anvil. Wait. What remains is described completely by its mass and its spin. This is the **no-hair theorem**, assembled through the late 1960s and early 1970s by Werner Israel, Brandon Carter, Stephen Hawking and David Robinson. It has no parallel elsewhere in physics. A black hole can be made from a galaxy's worth of complicated history, and still ends up with fewer independent properties than a hydrogen atom.
+
+<Predict
+  client:visible
+  id="nothing-else-hair"
+  question="Two black holes have the same mass and spin. One formed from a star rich in iron, the other from a cloud of pure hydrogen. Could any measurement made outside tell them apart?"
+  options={[
+    { label: 'Yes, with a precise enough measurement' },
+    { label: 'No: outside, they are identical' },
+  ]}
+>
+  <p>
+    No. Everything else is either radiated away while the hole settles, or hidden behind the
+    horizon. Outside, the two are exactly the same object, down to every detail of their gravity.
+  </p>
+</Predict>
+
+That is what makes the theory testable. If the remnant of a merger is a Kerr hole, every detail of its gravitational field is fixed by the first two:
+
+<Eq tex="M_\ell + i S_\ell = M\, (i a)^\ell" />
+
+The quadrupole, for instance, the lowest order of lopsidedness, must be exactly −*Ma*². Not approximately, and not for reasonable matter: exactly, or the object is not a Kerr black hole. A theory that fixes everything from two measured numbers has nothing left to adjust. Measure a third independent thing and either it agrees, or general relativity is wrong. The ringing of a newly formed hole, its ringdown, is how that third thing is measured.
+
+<Card label="The escape routes, and why they are narrow">
+  The uniqueness theorems assume empty space around the hole, a hole that has settled, four
+  dimensions, and general relativity itself. Relax any one and other solutions appear. That is
+  exactly what makes the ringdown test worth doing: it checks whether those assumptions hold in the
+  real, violent, strong-field case. Note too that several alternative theories also allow Kerr
+  holes. A result consistent with Kerr does not by itself confirm general relativity; tests of
+  Kerr and tests of the theory are related, not identical.
+</Card>
+
+## A set of radii
+
+A black hole is not a thing; it is a set of radii. The horizon at *r*<sub>s</sub> is the point of no return, and as far as anything outside can tell, the whole object. At 1.5 *r*<sub>s</sub> light can orbit, unstably: shine a torch sideways there and, in principle, you light up the back of your own head. At 3 *r*<sub>s</sub> is the innermost stable circular orbit; inside it, matter stops spiralling and simply falls. Spin moves all of these inward for orbits going with the spin, as the figure above shows.
+
+A distant camera does not see the horizon. It sees the region from which no light reaches it, and the bending of light makes that region larger.
+
+<Figure kind="model" width="medium">
+  <LightCapture />
+  <Fragment slot="caption">
+    Light passing a non-spinning hole, traced exactly. Rays aimed within about 2.6 Schwarzschild
+    radii of the centre never come out: that whole disc is dark.
+  </Fragment>
+</Figure>
+
+For a non-spinning hole this shadow has a radius of √27 *GM*/*c*², about 2.6 times the horizon. The Event Horizon Telescope, an Earth-sized radio telescope made from dishes on four continents, published the first image of one in 2019: M87\*, six and a half billion solar masses, fifty-five million light years away. In 2022 it added Sagittarius A\*, four million solar masses at the centre of our own galaxy.
+
+## The most efficient engines there are
+
+Matter spiralling inward radiates the energy it loses on the way, and the deeper the last stable orbit, the more of its mass gets out as light before the rest disappears. Without spin that is {still} per cent of the rest mass; for a hole spinning at the limit, {fastest} per cent.
+
+<Figure kind="model" width="medium">
+  <Efficiency />
+  <Fragment slot="caption">
+    Energy released as a share of the mass that goes in. Falling onto a black hole beats nuclear
+    fusion by a factor of eight to sixty.
+  </Fragment>
+</Figure>
+
+This answers the question quasars posed in 1963. A quasar can outshine its whole galaxy from a region smaller than the solar system and change in days. Nothing nuclear can do that. Gravity can, because it is not burning anything: it turns mass into energy by making it fall.
+
+<Pull>The brightest objects in the universe are powered by the darkest ones.</Pull>
+
+## What kills you is the difference
+
+Falling in feet first, your feet are nearer the hole than your head, and pulled harder. On Earth the difference is about a millionth of your weight and you never notice it. Near a small black hole it stretches you along the line to the centre and squeezes you across it, the tide of [The Straightest Path](../the-straightest-path/) grown enormous.
+
+<Figure kind="model" width="medium">
+  <TidalStretch client:visible />
+  <Fragment slot="caption">
+    The stretch across a 2-metre body falling in. Make the hole heavier and the horizon moves out
+    faster than the stretch grows.
+  </Fragment>
+</Figure>
+
+The tide falls with distance as 1/*r*³, while the horizon grows in proportion to the mass. So bigger holes are gentler. At the horizon of a hole of ten solar masses the stretch across a person is about {tideSmall} times their weight, and they are torn apart thousands of kilometres out. At the horizon of Sagittarius A\* it is about {tideGiant} millimetres per second squared: you would cross with nothing to mark the moment.
+
+<MathLayer id="m-tide" title="why bigger holes are gentler">
+  <Claim>
+    The stretch across a body at the horizon falls as one over the mass squared.
+  </Claim>
+  <Given>a body of length *L* pointing at the hole, Newton's tidal formula (which, for a body falling radially, is also the exact one), and the horizon at *r*<sub>s</sub> = 2*GM*/*c*².</Given>
+  <Steps>
+    <Step tex="\Delta a = \frac{2 G M L}{r^3}">
+      The difference between the pull on the near end and the far end, at distance r.
+    </Step>
+    <Step tex="r = r_s = \frac{2GM}{c^2}" hinge>
+      Evaluate it where it matters: the horizon, whose size grows with the mass.
+    </Step>
+    <Step tex="\Delta a_{\text{horizon}} = \frac{L\, c^6}{4\, G^2 M^2}">
+      The mass now sits in the denominator, squared.
+    </Step>
+  </Steps>
+  <Means>
+    A hole ten million times heavier is a hundred trillion times gentler at its horizon. The same
+    arithmetic decides the fate of stars: a Sun-like star is torn apart outside the horizon of a
+    hole lighter than about 10⁸ suns, and swallowed whole by anything heavier.
+  </Means>
+</MathLayer>
+
+<Misconception claim="A black hole sucks in everything around it, like a vacuum cleaner.">
+  <p>
+    Far from the hole, its gravity is exactly that of any other body of the same mass: Birkhoff's
+    theorem again. Orbits around it are as stable as orbits around a star. Only within a few
+    Schwarzschild radii does anything unusual happen, and the hole swallows only what wanders that
+    close.
+  </p>
+</Misconception>
+
+## How we know they are there
+
+The evidence arrived in three independent waves, and each closed a loophole the others left open. In 1971 the X-ray source Cygnus X-1 was found to be a giant star orbiting an unseen companion too heavy to be a neutron star, with X-rays flickering in milliseconds, so the emitting region is only light-milliseconds across. From 1995 the groups of Reinhard Genzel and Andrea Ghez tracked single stars round the centre of our galaxy for decades. One of them, S2, completes an orbit in 16 years around four million solar masses packed inside a region smaller than the solar system; they shared the 2020 Nobel Prize. And in 2019 and 2022 the Event Horizon Telescope saw shadows of the predicted size and shape.
+
+<Card label="What each one cannot do">
+  X-ray binaries measure a mass and a size, and rule out every known alternative, but by
+  elimination, not by seeing a horizon. Stellar orbits probe only the weak field: S2's closest
+  approach is still about 1400 Schwarzschild radii out. Even the shadows test the orbit of light,
+  not the horizon; a compact enough object without a horizon would look much the same. Only the
+  gravitational waves from a merger, and the ringdown that follows, probe the strong, changing
+  field right at the horizon.
+</Card>
+
+## Crossing one
+
+Take a supermassive hole, where the tide is gentle, and fall in. Watchers outside see you slow, redden and dim as your light climbs out of a deepening well. You seem to freeze at the horizon and fade. From their point of view you never cross.
+
+From yours, you cross at a definite moment on your own watch, and nothing happens. There is no wall, no jolt, no membrane, and you can still see out. What has changed is that every future path now leads inward. The time left is short and cannot be stretched: at most π*GM*/*c*³ from horizon to centre, about {fallGiant} minutes for a hole of 10⁸ solar masses and {fallSmall} microseconds for one of ten. Firing your engines only shortens it; falling freely is the path that lasts longest, the straightest path once more. What happens as the curvature becomes extreme is not described by anything in this article, or by anything anyone has yet written down.
+
+## Three populations
+
+<Figure kind="model" width="medium">
+  <MassLadder />
+  <Fragment slot="caption">
+    Black holes span ten powers of ten in mass, with a thinly populated middle that is still
+    argued about.
+  </Fragment>
+</Figure>
+
+Stellar-mass holes, from about three to a hundred suns, are the endpoints of massive stars, and they are what the gravitational-wave detectors hear, now in the hundreds. Intermediate holes, from about a hundred to a hundred thousand suns, were long conspicuous by their absence; GW190521 left a remnant of about 142 solar masses in 2020, the first solid case. Supermassive holes sit at the centre of essentially every large galaxy, and grew together with their hosts. How they grew so fast is still unsolved: quasars are seen when the universe was less than a billion years old, already weighing billions of suns.
+
+All of them, from the lightest to the heaviest, are described by the same two numbers. That simplicity is what the next part of the story pushes against: a horizon's area behaves exactly like an entropy, and when two holes merge, the area can only grow.
+
+<CheckYourself
+  client:visible
+  id="nothing-else"
+  questions={[
+    {
+      question: 'At the horizon of a non-spinning hole, Schwarzschild’s metric has a term that becomes infinite. What does that mean?',
+      options: [
+        { label: 'The coordinates fail there; the curvature is finite and a falling body crosses without incident', correct: true, why: 'Curvature invariants are finite at the horizon; better coordinates remove the infinity.' },
+        { label: 'Spacetime ends at the horizon', why: 'Only the centre is a true singularity; the horizon is smooth.' },
+      ],
+    },
+    {
+      question: 'Why can no white dwarf be heavier than about 1.4 solar masses?',
+      options: [
+        { label: 'Its electrons become relativistic, and their pressure then grows too slowly to balance gravity', correct: true, why: 'Both energies scale as 1/R, so shrinking cannot restore the balance.' },
+        { label: 'Its nuclear fuel runs out', why: 'A white dwarf has no fuel left to burn at any mass; it is held up by electron pressure alone.' },
+      ],
+    },
+    {
+      question: 'Two black holes with the same mass and spin formed from very different stars. What differs outside them?',
+      options: [
+        { label: 'Nothing', correct: true, why: 'The no-hair theorem: a settled hole is fixed by its mass and spin.' },
+        { label: 'Their quadrupole moments', why: 'For a Kerr hole the quadrupole is fixed at −Ma²; it cannot differ.' },
+      ],
+    },
+    {
+      question: 'Which black hole would let you cross its horizon without being torn apart?',
+      options: [
+        { label: 'A very heavy one, like Sagittarius A*', correct: true, why: 'The stretch at the horizon falls as 1/M².' },
+        { label: 'A light one, because its gravity is weaker', why: 'Its horizon is small, so you get very close to the mass, where the tide is enormous.' },
+      ],
+    },
+  ]}
+/>

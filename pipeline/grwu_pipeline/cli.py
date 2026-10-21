@@ -5,8 +5,9 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from . import fixtures, foundations, gwosc_data, kerr, relativity, synthetic
+from . import blackholes, fixtures, foundations, gwosc_data, kerr, relativity, synthetic
 from .paths import (
+    blackholes_fixtures_file,
     find_repo_root,
     fixtures_file,
     foundations_fixtures_file,
@@ -45,7 +46,7 @@ def main(argv: list[str] | None = None) -> None:
 
     commands.add_parser(
         "fixtures",
-        help="write reference outputs to tests/fixtures/{dsp,kerr,foundations,relativity}.json",
+        help="write the reference outputs in tests/fixtures/ (dsp, kerr, foundations, ...)",
     )
 
     args = parser.parse_args(argv)
@@ -71,6 +72,7 @@ def main(argv: list[str] | None = None) -> None:
             (kerr_fixtures_file(root), kerr),
             (foundations_fixtures_file(root), foundations),
             (relativity_fixtures_file(root), relativity),
+            (blackholes_fixtures_file(root), blackholes),
         ):
             module.write(path)
             print(f"fixtures: {path.relative_to(root)}")

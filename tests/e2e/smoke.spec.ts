@@ -49,7 +49,10 @@ test('the home page lists the further articles', async ({ page }) => {
   await expect(more.getByRole('link', { name: /Laplace Closes the Circle/ })).toBeVisible();
   await expect(more.getByRole('link', { name: /A Peak Is Only a Candidate/ })).toBeVisible();
   await expect(more.getByRole('link', { name: /Run It Yourself/ })).toBeVisible();
-  await expect(more.getByRole('link', { name: /The Straightest Path/ })).toBeVisible();
+  await expect(
+    more.getByRole('heading', { name: 'The Straightest Path', exact: true }),
+  ).toBeVisible();
+  await expect(more.getByRole('heading', { name: 'Mass, Spin and Nothing Else' })).toBeVisible();
 });
 
 test('the home page presents the ringdown track', async ({ page }) => {

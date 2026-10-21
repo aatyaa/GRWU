@@ -29,7 +29,7 @@ Data pipeline (Python, uv), run from `pipeline/`:
 uv run pytest                     # tests, including "committed outputs are current"
 uv run ruff check . && uv run ruff format --check .
 uv run grwu-pipeline synthetic    # regenerate public/data/synthetic/toy-chirp/
-uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundations,relativity}.json
+uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundations,relativity,blackholes}.json
 ```
 
 - `grwu-pipeline fetch` needs gwosc.org, which Claude Code on the web blocks by default.
@@ -123,6 +123,10 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundati
     tide), boosts and proper time. `physics/sphere.ts`: great circles and parallel transport on a
     sphere. Checked against scipy through `tests/fixtures/relativity.json`, against Gauss–Bonnet,
     and against Ashby's GPS numbers.
+  - `physics/blackhole.ts` (Mass, Spin and Nothing Else): Chandrasekhar's white dwarfs, the
+    Oppenheimer–Snyder collapse on two clocks, Eddington–Finkelstein light cones, Kerr horizons,
+    ergosphere, ISCO, photon orbits and efficiency, light rays traced past a hole, tides. Checked
+    against scipy through `tests/fixtures/blackholes.json` (and `relativity.json` for the rays).
 - `src/lib/quality/readability.ts` and `tests/unit/quality.test.ts`: every article's prose stays
   readable (Flesch–Kincaid grade ≤ 12 for `level: beginner`, ≤ 14 otherwise), every `<Term>`
   names a glossary entry, and each beginner article links at least three terms.

@@ -18,8 +18,9 @@ test('opens with the title and is listed on the home page', async ({ page }) => 
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('The Straightest Path');
   await page.goto('');
   await page
-    .locator('section[aria-labelledby="more-title"]')
-    .getByRole('link', { name: /The Straightest Path/ })
+    .locator('section[aria-labelledby="more-title"] .card')
+    .filter({ has: page.getByRole('heading', { name: 'The Straightest Path', exact: true }) })
+    .getByRole('link')
     .click();
   await expect(page).toHaveURL(/the-straightest-path\/$/);
 });

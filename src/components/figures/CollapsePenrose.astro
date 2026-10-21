@@ -1,0 +1,136 @@
+---
+/**
+ * Collapse on one page (Mass, Spin and Nothing Else): a Penrose diagram of a star collapsing to
+ * a black hole. Light moves at 45° everywhere, the whole of infinity fits on the page, the
+ * horizon is a 45° line, and the singularity is a horizontal line: in the future, not in a
+ * direction. A schematic.
+ */
+const W = 600;
+const H = 388;
+const top = 40; // the singularity's line
+// Corners: the centre's line runs up the left edge from the far past; the edge of everything
+// that escapes runs from spatial infinity on the right up to where the horizon meets it.
+const iMinus = { x: 70, y: 360 };
+const iZero = { x: 360, y: 70 };
+const iPlus = { x: 330, y: top };
+const centreTop = { x: 70, y: top };
+// The horizon rises at 45° from the centre to the top corner.
+const horizonStart = { x: 70, y: top + (iPlus.x - 70) };
+// The star's surface, falling inwards until it ends on the singularity.
+const surface = [
+  { x: 160, y: 262 },
+  { x: 158, y: 220 },
+  { x: 150, y: 176 },
+  { x: 136, y: 132 },
+  { x: 118, y: 88 },
+  { x: 100, y: top },
+];
+const line = (points: { x: number; y: number }[]) =>
+  points.map((p, i) => `${i ? 'L' : 'M'}${p.x},${p.y}`).join('');
+// Outgoing light keeps x + y fixed: it either reaches the escaping edge (x − y fixed) or the
+// singularity's line.
+const meetEdge = (p: { x: number; y: number }) => {
+  const sum = p.x + p.y;
+  const diff = iZero.x - iZero.y;
+  return { x: (sum + diff) / 2, y: (sum - diff) / 2 };
+};
+const meetSingularity = (p: { x: number; y: number }) => ({ x: p.x + (p.y - top), y: top });
+const early = surface[1];
+const late = surface[3];
+const escaped = meetEdge(early);
+const caught = meetSingularity(late);
+const zigzag = Array.from({ length: 27 }, (_, i) => {
+  const x = 70 + (i * (iPlus.x - 70)) / 26;
+  return `${i ? 'L' : 'M'}${x.toFixed(1)},${(top + (i % 2 ? 4 : -4)).toFixed(1)}`;
+}).join('');
+---
+
+<svg
+  class="fig collapse-penrose"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="A Penrose diagram of a star collapsing to a black hole. Light travels at 45 degrees. The star's surface falls inward and ends on the singularity, which is a horizontal line across the top: a moment in the future of everything inside, not a place. The horizon is a 45 degree line from the centre to the top corner. Light leaving the surface before the horizon forms over it escapes to infinity; light leaving later ends on the singularity."
+>
+  <path class="outline" d={line([iMinus, iZero, iPlus, centreTop, iMinus])}></path>
+  <path class="star" d={`${line([iMinus, ...surface, centreTop])}Z`}></path>
+  <path class="surface" d={line(surface)}></path>
+  <line class="horizon" x1={horizonStart.x} y1={horizonStart.y} x2={iPlus.x} y2={iPlus.y}></line>
+  <path class="singularity" d={zigzag}></path>
+  <line class="ray" x1={early.x} y1={early.y} x2={escaped.x} y2={escaped.y}></line>
+  <line class="ray" x1={late.x} y1={late.y} x2={caught.x} y2={caught.y}></line>
+  <circle class="dot" cx={early.x} cy={early.y} r="3.5"></circle>
+  <circle class="dot" cx={late.x} cy={late.y} r="3.5"></circle>
+
+  <text class="ink" x={(70 + iPlus.x) / 2} y={top - 12} text-anchor="middle">
+    singularity: a time, not a place
+  </text>
+  <text class="ink" x={(horizonStart.x + iPlus.x) / 2 + 10} y={(horizonStart.y + iPlus.y) / 2 + 18}>
+    horizon
+  </text>
+  <text x={surface[0].x + 14} y={surface[0].y + 16}>
+    the collapsing star
+  </text>
+  <text class="signal" x={escaped.x + 10} y={escaped.y + 6}>
+    1
+  </text>
+  <text class="signal" x={caught.x + 4} y={caught.y + 18}>
+    2
+  </text>
+  <text class="signal" x="390" y="276">
+    1: leaves early, escapes
+  </text>
+  <text class="signal" x="390" y="294">
+    2: leaves late, ends on
+  </text>
+  <text class="signal" x="404" y="310">
+    the singularity
+  </text>
+  <text x={iZero.x + 10} y={iZero.y + 4}>
+    infinity
+  </text>
+  <text x={iMinus.x} y={iMinus.y + 20} text-anchor="middle">
+    the far past
+  </text>
+  <text x="58" y="200" text-anchor="middle" transform="rotate(-90 58 200)">
+    the centre, r = 0
+  </text>
+  <text x={W - 16} y={H - 10} text-anchor="end">
+    light travels at 45°; all of infinity fits on the page
+  </text>
+</svg>
+
+<style>
+  .collapse-penrose .outline {
+    fill: none;
+    stroke: var(--noise);
+    stroke-width: 1.2;
+  }
+
+  .collapse-penrose .star {
+    fill: color-mix(in srgb, var(--noise) 20%, transparent);
+    stroke: none;
+  }
+
+  .collapse-penrose .surface {
+    fill: none;
+    stroke: var(--noise);
+    stroke-width: 2;
+  }
+
+  .collapse-penrose .horizon {
+    stroke: var(--ink);
+    stroke-width: 1.6;
+    stroke-dasharray: 6 4;
+  }
+
+  .collapse-penrose .singularity {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.6;
+  }
+
+  .collapse-penrose .ray {
+    stroke: var(--signal);
+    stroke-width: 1.6;
+  }
+</style>

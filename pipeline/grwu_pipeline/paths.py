@@ -32,3 +32,7 @@ def foundations_fixtures_file(root: Path) -> Path:
 
 def relativity_fixtures_file(root: Path) -> Path:
     return root / "tests" / "fixtures" / "relativity.json"
+
+
+def blackholes_fixtures_file(root: Path) -> Path:
+    return root / "tests" / "fixtures" / "blackholes.json"
