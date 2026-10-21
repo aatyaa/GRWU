@@ -1,0 +1,93 @@
+---
+/**
+ * How strong the gravity was in each test (The Straightest Path): GM/rc², the depth of the
+ * well in units of c², where each classical test took place, against two black holes about to
+ * merge and a horizon. Computed from the masses and distances; the binary pulsar's orbit from
+ * Kepler's third law with its total mass and period.
+ */
+import { scientific } from '~/lib/format';
+import { log } from '~/lib/figure/svg';
+import { C, GM_EARTH, GM_SUN, MERCURY, R_EARTH, R_SUN } from '~/lib/physics/relativity';
+
+const depth = (gm: number, r: number) => gm / (r * C * C);
+const pulsarGm = 2.828 * GM_SUN;
+const pulsarOrbit = Math.cbrt((pulsarGm * 27_906.98 ** 2) / (4 * Math.PI ** 2));
+const rows = [
+  { label: 'clocks near the Earth', value: depth(GM_EARTH, R_EARTH), when: 'classic' },
+  { label: "Mercury's orbit", value: depth(GM_SUN, MERCURY.a), when: 'classic' },
+  { label: 'light passing the Sun', value: depth(GM_SUN, R_SUN), when: 'classic' },
+  { label: 'the binary pulsar’s orbit', value: depth(pulsarGm, pulsarOrbit), when: 'classic' },
+  { label: 'two black holes, merging', value: 1 / 6, when: 'waves' },
+  { label: 'a horizon', value: 0.5, when: 'waves' },
+];
+const mercury = rows[1].value;
+
+const W = 600;
+const H = 288;
+const PAD = { l: 200, r: 24, t: 34, b: 42 };
+const x = log(1e-10, 1, PAD.l, W - PAD.r);
+const rowY = (i: number) => PAD.t + 10 + i * 32;
+const ticks = [1e-10, 1e-8, 1e-6, 1e-4, 1e-2, 1];
+---
+
+<svg
+  class="fig field-strength"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`How deep the gravitational well was in each test, as GM/rc² on a log scale: ${rows.map((r) => `${r.label}, ${scientific(r.value, 1)}`).join('; ')}. A horizon is ${Math.round(0.5 / mercury / 1e6)} million times deeper than Mercury's orbit.`}
+>
+  <text class="caps" x="16" y="16">
+    how strong the gravity was
+  </text>
+  {ticks.map((t) => (
+    <line class="grid" x1={x(t)} x2={x(t)} y1={PAD.t - 4} y2={H - PAD.b} />
+  ))}
+  <rect
+    class="area-signal"
+    x={x(0.1)}
+    y={PAD.t - 4}
+    width={W - PAD.r - x(0.1)}
+    height={H - PAD.b - PAD.t + 4}
+  ></rect>
+  {rows.map((row, i) => (
+    <g>
+      <text class="ink" x={PAD.l - 12} y={rowY(i) + 4} text-anchor="end">
+        {row.label}
+      </text>
+      <circle
+        class={row.when === 'waves' ? 'dot' : 'dot ink'}
+        cx={x(row.value)}
+        cy={rowY(i)}
+        r="5"
+      />
+      <text
+        x={x(row.value) + (row.when === 'waves' ? -10 : 10)}
+        y={rowY(i) + 4}
+        text-anchor={row.when === 'waves' ? 'end' : 'start'}
+      >
+        {row.value >= 0.1 ? row.value.toFixed(2) : scientific(row.value, 1)}
+      </text>
+    </g>
+  ))}
+  <path
+    class="gap"
+    d={`M${x(mercury)},${rowY(6) - 6}L${x(mercury)},${rowY(6)}L${x(0.5)},${rowY(6)}L${x(0.5)},${rowY(6) - 6}`}
+  ></path>
+  <text class="signal" x={x(0.5)} y={rowY(6) + 16} text-anchor="end">
+    {Math.round(0.5 / mercury / 1e6)} million times deeper than Mercury's orbit
+  </text>
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b + 22} y2={H - PAD.b + 22}></line>
+  {ticks.map((t) => (
+    <text x={x(t)} y={H - 6} text-anchor="middle">
+      {t === 1 ? '1' : `10${['⁻¹⁰', '⁻⁸', '⁻⁶', '⁻⁴', '⁻²'][ticks.indexOf(t)]}`}
+    </text>
+  ))}
+</svg>
+
+<style>
+  .field-strength .gap {
+    fill: none;
+    stroke: var(--signal);
+    stroke-width: 1.4;
+  }
+</style>

@@ -1,0 +1,576 @@
+---
+title: The Straightest Path
+emphasis: Path
+headline: Why does everything fall at the same rate?
+summary: Gravity from Galileo to the field equations, and the tests that could have killed it. Why a feather and a hammer land together, why the answer is that nothing is pulling them, and how a century of measurements has failed to break the idea, while never testing it where black holes live.
+track: orientation
+order: 3
+status: review
+level: core
+minutes: 30
+objectives:
+  - Say why the equality of inertial and gravitational mass is a fact Newton's theory cannot explain, and how the equivalence principle removes it.
+  - Tell the part of gravity that free fall hides from the part it cannot hide, the tide, and say why the tide is curvature.
+  - Explain why the straightest path through spacetime is the one that ages most, and read the geodesic equation.
+  - Name the classical tests of general relativity, what each one probes, and how weak the gravity was in all of them.
+updated: 2026-10-21
+sources:
+  - title: C. M. Will, The Confrontation between General Relativity and Experiment, Living Rev. Relativ. 17, 4 (2014)
+    url: https://doi.org/10.12942/lrr-2014-4
+  - title: P. Touboul et al. (MICROSCOPE), Final results of the MICROSCOPE mission, Phys. Rev. Lett. 129, 121102 (2022)
+    url: https://doi.org/10.1103/PhysRevLett.129.121102
+  - title: R. V. Pound and G. A. Rebka, Apparent weight of photons, Phys. Rev. Lett. 4, 337 (1960)
+    url: https://doi.org/10.1103/PhysRevLett.4.337
+  - title: N. Ashby, Relativity in the Global Positioning System, Living Rev. Relativ. 6, 1 (2003)
+    url: https://doi.org/10.12942/lrr-2003-1
+  - title: F. W. Dyson, A. S. Eddington and C. Davidson, A determination of the deflection of light by the Sun's gravitational field, Phil. Trans. R. Soc. A 220, 291 (1920)
+    url: https://doi.org/10.1098/rsta.1920.0009
+  - title: I. I. Shapiro, Fourth test of general relativity, Phys. Rev. Lett. 13, 789 (1964)
+    url: https://doi.org/10.1103/PhysRevLett.13.789
+  - title: B. Bertotti, L. Iess and P. Tortora, A test of general relativity using radio links with the Cassini spacecraft, Nature 425, 374 (2003)
+    url: https://doi.org/10.1038/nature01997
+  - title: C. W. F. Everitt et al., Gravity Probe B, Phys. Rev. Lett. 106, 221101 (2011)
+    url: https://doi.org/10.1103/PhysRevLett.106.221101
+  - title: R. A. Hulse and J. H. Taylor, Discovery of a pulsar in a binary system, ApJ 195, L51 (1975)
+    url: https://doi.org/10.1086/181708
+  - title: J. M. Weisberg and Y. Huang, Relativistic measurements from timing the binary pulsar PSR B1913+16, ApJ 829, 55 (2016)
+    url: https://doi.org/10.3847/0004-637X/829/1/55
+---
+
+import Card from '~/components/editorial/Card.astro';
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import AppleAndMoon from '~/components/figures/AppleAndMoon.astro';
+import CurvedSurface from '~/components/figures/CurvedSurface.svelte';
+import FallingBox from '~/components/figures/FallingBox.svelte';
+import FieldStrength from '~/components/figures/FieldStrength.astro';
+import LightBending from '~/components/figures/LightBending.astro';
+import MercuryOrbit from '~/components/figures/MercuryOrbit.svelte';
+import OrbitClocks from '~/components/figures/OrbitClocks.svelte';
+import TiedStones from '~/components/figures/TiedStones.astro';
+import TwinPaths from '~/components/figures/TwinPaths.svelte';
+import TwoObservers from '~/components/figures/TwoObservers.svelte';
+import CheckYourself from '~/components/learn/CheckYourself.svelte';
+import Misconception from '~/components/learn/Misconception.astro';
+import Predict from '~/components/learn/Predict.svelte';
+import Claim from '~/components/math/Claim.astro';
+import Eq from '~/components/math/Eq.astro';
+import Given from '~/components/math/Given.astro';
+import MathLayer from '~/components/math/MathLayer.astro';
+import Means from '~/components/math/Means.astro';
+import Step from '~/components/math/Step.astro';
+import Steps from '~/components/math/Steps.astro';
+import {
+  ARCSEC,
+  AU,
+  DAY,
+  GM_EARTH,
+  GM_SUN,
+  MERCURY,
+  R_EARTH,
+  R_SUN,
+  advancePerCentury,
+  deflection,
+  orbitClock,
+  redshift,
+  shapiroDelay,
+} from '~/lib/physics/relativity';
+
+export const gps = orbitClock(GM_EARTH, 26_561.75e3, R_EARTH);
+export const perDay = (f) => (f * DAY * 1e6).toFixed(1);
+export const mercury = advancePerCentury(GM_SUN, MERCURY).toFixed(0);
+export const bend = (deflection(GM_SUN, R_SUN) / ARCSEC).toFixed(2);
+export const pound = redshift(9.81, 22.5);
+export const venus = Math.round(shapiroDelay(GM_SUN, AU, 0.7233 * AU, R_SUN) * 1e6);
+
+Nothing in this article falls. Not the apple, not the Moon, and not the two black holes that spiralled together more than a billion years ago and shook the detectors in Louisiana and Washington by less than the width of a proton. Everything here moves in a straight line. The lines just do not live in the space you think they do.
+
+This is the physics under every gravitational-wave measurement: why gravity stopped being a force, the geometry needed to say what it became, and the tests that could have killed the idea. It starts with a question simple enough to ask a child.
+
+## Everything falls alike
+
+Drop a hammer and a feather together on the Moon, where there is no air to cheat, and they land together. David Scott did exactly that in 1971, on camera, because the result is strange enough to be worth televising.
+
+Nothing else in physics behaves this way. Push two objects with the same force and the heavy one speeds up less. Give them electric charge and put them in an electric field, and they respond differently. Gravity alone does not care what you are made of, or how much of it there is.
+
+<Pull>Every theory of gravity has to explain that. Only one of them does.</Pull>
+
+## The obvious answer, and why it lasted
+
+For two thousand years the answer was that heavy things fall faster. Aristotle taught that a body falls at a speed in proportion to its weight. This is usually told as a joke at his expense, and it should not be. Drop a stone and a leaf, and the stone lands first. The theory matched what people saw.
+
+What Aristotle lacked was the idea that the air takes part. Once you can pump the air out of a tube, which nobody could do until the seventeenth century, the leaf and the stone fall together and the theory dies. Until then, it was simply right about the world people could see. The history of gravity is a series of moments where the obvious answer turned out to be a side effect of the medium.
+
+Galileo's argument against it needed no experiment at all. Suppose heavy things do fall faster, and tie a heavy stone to a light one. The light one, falling more slowly, should hold the heavy one back, so the pair falls slower than the heavy stone alone. But the pair is a single object heavier than either stone, so it should fall faster.
+
+<Figure kind="schematic" width="medium">
+  <TiedStones />
+  <Fragment slot="caption">
+    Taken seriously, the premise makes the tied pair fall both slower and faster than the heavy
+    stone alone.
+  </Fragment>
+</Figure>
+
+One premise gives two opposite answers, so the premise is wrong. There is no tower, no measurement and no apparatus. The theory refutes itself if you take it seriously enough. Whether Galileo ever dropped anything from the tower of Pisa is disputed, and beside the point: for him, all bodies falling alike was a deduction before it was a datum.
+
+## One law for the sky and the ground
+
+Before 1687 the fall of an apple and the orbit of the Moon were two subjects. The heavens were held to run on different rules from the Earth, a division that had stood since antiquity. Newton's real achievement was not the inverse square. It was noticing that there was only one problem.
+
+The Moon is about sixty Earth radii away. If the pull that drops an apple weakens with the square of the distance, the Moon should be falling towards the Earth with an acceleration of *g*/60², about 2.7 millimetres per second squared. You can work out how fast the Moon actually falls from nothing but the size of its orbit and the time it takes to go round. It is the same number.
+
+<Figure kind="measured" width="medium">
+  <AppleAndMoon />
+  <Fragment slot="caption">
+    Each orbit's acceleration comes from its size and period alone. On log scales, the inverse
+    square through the apple is a straight line, and the Moon sits on it.
+  </Fragment>
+</Figure>
+
+The law that came out of this is the one in every textbook:
+
+<Eq tex="F = \frac{G\, m_1 m_2}{r^2}" />
+
+Two centuries of unbroken success followed. Kepler's laws fell out of it as a corollary. It explained the tides, weighed the planets, and in 1846 predicted a planet nobody had seen.
+
+<Card label="Neptune, 1846">
+  Uranus was not where it should have been. Urbain Le Verrier assumed the gap came from an unseen
+  planet, turned the problem round to find where that planet must be, and posted the position to
+  the Berlin Observatory. Johann Galle found Neptune that night, within a degree of the prediction.
+  That is what a working theory looks like. Keep it in mind for Mercury, later on, where the same
+  method finds a planet that is not there.
+</Card>
+
+## A law with no mechanism
+
+Newton himself thought his theory was absurd. Nothing in it says how the Sun reaches across a hundred and fifty million kilometres of nothing to hold the Earth. There is no mechanism, no medium, and no delay. The force simply acts, everywhere, at once. In a letter to Richard Bentley he called action at a distance so great an absurdity that no competent thinker could fall into it. Then he declined to speculate further, because the equations worked and he had nothing better.
+
+In 1905 special relativity made the absurdity fatal. Einstein showed that no influence travels faster than light, and that whether two distant events happen at the same time depends on who is asking. Newton's gravity breaks both rules. It acts at once, so it needs a single, universal *now* to act across, and special relativity had just abolished that. Gravity and relativity were now flatly inconsistent, and it took Einstein ten years to repair it.
+
+## Two masses that should not agree
+
+There are two kinds of mass in Newton's physics, and no reason for them to be equal. **Inertial mass** is how hard something is to push: it is the *m* in *F* = *ma*, and it has nothing to do with gravity. **Gravitational mass** is how strongly something responds to gravity: it is the *m* in Newton's law, a kind of gravitational charge.
+
+Electric charge and inertial mass are unrelated. An electron and a proton carry charges of the same size, and their masses differ by a factor of 1836. Yet for gravity the two masses agree, for every substance ever tested. That agreement is what makes the mass cancel from the equation of motion, so that the feather and the hammer land together.
+
+How exactly do they agree? Loránd Eötvös began measuring the difference with a torsion balance in the 1880s and reached about one part in a hundred million. The French satellite MICROSCOPE carried two cylinders, one of titanium and one of a platinum alloy, in free fall around the Earth from 2016. Its final result, in 2022, bounds any difference at about one part in 10¹⁵. That is like weighing two loaded cargo ships and finding them equal to within a grain of sand.
+
+<Card label="How to weigh two materials against each other">
+  You do not weigh them, you hang them. A torsion balance carries two masses of different
+  materials on a beam hung from a fine fibre. Both feel the Earth's pull, and both are carried
+  round by its rotation. If the two kinds of mass differed even slightly between the materials,
+  the two effects would not balance alike, and the beam would twist. Better still, the Earth's
+  rotation turns the effect into a twist that repeats once a day, and a signal at a known period
+  is far easier to find than a steady one. Almost every improvement since Eötvös has come from a
+  better way to make the signal repeat, not from a more sensitive balance.
+</Card>
+
+A coincidence that precise is not a coincidence. It is a fact asking to be explained, and Newton's theory has no room for an explanation.
+
+## The happiest thought
+
+In 1907, still a patent clerk, Einstein noticed that a person falling freely does not feel their own weight. He later called it the happiest thought of his life.
+
+Turn it round and it becomes a principle. Seal yourself in a windowless box. If the box rests on the ground, you feel the floor pressing up on you, and a ball you let go falls to the floor. If the box is in deep space with a rocket accelerating it at *g*, you feel exactly the same, and the ball falls the same way. No experiment inside the box can tell the two apart. And if the box falls freely, everything inside floats, just as it would far from any star.
+
+So the two masses are equal for the same reason a metre is a metre: they were never two quantities. Gravity and acceleration are the same fact, described from two different seats. This is the **equivalence principle**, and it has a startling consequence. If gravity cannot be told apart from acceleration, gravity is not a force at all.
+
+## What free fall cannot hide
+
+The falling box works only because it is small. Make it big enough and the trick fails. Two balls released side by side both fall towards the centre of the Earth, along lines that meet there, so they drift together. Two balls released one above the other drift apart, because the lower one is pulled harder.
+
+<Figure kind="model" width="wide">
+  <FallingBox client:visible />
+  <Fragment slot="caption">
+    Every ball falls straight at the Earth's centre. Watch long enough and the floating ring
+    squeezes across and stretches downwards. A smaller box shrinks the distances, never the shape.
+  </Fragment>
+</Figure>
+
+Play with the two sliders and notice what each one does. The *shape* of the ring depends only on how long you watch. After ten seconds it is still a circle to a part in a hundred thousand; after half an hour it is a stretched oval. The *size* of the drift scales with the box. A box a metre across, watched for ten seconds, shows the balls closing by about ten micrometres, a tenth of the width of a hair. That is why the equivalence principle is a local statement: small enough and brief enough, the tide is below anything you can measure. It is never zero.
+
+No change of viewpoint removes this drift. The pull itself can be cancelled by falling, but its *variation* from place to place cannot. This is the tide, the same effect that raises two bulges in the oceans. It is physical and measurable, and it is what survives free fall. Any correct theory of gravity has to keep the tide and lose the force.
+
+<MathLayer id="m-tide" title="the tide is the second derivative of the potential">
+  <Claim>
+    Two free-falling bodies a small distance ξ apart separate at a rate set by the second
+    derivatives of the Newtonian potential: squeezed across the line to the mass, stretched along
+    it twice as hard.
+  </Claim>
+  <Given>a point mass *M* at the origin, potential Φ = −*GM*/*r*, two bodies at **r** and **r** + **ξ** with |ξ| ≪ *r*.</Given>
+  <Steps>
+    <Step tex="\ddot{\mathbf r} = -\nabla\Phi(\mathbf r), \qquad \ddot{\mathbf r} + \ddot{\boldsymbol\xi} = -\nabla\Phi(\mathbf r + \boldsymbol\xi)">
+      Each body falls freely. Neither feels anything.
+    </Step>
+    <Step tex="\ddot\xi^{\,i} = -\frac{\partial^2 \Phi}{\partial x^i\, \partial x^j}\, \xi^j" hinge>
+      Subtract and expand to first order in ξ. The pull itself, ∇Φ, cancels: that is the part a
+      falling observer can remove. Its derivative cannot cancel.
+    </Step>
+    <Step tex="\ddot\xi_\perp = -\frac{GM}{r^3}\, \xi_\perp, \qquad \ddot\xi_\parallel = +\frac{2GM}{r^3}\, \xi_\parallel">
+      For a point mass: across the line to the centre the gap closes, along it the gap opens at
+      twice the rate. Near the Earth's surface, GM/r³ is about 1.5 × 10⁻⁶ per second squared.
+    </Step>
+  </Steps>
+  <Means>
+    The matrix of second derivatives of Φ is the whole of what gravity does that falling cannot
+    undo. In general relativity it becomes the curvature of spacetime, and the equation above
+    becomes the equation of geodesic deviation.
+  </Means>
+</MathLayer>
+
+<Misconception claim="Spacetime is like a rubber sheet, and a heavy ball makes a dip that other balls roll into.">
+  <p>
+    The picture explains gravity with gravity: the balls roll into the dip only because something
+    pulls them down. It also shows only curved *space*. For anything moving slowly, like a planet
+    or an apple, almost all of the effect comes from the curving of *time*, as the clocks later in
+    this article show. Curved space matters for things that move fast, and the clearest case is
+    starlight passing the Sun.
+  </p>
+</Misconception>
+
+## Space and time stop being separate
+
+To write the tide down properly you first have to stop believing in space, and in time. Special relativity had already broken both. Two observers moving past each other disagree about how far apart two events are, and about how much time separates them. Neither is mistaken. Distance and duration belong to a point of view, not to the world.
+
+Hermann Minkowski, who had taught Einstein mathematics and thought him lazy, saw first what this meant. In 1908 he announced that space by itself and time by itself were doomed to fade away into mere shadows, and that only a union of the two would keep an independent reality. One quantity survives the disagreement:
+
+<Eq tex="ds^2 = -c^2\, dt^2 + dx^2 + dy^2 + dz^2" />
+
+Every observer, however they move, computes the same value of this **interval** between two events. It is Pythagoras for spacetime: the thing everyone agrees on.
+
+<Figure kind="model" width="medium">
+  <TwoObservers client:visible />
+  <Fragment slot="caption">
+    The same two events, written down by observers moving at different speeds. Distance and time
+    both change; the interval built from them does not.
+  </Fragment>
+</Figure>
+
+Drag the second event and watch it slide along a curve. At 0.6 *c* the two events happen at the same place, four years apart, and the interval is simply the time on a clock that is present at both. The minus sign in front of the time is the whole of relativity. Time enters the geometry with the opposite sign to space, which is why you can turn round in space but not in time, and why the speed of light becomes a conversion factor between two things that used to be different kinds of quantity.
+
+<MathLayer id="m-interval" title="the interval survives a change of observer">
+  <Claim>
+    The separations Δx and Δt between two events change from one observer to another, but
+    −c²Δt² + Δx² does not.
+  </Claim>
+  <Given>an observer moving at speed *v* along *x*, with β = *v*/*c* and γ = 1/√(1 − β²).</Given>
+  <Steps>
+    <Step tex="\Delta x' = \gamma\,(\Delta x - \beta\, c\Delta t), \qquad c\Delta t' = \gamma\,(c\Delta t - \beta\, \Delta x)">
+      The Lorentz transformation: how the moving observer's numbers relate to ours.
+    </Step>
+    <Step tex="-(c\Delta t')^2 + (\Delta x')^2 = \gamma^2 (1 - \beta^2)\,\big[-(c\Delta t)^2 + (\Delta x)^2\big]" hinge>
+      Square and add. The cross terms, 2βcΔtΔx, appear once with each sign and cancel.
+    </Step>
+    <Step tex="= -(c\Delta t)^2 + (\Delta x)^2">
+      Because γ²(1 − β²) = 1.
+    </Step>
+  </Steps>
+  <Means>
+    The interval is the only distance in spacetime that does not depend on who measures it.
+    Everything general relativity says is built from it, written for a spacetime that bends.
+  </Means>
+</MathLayer>
+
+## The straightest path ages most
+
+Every object traces a line through spacetime, its **worldline**. Sitting still is a line straight up the time axis; moving is a tilted line. Along a worldline the interval measures something physical. Divide it by −*c*² and it becomes **proper time**, the reading of a clock carried along that path:
+
+<Eq tex="c^2\, d\tau^2 = -ds^2" />
+
+Two clocks that separate and meet again will generally disagree. Neither has gone wrong. They took paths of different length through spacetime, and ageing is the length of your path.
+
+<Predict
+  client:visible
+  id="straightest-twins"
+  question="One twin stays at home; the other flies out and back. At the reunion, whose clock reads more?"
+  options={[
+    { label: 'The traveller: the longer trip took more time' },
+    { label: 'The one who stayed at home' },
+    { label: 'They agree: motion is relative' },
+  ]}
+>
+  <p>
+    The one who stayed at home. Drag the turning point below. Every path that goes out and comes
+    back is shorter in proper time than the straight one, and the further it strays the less time
+    it holds.
+  </p>
+</Predict>
+
+<Figure kind="model" width="medium">
+  <TwinPaths client:visible />
+  <Fragment slot="caption">
+    Two worldlines between the same two events. Each tick is a year on that clock's own dial; the
+    straight worldline holds the most.
+  </Fragment>
+</Figure>
+
+The minus sign flips the usual rule. On paper the straight line between two points is the shortest; in spacetime the straight worldline between two events is the one with the most proper time. There is no paradox in the twins. The traveller's path is not the same length as the stay-at-home's, and only one of them turned round.
+
+That flipped rule is the idea this article is named for. A body in free fall follows the path through spacetime along which its own clock runs longest, the straightest path the geometry allows.
+
+## Straight lines on a curved surface
+
+On a curved surface the straightest line is still well defined: it is the path you follow if you walk without ever turning. On a sphere these are the great circles. Two people who start on the equator a few hundred kilometres apart and both walk due north are walking parallel straight lines. Nobody turns, and they still meet at the pole.
+
+<Figure kind="model" width="medium">
+  <CurvedSurface client:visible mode="walkers" />
+  <Fragment slot="caption">
+    Two straight lines that start parallel. Neither walker turns; the surface brings them
+    together.
+  </Fragment>
+</Figure>
+
+Read what the walkers felt. Nothing pushed them together, and from where each one stood the other simply drew closer, at a rate set by the curvature of the ground. That is the tide in the falling box, seen from a different angle. Free-falling bodies follow the straightest lines in spacetime, and when spacetime is curved, neighbouring straight lines converge or diverge. Watching how fast they do so is how curvature is measured:
+
+<Eq tex="\frac{D^2 \xi^\mu}{d\tau^2} = -R^\mu{}_{\nu\alpha\beta}\, u^\nu\, \xi^\alpha\, u^\beta" />
+
+Here ξ is the separation between two nearby free-falling bodies, *u* is how they move through spacetime, and *R* is the **Riemann curvature tensor**, with 20 independent parts in four dimensions. Read the equation from right to left: curvature is exactly the thing that makes neighbouring free-fallers drift apart. That was the definition of the tide. The tide could not be transformed away, and now we know why. It is not a force; it is a property of the geometry.
+
+## Comparing arrows in different places
+
+On a flat sheet, two arrows at different points are easy to compare: slide one over to the other, keeping it parallel, and look. On a curved surface the answer depends on the route you take.
+
+<Figure kind="model" width="medium">
+  <CurvedSurface client:visible mode="arrow" />
+  <Fragment slot="caption">
+    An arrow carried round a closed loop, never turned, comes back turned. The angle is the area
+    the loop encloses.
+  </Fragment>
+</Figure>
+
+Carry an arrow from the north pole down to the equator, along a stretch of the equator, and back up to the pole. At every step keep it as parallel to itself as the surface allows. It comes home turned by the angle between the two meridians. Nothing turned it. The turning belongs to the surface, and it depends only on the area inside the loop. That failure of an arrow to come home unchanged is not a symptom of curvature; it is what curvature means.
+
+It also means that differentiation, which compares a quantity at one point with its value at a neighbouring point, needs repair. The fix is to carry one value over to the other before subtracting. The correction this adds is called the **Christoffel symbol**, Γ, and it is built entirely from the geometry. Written with it, the law of motion for anything in free fall is the **geodesic equation**:
+
+<Eq tex="\frac{d^2 x^\mu}{d\tau^2} + \Gamma^\mu{}_{\alpha\beta}\, \frac{dx^\alpha}{d\tau}\, \frac{dx^\beta}{d\tau} = 0" />
+
+Read it as Newton's first law, corrected for curvature. In flat space, in ordinary coordinates, every Γ vanishes and it says *d*²*x*/*d*τ² = 0: straight lines at constant speed. Two features deserve attention. There is no mass in it, so a feather and a hammer take the same path, and the coincidence of the two masses is dissolved instead of explained away. And there is no force: the right-hand side is zero. A planet in orbit is not being acted on by anything. It is coasting along the straightest line there is, through a region whose shape closes that line into a loop.
+
+## Ten equations in one sentence
+
+The geometry is carried by the **metric**, *g*<sub>μν</sub>, which turns small steps in the coordinates into intervals:
+
+<Eq tex="ds^2 = g_{\mu\nu}\, dx^\mu\, dx^\nu" />
+
+It has ten independent parts, functions of position and time. Give someone the metric and they can compute every length, every angle, every clock reading and every straightest path. In Newton's picture the gravitational field was an extra thing living in space. Here it *is* space, and time with it.
+
+What decides the metric? Einstein needed an equation with curvature on one side and matter on the other. The full Riemann tensor has too many parts. Averaging it once gives the **Ricci tensor**, with ten, and averaging again gives a single number, *R*. Exactly one combination of them is consistent with energy being conserved, and it is the left side of the field equations:
+
+<Eq tex="G_{\mu\nu} \equiv R_{\mu\nu} - \tfrac12\, g_{\mu\nu} R = \frac{8\pi G}{c^4}\, T_{\mu\nu}" size="large" />
+
+On the right, *T* holds energy, momentum, pressure and stress: everything that gravitates. The factor 8π*G*/*c*⁴ is about 2 × 10⁻⁴³ in SI units, which is why you need a planet before you notice anything. John Wheeler put the equation into one sentence: spacetime tells matter how to move, and matter tells spacetime how to curve.
+
+Both halves act at once. The metric is the unknown on the left and also sits inside the source on the right, so the equations are non-linear: gravity itself gravitates. That one fact is why they resisted solution for half a century, and why the collision of two black holes needed a supercomputer.
+
+<Card label="The term Einstein added, removed, and could not kill">
+  The same argument allows one more term: a constant, Λ, times the metric. Einstein added it in
+  1917 to hold the universe still, and dropped it when the universe turned out to be expanding.
+  In 1998 two teams found the expansion speeding up, and Λ came back; it is now about 70 per cent
+  of the energy in the universe, and nobody can explain its size. A naive estimate of the energy
+  of empty space from quantum theory overshoots the measured value by something like 120 powers
+  of ten. None of this matters near a black hole, where Λ is utterly negligible, but it is the
+  clearest sign that the theory is not the last word.
+</Card>
+
+## Newton is the first term
+
+A new theory of gravity has to reproduce two centuries of correct answers before it earns the right to predict anything strange. Take the field equations, assume the gravity is weak, the motion slow and the field steady, and nearly everything drops out. What remains is a single part of the metric, the one that sets how fast clocks run:
+
+<Eq tex="g_{00} \approx -\left(1 + \frac{2\Phi}{c^2}\right)" />
+
+where Φ is exactly Newton's gravitational potential. Feed it into the geodesic equation and out comes Newton's law. So Newton is not wrong; he is the first term. Every apple, every satellite and every planetary table computed before 1915 stays valid, and the new theory inherits all of it at once. Notice which part of the metric did the work: the one attached to *time*. For slow motion, gravity is almost entirely the curving of time.
+
+<MathLayer id="m-newton" title="the geodesic equation becomes Newton's law">
+  <Claim>
+    For slow motion in a weak, steady field, the geodesic equation reduces to Newton's law
+    d²x/dt² = −∇Φ, and the only part of the metric that matters is the one multiplying dt².
+  </Claim>
+  <Given>*g*<sub>00</sub> = −(1 + 2Φ/*c*²) with |Φ| ≪ *c*², the rest of the metric flat to the same order, speeds |*dx*/*dt*| ≪ *c*, and nothing changing in time.</Given>
+  <Steps>
+    <Step tex="\frac{d^2 x^i}{d\tau^2} \approx -\Gamma^i{}_{00}\, c^2 \left(\frac{dt}{d\tau}\right)^2">
+      Slow motion: of all the terms in the geodesic equation, the one with two time components
+      dominates, since c dt is much larger than any dx.
+    </Step>
+    <Step tex="\Gamma^i{}_{00} = -\tfrac12\, g^{ij}\, \partial_j g_{00} = \frac{1}{c^2}\, \partial_i \Phi" hinge>
+      The Christoffel symbol built from the metric: in a steady field only the space derivative
+      of g₀₀ survives, and g₀₀ carries Φ.
+    </Step>
+    <Step tex="\frac{d^2 x^i}{dt^2} = -\partial_i \Phi">
+      With τ ≈ t at low speed. This is Newton's law of gravity, with no mass anywhere in it.
+    </Step>
+  </Steps>
+  <Means>
+    Newton's potential is the stretching of time: the rate of a clock at potential Φ is
+    √(1 + 2Φ/c²) ≈ 1 + Φ/c². An apple falls because time runs slightly slower near the ground,
+    and its straightest path through spacetime bends towards the slower clocks.
+  </Means>
+</MathLayer>
+
+## Clocks that run fast in orbit
+
+That same part of the metric says that a clock deeper in a gravitational well ticks more slowly. Robert Pound and Glen Rebka measured it in 1959, up a tower 22.5 metres tall at Harvard, using the Mössbauer effect to detect a shift in the frequency of gamma rays of about {(pound * 1e15).toFixed(1)} parts in 10¹⁵.
+
+You rely on the effect every day. A GPS satellite's clock sits higher in the Earth's well than yours, which makes it run fast. It also moves at almost four kilometres a second, which by special relativity makes it run slow.
+
+<Predict
+  client:visible
+  id="straightest-gps"
+  question="Does a GPS satellite's clock run faster or slower than one on the ground?"
+  options={[
+    { label: 'Faster: it sits higher in the gravity well' },
+    { label: 'Slower: it moves fast' },
+    { label: 'The two effects cancel' },
+  ]}
+>
+  <p>
+    Faster. Height wins by about six to one at the GPS orbit: {perDay(gps.height)} microseconds a
+    day gained against {perDay(-gps.speed)} lost, a net {perDay(gps.net)}. Below one and a half
+    Earth radii it is the other way round, and the clocks on the International Space Station run
+    slow.
+  </p>
+</Predict>
+
+<Figure kind="model" width="medium">
+  <OrbitClocks client:visible />
+  <Fragment slot="caption">
+    What a clock in a circular orbit gains from its height and loses to its speed, against one on
+    the ground. Drag the orbit out from the ground to the Moon.
+  </Fragment>
+</Figure>
+
+The net {perDay(gps.net)} microseconds a day is corrected in the satellites themselves, whose clocks are set to tick slightly slow before launch. Light travels about 30 centimetres in a nanosecond, so an uncorrected 38 microseconds a day would build up as an error of more than ten kilometres in position every day. GPS is not merely consistent with general relativity. It is a test that runs all the time, and it would be visibly, uselessly wrong within hours if the theory were.
+
+<MathLayer id="m-clocks" title="why orbiting clocks break even at one and a half Earth radii">
+  <Claim>
+    A clock in a circular orbit of radius r runs at the same rate as one at rest on the ground,
+    radius R, when r = 3R/2. Further out it runs fast, closer in it runs slow.
+  </Claim>
+  <Given>weak field, rates to first order in GM/rc² and v²/c², and the ground clock's own motion with the Earth's spin left out.</Given>
+  <Steps>
+    <Step tex="\frac{d\tau}{dt} \approx 1 + \frac{\Phi}{c^2} - \frac{v^2}{2c^2}">
+      Height and speed, one from the metric's g₀₀, the other from special relativity.
+    </Step>
+    <Step tex="v^2 = \frac{GM}{r}" hinge>
+      A circular orbit fixes the speed: the further out, the slower. That links the two effects.
+    </Step>
+    <Step tex="\frac{d\tau_{\text{orbit}}}{d\tau_{\text{ground}}} - 1 \approx \frac{GM}{c^2}\left(\frac1R - \frac{3}{2r}\right)">
+      Subtract the ground clock's rate, 1 − GM/Rc², from the orbiting clock's, 1 − 3GM/2rc².
+      The bracket vanishes at r = 3R/2.
+    </Step>
+  </Steps>
+  <Means>
+    At the GPS orbit, r ≈ 4.2R, the bracket is large and positive: 38 microseconds a day. On the
+    International Space Station, r ≈ 1.06R, it is negative, and astronauts age slightly less than
+    the people they left behind.
+  </Means>
+</MathLayer>
+
+## Mercury: the test that could have killed it
+
+Mercury's orbit had been known to be wrong since Le Verrier reported it in 1859. Its closest point to the Sun creeps round by about 574 arcseconds a century. The pulls of the other planets account for 531 of them. The remaining 43 had no explanation.
+
+Le Verrier, fresh from Neptune, applied the method that had just worked and predicted a planet inside Mercury's orbit. Vulcan was searched for, occasionally reported, and never there. In November 1915 Einstein computed the extra creep from his field equations. There were no free parameters and no fitting, and the quantity had already been measured. It came out at {mercury} arcseconds a century. He wrote that it gave him palpitations of the heart.
+
+<Pull>The same method that had found a planet was, this time, telling us the theory was wrong.</Pull>
+
+<Figure kind="model" width="medium">
+  <MercuryOrbit client:visible />
+  <Fragment slot="caption">
+    An orbit with Mercury's shape, moved closer to a mass of the Sun's. Far out, the ellipse
+    creeps by arcseconds a century; close in, it becomes a rosette.
+  </Fragment>
+</Figure>
+
+The figure solves the exact equation for an orbit around a non-rotating mass, with no exaggeration; only the distance changes. At Mercury's distance the closest point moves by a tenth of an arcsecond per orbit, and Mercury goes round about 415 times a century. Move the orbit in to a few tens of Schwarzschild radii, where only a black hole or a neutron star would let you, and it swings round by tens of degrees each time. Notice also that close in, the exact answer runs ahead of the textbook formula. The formula is the first term of a series, and near a black hole the later terms matter.
+
+## The eclipse that made him famous
+
+General relativity predicts that starlight grazing the Sun is bent by {bend} arcseconds, exactly twice what light would feel if it were a stream of Newtonian particles. The factor of two is not a detail. Half of the bending comes from the curving of time, which Newton's theory can imitate, and half from the curving of space, which it cannot.
+
+Arthur Eddington led the measurement during the total eclipse of 29 May 1919 from the island of Príncipe, while a second team worked from Sobral in Brazil. With the Sun's glare blocked, the stars near its edge could be photographed and compared with their positions at night.
+
+<Figure kind="measured" width="medium">
+  <LightBending />
+  <Fragment slot="caption">
+    The 1919 measurements with their quoted errors, against the two predictions. Today's
+    measurements are so precise that their error bar is hidden under the dot.
+  </Fragment>
+</Figure>
+
+The announcement in November put Einstein on the front page of newspapers around the world. By modern standards the 1919 errors were large, and the result was not as clean as the headlines said: a second telescope at Sobral gave a value closer to Newton's, and was set aside because the Sun's heat had distorted its images. Historians still argue about the call. It hardly matters now. Radio telescopes have since confirmed the bending to better than 0.02 per cent, and the bending of light by mass has become a routine way to weigh galaxies that cannot be weighed any other way.
+
+## Light delayed, and space dragged
+
+In 1964 Irwin Shapiro realised that there was a fourth test nobody had thought of. A radar pulse sent past the Sun to another planet and back takes longer than it would in flat space. Not because it takes a detour, but because near the mass clocks run slower and space is stretched. For a pulse grazing the Sun on its way to Venus and back, the delay is about {venus} microseconds, out of a trip of some half an hour. The Cassini spacecraft measured the effect in 2002 and confirmed general relativity to about two parts in 100 000, still one of the tightest limits on any departure from the theory.
+
+Rotation adds a twist. Josef Lense and Hans Thirring worked out in 1918 that a spinning mass drags spacetime round with it, so a gyroscope in orbit slowly turns even with no torque on it. Around the Earth the effect is tiny: about 39 thousandths of an arcsecond a year, the width of a human hair seen from half a kilometre away. Gravity Probe B flew four of the roundest objects ever made to measure it, and reported agreement in 2011, after years of wrestling with unexpected electrical effects on the surfaces of its gyroscopes.
+
+<Card label="Two turnings, both measured by Gravity Probe B">
+  The geodetic effect, from curvature alone: predicted 6606 thousandths of an arcsecond a year,
+  measured 6602 ± 18. Frame dragging, from the Earth's rotation: predicted 39.2, measured 37.2 ±
+  7.2. Around a black hole the second effect is not a correction. It is violent enough to define a
+  whole region of space around the hole.
+</Card>
+
+## A clock in orbit around a star
+
+In 1974 Russell Hulse and Joseph Taylor found a pulsar in a seven-and-three-quarter-hour orbit with another neutron star. A pulsar is a clock of extraordinary stability, and here was one moving at a thousandth of the speed of light around a companion.
+
+General relativity says such a pair radiates gravitational waves, loses orbital energy, and spirals in. The predicted shrinking is about 3.5 metres a year. Four decades of timing have followed the orbit, and the measured decay agrees with the prediction to about 0.2 per cent. The discovery won the 1993 Nobel Prize, and it is the reason nobody serious doubted that gravitational waves existed long before 2015. The waves were confirmed by their absence: by energy that had visibly gone missing.
+
+## How strong was the gravity?
+
+Here is the scorecard. The perihelion of Mercury, the bending and delay of light, clocks at different heights, the dragging of frames and the decay of the binary pulsar have all agreed with general relativity. A century of attempts to break it have failed, and the only places the theory is known to fail are the ones it predicts itself: the centre of a black hole, and anywhere quantum mechanics matters.
+
+But look at where all these tests took place. A good measure of how strong gravity is somewhere is *GM*/*rc*², the depth of the gravitational well in units of the speed of light squared.
+
+<Figure kind="model" width="medium">
+  <FieldStrength />
+  <Fragment slot="caption">
+    How deep the gravitational well was in each test. Every classical test sits far to the left of
+    the region the gravitational waves come from.
+  </Fragment>
+</Figure>
+
+Every classical test was made where *GM*/*rc*² is a few millionths or less. At the horizon of a black hole it is one half. A theory could pass every test in this article and still fail completely at a horizon. The binary pulsar comes closest: its orbit is weak-field, but its two stars are not, since each is a neutron star whose own gravity is strong. Even so, the gap was only closed when the detectors began to hear black holes merge, and the ring that follows a merger became a measurement of the geometry itself.
+
+## What the theory claims
+
+Four statements hold the whole of it. There is no gravitational force; there is a geometry, and free bodies follow its straightest lines. The geometry is not a stage: it carries energy, responds to matter, and can move on its own, which is what a gravitational wave is. Locally, spacetime is always flat, so curvature cannot be seen at a point; it shows only in how neighbouring paths drift apart. And the equations are non-linear, because gravity is itself a source of gravity, so solutions cannot simply be added together.
+
+That last point is why exact solutions are precious. The next part of the story opens six weeks after the field equations were published, with a soldier on the Russian front who found one.
+
+<CheckYourself
+  client:visible
+  id="straightest"
+  questions={[
+    {
+      question: 'Why do a feather and a hammer fall together in a vacuum?',
+      options: [
+        { label: 'The heavier hammer is pulled harder, and also harder to accelerate, by exactly the same factor', why: 'True as far as it goes, but that is the coincidence Newton could not explain. Why are the two masses equal?' },
+        { label: 'Neither is pulled at all: both follow the same straightest path through spacetime, which does not depend on what moves along it', correct: true, why: 'The geodesic equation has no mass in it, so the coincidence disappears.' },
+      ],
+    },
+    {
+      question: 'Inside a box falling freely towards the Earth, what can you still detect, given enough time?',
+      options: [
+        { label: 'Nothing: free fall cancels gravity completely', why: 'Only in a small enough box, for a short enough time. The variation of the pull from place to place does not cancel.' },
+        { label: 'Balls side by side drift together, and balls one above the other drift apart', correct: true, why: 'That is the tide, and it is the curvature of spacetime.' },
+      ],
+    },
+    {
+      question: 'Two clocks part and meet again. Which one shows more elapsed time?',
+      options: [
+        { label: 'The one whose worldline was straight between the two events', correct: true, why: 'With the minus sign in the interval, the straight worldline has the most proper time.' },
+        { label: 'The one that travelled further', why: 'Distance travelled in space shortens the proper time; it does not lengthen it.' },
+      ],
+    },
+    {
+      question: 'Mercury’s orbit, the eclipse, GPS and Cassini all agree with general relativity. What do they not test?',
+      options: [
+        { label: 'Gravity where GM/rc² is close to one half, as at a black hole', correct: true, why: 'Every one of them was made where GM/rc² is a few millionths or less.' },
+        { label: 'Whether light is bent by mass', why: 'The eclipse and radio interferometry test exactly that.' },
+      ],
+    },
+  ]}
+/>

@@ -14,9 +14,11 @@ const html = tex(source);
 <li class:list={['step', { hinge }]}>
   {/* Focusable so a long expression can be scrolled from the keyboard on a narrow screen. */}
   <div class="step__expr" tabindex="0" set:html={html} />
-  <p class="step__why">
+  {/* A div, not a p: MDX wraps the slotted text in its own paragraph, and a p inside a p
+      would be split by the parser and fall out of the grid. */}
+  <div class="step__why">
     <slot />
-  </p>
+  </div>
 </li>
 
 <style>
@@ -63,6 +65,10 @@ const html = tex(source);
     font-size: 0.92rem;
     line-height: 1.55;
     color: var(--ink-soft);
+  }
+
+  .step__why :global(p) {
+    margin: 0;
   }
 
   .hinge {

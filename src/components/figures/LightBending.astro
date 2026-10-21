@@ -1,0 +1,67 @@
+---
+/**
+ * The 1919 eclipse (The Straightest Path): the bending of starlight at the Sun's edge, as
+ * Newtonian light would have it, as general relativity predicts it, and as the two
+ * expeditions and modern radio interferometry measured it. Predictions from 4GM/c²R and half
+ * of it; the 1919 values with their quoted errors.
+ */
+import { ARCSEC, GM_SUN, R_SUN, deflection } from '~/lib/physics/relativity';
+import { linear } from '~/lib/figure/svg';
+
+const einstein = deflection(GM_SUN, R_SUN) / ARCSEC;
+const newton = einstein / 2;
+const rows = [
+  { label: 'Sobral, Brazil, 1919', value: 1.98, error: 0.16 },
+  { label: 'Príncipe, 1919', value: 1.61, error: 0.4 },
+  { label: 'radio telescopes, today', value: einstein, error: einstein * 2e-4 },
+];
+
+const W = 600;
+const H = 214;
+const PAD = { l: 196, r: 20, t: 52, b: 40 };
+const x = linear(0, 2.6, PAD.l, W - PAD.r);
+const rowY = (i: number) => PAD.t + 18 + i * 34;
+---
+
+<svg
+  class="fig light-bending"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`Bending of starlight at the Sun's edge, in arcseconds. Light treated as Newtonian particles would bend ${newton.toFixed(2)}; general relativity predicts ${einstein.toFixed(2)}. Sobral measured 1.98 plus or minus 0.16 and Príncipe 1.61 plus or minus 0.40 in 1919; radio interferometry today agrees with ${einstein.toFixed(2)} to better than 0.02 per cent.`}
+>
+  <text class="caps" x="16" y="16">
+    starlight bent at the sun's edge
+  </text>
+  <line class="model" x1={x(newton)} x2={x(newton)} y1={PAD.t - 8} y2={H - PAD.b}></line>
+  <line class="model" x1={x(einstein)} x2={x(einstein)} y1={PAD.t - 8} y2={H - PAD.b}></line>
+  <text x={x(newton)} y={PAD.t - 14} text-anchor="middle">
+    Newton: {newton.toFixed(2)}″
+  </text>
+  <text class="ink" x={x(einstein)} y={PAD.t - 14} text-anchor="middle">
+    Einstein: {einstein.toFixed(2)}″
+  </text>
+  {rows.map((row, i) => (
+    <g>
+      <text class="ink" x={PAD.l - 12} y={rowY(i) + 4} text-anchor="end">
+        {row.label}
+      </text>
+      <line
+        class="signal"
+        x1={x(row.value - row.error)}
+        x2={x(row.value + row.error)}
+        y1={rowY(i)}
+        y2={rowY(i)}
+      />
+      <circle class="dot" cx={x(row.value)} cy={rowY(i)} r="5" />
+    </g>
+  ))}
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+  {[0, 0.5, 1, 1.5, 2, 2.5].map((v) => (
+    <text x={x(v)} y={H - PAD.b + 16} text-anchor="middle">
+      {v}
+    </text>
+  ))}
+  <text x={W - PAD.r} y={H - 6} text-anchor="end">
+    arcseconds
+  </text>
+</svg>
