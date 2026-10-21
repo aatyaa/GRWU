@@ -1,0 +1,99 @@
+---
+/**
+ * What is in a file (Run It Yourself): one 4096-second strain file and the masks that come
+ * with it. A schematic, not real data: a gap where the detector was not observing, vetoes
+ * that grow stricter from CAT1 to CAT3, and a hardware injection marked in INJMASK.
+ */
+import { linear } from '~/lib/figure/svg';
+import { gaussian, mulberry32 } from '~/lib/stats/random';
+
+const W = 600;
+const H = 318;
+const PAD = { l: 108, r: 14 };
+const x = linear(0, 4096, PAD.l, W - PAD.r);
+const gap: [number, number] = [1450, 1750];
+const rows = [
+  { name: 'DATA', fails: [gap] },
+  { name: 'CBC_CAT1', fails: [gap, [520, 545]] },
+  { name: 'CBC_CAT2', fails: [gap, [520, 545], [2610, 2690]] },
+  { name: 'CBC_CAT3', fails: [gap, [520, 545], [2610, 2690], [3080, 3150], [880, 905]] },
+] as { name: string; fails: [number, number][] }[];
+const injection = 3420;
+
+// A squiggle for the strain row, flat in the gap.
+const draw = gaussian(mulberry32(4096));
+const STRAIN_Y = 70;
+let d = '';
+for (let t = 0; t <= 4096; t += 8) {
+  const v = t >= gap[0] && t <= gap[1] ? 0 : draw() * 9;
+  d += `${t ? 'L' : 'M'}${x(t).toFixed(1)},${(STRAIN_Y + v).toFixed(1)}`;
+}
+const rowY = (i: number) => 124 + i * 30;
+const INJ_Y = rowY(rows.length) + 12;
+---
+
+<svg
+  class="fig file-anatomy"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="A schematic of one 4096-second strain file. Under the strain, the data-quality mask has one row per bit: DATA, then CBC categories 1, 2 and 3, each failing a few more seconds than the last. All of them fail across a gap where the detector was not observing and the strain is meaningless. A separate injection mask marks one second where a deliberate fake signal was pushed into the mirrors."
+>
+  <text class="caps" x={PAD.l} y="16">
+    one file: 4096 seconds, with its masks
+  </text>
+  <text class="ink" x={PAD.l - 10} y={STRAIN_Y + 4} text-anchor="end">
+    STRAIN
+  </text>
+  <path class="noise" d={d}></path>
+  <text class="bias" x={x((gap[0] + gap[1]) / 2)} y={STRAIN_Y - 32} text-anchor="middle">
+    gap: not quiet, meaningless
+  </text>
+
+  <text x={PAD.l - 10} y={rowY(0) - 16} text-anchor="end">
+    DQMASK, 1 Hz
+  </text>
+  {rows.map((row, i) => (
+    <g>
+      <text class="ink" x={PAD.l - 10} y={rowY(i) + 4} text-anchor="end">
+        {row.name}
+      </text>
+      <rect class="pass" x={x(0)} y={rowY(i) - 8} width={x(4096) - x(0)} height="16" rx="2" />
+      {row.fails.map(([a, b]) => (
+        <rect class="fail" x={x(a)} y={rowY(i) - 8} width={Math.max(2, x(b) - x(a))} height="16" />
+      ))}
+    </g>
+  ))}
+  <text x={W - PAD.r} y={rowY(rows.length - 1) + 24} text-anchor="end">
+    each category vetoes more · a bit is 1 when the second passes
+  </text>
+
+  <text class="ink" x={PAD.l - 10} y={INJ_Y + 4} text-anchor="end">
+    INJMASK
+  </text>
+  <line class="axis" x1={x(0)} x2={x(4096)} y1={INJ_Y} y2={INJ_Y}></line>
+  <circle class="dot" cx={x(injection)} cy={INJ_Y} r="5"></circle>
+  <text class="signal" x={x(injection) - 8} y={INJ_Y + 20} text-anchor="end">
+    hardware injection: a fake signal, on purpose
+  </text>
+
+  <line class="axis" x1={x(0)} x2={x(4096)} y1={H - 26} y2={H - 26}></line>
+  {[0, 1024, 2048, 3072, 4096].map((t) => (
+    <text x={x(t)} y={H - 10} text-anchor="middle">
+      {t}
+    </text>
+  ))}
+  <text x={PAD.l - 10} y={H - 10} text-anchor="end">
+    seconds
+  </text>
+</svg>
+
+<style>
+  .file-anatomy .pass {
+    fill: var(--noise);
+    opacity: 0.35;
+  }
+
+  .file-anatomy .fail {
+    fill: var(--bias);
+  }
+</style>

@@ -1,0 +1,9 @@
+---
+/** Draws the posterior samples at build time and hands them to the island. */
+import { sampledPosteriors } from '~/lib/articles/yourself';
+import PriorAgainstPosteriorIsland from './PriorAgainstPosterior.svelte';
+
+const s = sampledPosteriors();
+---
+
+<PriorAgainstPosteriorIsland client:visible chirpMass={s.chirpMass} phase={s.phase} />

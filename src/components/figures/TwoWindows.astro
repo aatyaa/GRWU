@@ -1,0 +1,71 @@
+---
+/**
+ * Two stretches of data for two jobs (Run It Yourself): the four seconds analysed around the
+ * event, and the 128 seconds before them that measure the noise, which never overlap. The
+ * numbers are the ODW parameter-estimation tutorial's.
+ */
+import { linear } from '~/lib/figure/svg';
+
+const W = 600;
+const H = 150;
+const PAD = { l: 16, r: 16 };
+const post = 2;
+const duration = 4;
+const psd = duration * 32;
+const start = post - duration; // analysis start, relative to the event
+const x = linear(start - psd - 6, post + 6, PAD.l, W - PAD.r);
+const Y = 64;
+---
+
+<svg
+  class="fig two-windows"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`A time line around the event. The noise is measured on ${psd} seconds of data that end where the analysis begins; the analysis uses the ${duration} seconds from ${-start} seconds before the event to ${post} seconds after it. The two stretches do not overlap, so the signal never enters the noise estimate.`}
+>
+  <text class="caps" x={PAD.l} y="16">
+    two stretches, two jobs
+  </text>
+  <rect
+    class="psd"
+    x={x(start - psd)}
+    y={Y}
+    width={x(start) - x(start - psd)}
+    height="26"
+    rx="3"
+  ></rect>
+  <text class="ink" x={(x(start - psd) + x(start)) / 2} y={Y - 10} text-anchor="middle">
+    {psd} s to measure the noise
+  </text>
+  <rect class="analysis" x={x(start)} y={Y} width={x(post) - x(start)} height="26" rx="3"></rect>
+  <text class="signal" x={x(post)} y={Y - 10} text-anchor="end">
+    {duration} s to analyse
+  </text>
+  <line class="event" x1={x(0)} x2={x(0)} y1={Y - 4} y2={Y + 34}></line>
+  <text x={x(0)} y={Y + 48} text-anchor="middle">
+    event
+  </text>
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - 30} y2={H - 30}></line>
+  {[-120, -90, -60, -30, 0].map((t) => (
+    <text x={x(t)} y={H - 14} text-anchor="middle">
+      {t === 0 ? '0 s' : `−${-t} s`}
+    </text>
+  ))}
+</svg>
+
+<style>
+  .two-windows .psd {
+    fill: var(--noise);
+    opacity: 0.45;
+  }
+
+  .two-windows .analysis {
+    fill: var(--signal);
+    opacity: 0.8;
+  }
+
+  .two-windows .event {
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+</style>

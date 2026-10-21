@@ -57,7 +57,8 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundati
     rendering off screen. State is exposed as `data-hero-*`; `?hero=<seconds>` freezes it. The
     recorded signal under it is a map of the articles (`segments`: noise, inspiral, merger,
     ringdown); pointing at a part sets `data-seg` and jumps the scene there.
-  - `editorial/`: `Pull`, `Card` (`tone="caveat"`), `Figure` (small centred caption;
+  - `editorial/`: `Pull`, `Card` (`tone="caveat"`), `Code` (a titled block of code and its
+    output, plain monospace so it keeps its contrast; long lines scroll), `Figure` (small centred caption;
     `width="text|medium|wide"`), `Scrolly` (sticky figure driven by the steps beside it;
     the figure island reads `scrollySteps[id]`).
   - `math/`: `Eq` (KaTeX at build time; tagged terms defined underneath and linked to
@@ -104,9 +105,13 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundati
     ringdown fits at every start time), `route.ts` (noise budget, H1/L1 alignment, chirp-mass
     scan), `fitting.ts` (Fitting a Ring in Noise), `claim.ts` (From Data File to Claim: the
     GW150914 trail; fails the build if the file's SHA-256 changes), `candidate.ts` (A Peak Is
-    Only a Candidate: time–frequency maps, filter edges, the χ² test, time slides). An MDX
+    Only a Candidate: time–frequency maps, filter edges, the χ² test, time slides), `yourself.ts`
+    (Run It Yourself: posterior samples against their prior; `route.ts` also gives the H1–L1
+    cross-correlation) and `handbook-code.ts` (the ODW code the article quotes, kept out of the
+    MDX so its signs and braces stay plain text). An MDX
     article can import these and quote their numbers in its prose. Figures that only switch
     states read the scrolly's `data-active` in CSS, no JS.
+  - `time/gps.ts`: UTC to GPS time and back, with the leap-second table; checked against astropy.
   - `dsp/chirp.ts`: the pipeline's Newtonian chirp, ported and checked against its injection.
   - `dsp/models.ts`: analytic noise models (Advanced LIGO design PSD). `audio/play.ts`:
     plays 4096 Hz data through Web Audio. `format.ts`: `8.0 × 10⁻²⁴`-style numbers.

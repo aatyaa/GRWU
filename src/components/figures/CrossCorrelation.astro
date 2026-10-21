@@ -1,0 +1,64 @@
+---
+/**
+ * Two detectors agreeing with no template (Run It Yourself): the correlation between whitened
+ * Hanford and Livingston around GW150914, against the lead given to Livingston, and the same
+ * over noise eight seconds earlier.
+ */
+import { crossCorrelation } from '~/lib/articles/route';
+import { linePath, linear } from '~/lib/figure/svg';
+
+const c = crossCorrelation();
+const W = 600;
+const H = 270;
+const PAD = { l: 44, r: 14, t: 30, b: 44 };
+const x = linear(c.lags[0], c.lags[c.lags.length - 1], PAD.l, W - PAD.r);
+const y = linear(-0.8, 0.8, H - PAD.b, PAD.t);
+---
+
+<svg
+  class="fig cross-correlation"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`The correlation between whitened Hanford and Livingston data as Livingston is shifted by up to 12 milliseconds. Around GW150914 it reaches ${c.peak.toFixed(2)} when Livingston leads by ${c.peakLag.toFixed(1)} milliseconds: strongly, and negatively, because the two detectors are oriented differently. Over noise eight seconds earlier it stays within ${Math.max(...c.noise.map(Math.abs)).toFixed(2)} of zero at every shift.`}
+>
+  <text class="caps" x={PAD.l} y="16">
+    hanford against livingston, no template involved
+  </text>
+  {[-0.5, 0, 0.5].map((v) => (
+    <g>
+      <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} />
+      <text x={PAD.l - 8} y={y(v)} dy="4" text-anchor="end">
+        {v === 0 ? '0' : v > 0 ? `+${v}` : `−${-v}`}
+      </text>
+    </g>
+  ))}
+  <rect class="light" x={x(-10)} y={PAD.t} width={x(10) - x(-10)} height={H - PAD.t - PAD.b}></rect>
+  <path class="noise" d={linePath(c.lags, c.noise, x, y)}></path>
+  <path class="signal" d={linePath(c.lags, c.event, x, y)}></path>
+  <circle class="dot" cx={x(c.peakLag)} cy={y(c.peak)} r="4.5"></circle>
+  <text class="signal" x={x(c.peakLag) - 8} y={y(c.peak) + 4} text-anchor="end">
+    GW150914: {c.peak.toFixed(2)} at {c.peakLag.toFixed(1)} ms
+  </text>
+  <text x={x(-11.5)} y={y(0.12) - 30}>
+    noise, 8 s earlier
+  </text>
+  <text x={x(0)} y={PAD.t + 14} text-anchor="middle">
+    light can cross between the sites in ±10 ms
+  </text>
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+  {[-10, -5, 0, 5, 10].map((t) => (
+    <text x={x(t)} y={H - PAD.b + 16} text-anchor="middle">
+      {t === 0 ? '0' : t > 0 ? `+${t}` : `−${-t}`}
+    </text>
+  ))}
+  <text x={W - PAD.r} y={H - 8} text-anchor="end">
+    Livingston's lead over Hanford (ms)
+  </text>
+</svg>
+
+<style>
+  .cross-correlation .light {
+    fill: var(--rule-soft);
+    opacity: 0.5;
+  }
+</style>

@@ -145,3 +145,66 @@ export function chirpMassScan(): ChirpMassScan {
   scanCache = { mc, snr: mc.map((m) => round(points.get(m) ?? 0, 5)), truth: inj.chirp_mass };
   return scanCache;
 }
+
+export interface CrossCorrelation {
+  /** Livingston's lead over Hanford, in milliseconds. */
+  lags: number[];
+  /** Correlation of the two whitened detectors around the event, at each lead. */
+  event: number[];
+  /** The same over a stretch of noise eight seconds earlier. */
+  noise: number[];
+  /** The lead and correlation where the event's curve is largest in size. */
+  peakLag: number;
+  peak: number;
+}
+
+let correlationCache: CrossCorrelation | undefined;
+
+/**
+ * Hanford against Livingston with no template at all: the normalised correlation of the two
+ * whitened, 35–350 Hz series over 0.2 s, as Livingston is shifted earlier or later by up to
+ * 12 ms. Around GW150914 it peaks where light could have crossed between the sites.
+ */
+export function crossCorrelation(): CrossCorrelation {
+  if (correlationCache) return correlationCache;
+  const { fs, at, h1, l1 } = event();
+  const bandOf = (c: typeof h1): Band => ({
+    sampleRate: fs,
+    psd: interpolatePsd(c.freqs, c.psd),
+    fLow: 35,
+    fHigh: 350,
+  });
+  const wh = whiten(h1.x, bandOf(h1));
+  const wl = whiten(l1.x, bandOf(l1));
+  const max = Math.round(0.012 * fs);
+  const length = Math.round(0.2 * fs);
+  const corr = (start: number) => {
+    const out: number[] = [];
+    for (let k = -max; k <= max; k++) {
+      let xy = 0;
+      let xx = 0;
+      let yy = 0;
+      for (let i = start; i < start + length; i++) {
+        const y = wl[i - k];
+        xy += wh[i] * y;
+        xx += wh[i] * wh[i];
+        yy += y * y;
+      }
+      out.push(round(xy / Math.sqrt(xx * yy), 4));
+    }
+    return out;
+  };
+  const eventStart = Math.round((at - 0.15) * fs);
+  const lags = Array.from({ length: 2 * max + 1 }, (_, i) => round(((i - max) / fs) * 1000, 4));
+  const ev = corr(eventStart);
+  let j = 0;
+  for (let i = 1; i < ev.length; i++) if (Math.abs(ev[i]) > Math.abs(ev[j])) j = i;
+  correlationCache = {
+    lags,
+    event: ev,
+    noise: corr(eventStart - 8 * fs),
+    peakLag: lags[j],
+    peak: ev[j],
+  };
+  return correlationCache;
+}
