@@ -10,7 +10,7 @@ from dataclasses import asdict
 import numpy as np
 import pytest
 
-from grwu_pipeline import fixtures, foundations, kerr, synthetic
+from grwu_pipeline import fixtures, foundations, kerr, relativity, synthetic
 from grwu_pipeline.dataset import read_channel, read_meta
 from grwu_pipeline.paths import (
     find_repo_root,
@@ -18,6 +18,7 @@ from grwu_pipeline.paths import (
     foundations_fixtures_file,
     kerr_fixtures_file,
     public_data,
+    relativity_fixtures_file,
 )
 
 ROOT = find_repo_root()
@@ -73,3 +74,9 @@ def test_committed_foundations_fixtures_match_references():
     compare(committed.pop("ringfit"), fresh.pop("ringfit"), "foundations.ringfit", rtol=1e-6)
     # The oscillator comes from an adaptive ODE solver; everything else is exact arithmetic.
     compare(committed, fresh, "foundations", rtol=1e-9)
+
+
+def test_committed_relativity_fixtures_match_scipy():
+    committed = json.loads(relativity_fixtures_file(ROOT).read_text())
+    # Adaptive ODE solvers and quadrature converge to a tolerance, not to the last bit.
+    compare(committed, relativity.build(), "relativity", rtol=1e-9)

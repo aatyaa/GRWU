@@ -10,7 +10,7 @@ import { sealedArticles, sealedMode } from '~/lib/ringdown';
 import { foundations, tracks } from '~/lib/tracks';
 import { withBase } from '~/lib/url';
 
-type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map' | 'bell';
+type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map' | 'bell' | 'orbit';
 
 interface Card {
   id: string;
@@ -104,6 +104,7 @@ const moreThumbs: Record<string, Kind> = {
   'laplace-closes-the-circle': 'bell',
   'a-peak-is-only-a-candidate': 'chirp',
   'run-it-yourself': 'spectrum',
+  'the-straightest-path': 'orbit',
 };
 const more = articles.filter(
   (a) => !planned.some((p) => p.id === a.id) && a.data.track !== 'foundations',

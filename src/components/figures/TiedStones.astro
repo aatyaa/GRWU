@@ -1,0 +1,97 @@
+---
+/**
+ * Galileo's argument without an experiment (The Straightest Path): if heavy bodies fell
+ * faster, a heavy stone tied to a light one would have to fall both slower and faster than the
+ * heavy stone alone. A schematic.
+ */
+const W = 600;
+const H = 252;
+const TOP = 62;
+
+/** A falling arrow from y0 down by length, with a small head. */
+const arrow = (x: number, y0: number, length: number) =>
+  `M${x},${y0}L${x},${y0 + length}M${x - 5},${y0 + length - 7}L${x},${y0 + length}L${x + 5},${y0 + length - 7}`;
+---
+
+<svg
+  class="fig tied-stones"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Three panels. A heavy stone alone falls fast; a light stone alone falls slowly. Tied together, the premise that heavy things fall faster says the pair must fall slower than the heavy stone, because the light one holds it back, and also faster, because the pair is heavier than either. One premise gives two opposite answers, so the premise is wrong."
+>
+  <text class="caps" x="16" y="16">
+    suppose heavy things fell faster
+  </text>
+
+  <text class="ink" x="100" y="40" text-anchor="middle">
+    heavy alone
+  </text>
+  <circle class="stone" cx="100" cy={TOP} r="16"></circle>
+  <path class="fall" d={arrow(100, TOP + 24, 104)}></path>
+  <text x="112" y={TOP + 112}>
+    fast
+  </text>
+
+  <text class="ink" x="265" y="40" text-anchor="middle">
+    light alone
+  </text>
+  <circle class="stone" cx="265" cy={TOP} r="8"></circle>
+  <path class="fall" d={arrow(265, TOP + 16, 46)}></path>
+  <text x="277" y={TOP + 54}>
+    slow
+  </text>
+
+  <text class="ink" x="455" y="40" text-anchor="middle">
+    tied together
+  </text>
+  <line class="string" x1="437" y1={TOP} x2="479" y2={TOP}></line>
+  <circle class="stone" cx="437" cy={TOP} r="16"></circle>
+  <circle class="stone" cx="479" cy={TOP} r="8"></circle>
+  <path class="bias" d={arrow(421, TOP + 24, 70)}></path>
+  <text class="bias" x="415" y={TOP + 112} text-anchor="end">
+    slower:
+  </text>
+  <text class="bias" x="415" y={TOP + 126} text-anchor="end">
+    the light one
+  </text>
+  <text class="bias" x="415" y={TOP + 140} text-anchor="end">
+    holds it back
+  </text>
+  <path class="bias" d={arrow(489, TOP + 24, 132)}></path>
+  <text class="bias" x="499" y={TOP + 112}>
+    faster:
+  </text>
+  <text class="bias" x="499" y={TOP + 126}>
+    the pair is
+  </text>
+  <text class="bias" x="499" y={TOP + 140}>
+    heavier still
+  </text>
+
+  <text class="ink" x={W / 2} y={H - 12} text-anchor="middle">
+    one premise, two opposite answers: the premise is wrong
+  </text>
+</svg>
+
+<style>
+  .tied-stones .stone {
+    fill: color-mix(in srgb, var(--noise) 35%, var(--surface));
+    stroke: var(--noise);
+    stroke-width: 1.5;
+  }
+
+  .tied-stones .string {
+    stroke: var(--ink-soft);
+    stroke-width: 1.5;
+  }
+
+  .tied-stones .fall {
+    stroke: var(--ink-soft);
+    stroke-width: 1.6;
+    fill: none;
+  }
+
+  .tied-stones path.bias {
+    stroke-width: 1.8;
+  }
+</style>

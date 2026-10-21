@@ -1,0 +1,95 @@
+---
+/**
+ * One law for the sky and the ground (The Straightest Path). Each orbiting body's acceleration
+ * is computed from its orbit alone, 4π²r/T², from the radius and period; the apple's is the
+ * measured g. On log axes the inverse square through the apple is a straight line, and the
+ * Moon, Newton's test, sits on it. The satellites came three centuries later.
+ */
+import { log } from '~/lib/figure/svg';
+
+const EARTH = 6_371e3; // mean radius, m
+const G0 = 9.81;
+const bodies = [
+  { name: 'GPS', r: 26_561.75e3, T: 43_082 },
+  { name: 'geostationary', r: 42_164e3, T: 86_164 },
+  { name: 'the Moon', r: 384_400e3, T: 27.321_7 * 86_400 },
+].map((b) => ({ ...b, d: b.r / EARTH, a: (4 * Math.PI ** 2 * b.r) / b.T ** 2 }));
+const moon = bodies.at(-1)!;
+
+const W = 600;
+const H = 330;
+const PAD = { l: 58, r: 20, t: 46, b: 44 };
+const x = log(0.8, 120, PAD.l, W - PAD.r);
+const y = log(8e-4, 30, H - PAD.b, PAD.t);
+const law = (d: number) => G0 / (d * d);
+const line = [0.8, 120]
+  .map((d, i) => `${i ? 'L' : 'M'}${x(d).toFixed(1)},${y(law(d)).toFixed(1)}`)
+  .join('');
+const yTicks = [10, 1, 0.1, 0.01, 0.001];
+---
+
+<svg
+  class="fig apple-moon"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`Acceleration against distance from the Earth's centre, both on log scales. The inverse-square law through the apple's measured 9.81 metres per second squared is a straight line. The Moon, at ${moon.d.toFixed(1)} Earth radii, has an acceleration computed from its orbit of ${(moon.a * 1000).toFixed(2)} millimetres per second squared, on the line within ${Math.abs((moon.a / law(moon.d) - 1) * 100).toFixed(0)} per cent. The GPS and geostationary satellites sit on it too.`}
+>
+  <text class="caps" x={PAD.l} y="16">
+    the apple and the moon, on one line
+  </text>
+  {yTicks.map((v) => (
+    <g>
+      <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={y(v)} y2={y(v)} />
+      <text x={PAD.l - 8} y={y(v) + 4} text-anchor="end">
+        {v}
+      </text>
+    </g>
+  ))}
+  <text x={PAD.l - 8} y={PAD.t - 12} text-anchor="end">
+    m/s²
+  </text>
+  <path class="model" d={line}></path>
+  <text class="halo" x={x(18)} y={y(law(18)) - 12}>
+    a ∝ 1 / r²
+  </text>
+
+  <circle class="dot" cx={x(1)} cy={y(G0)} r="6"></circle>
+  <text class="signal halo" x={x(1) + 12} y={y(G0) + 4}>
+    the apple: g = 9.81
+  </text>
+  {bodies.slice(0, -1).map((b) => (
+    <g>
+      <circle class="dot small" cx={x(b.d)} cy={y(b.a)} r="4" />
+      <text class="halo" x={x(b.d) - 8} y={y(b.a) + 16} text-anchor="end">
+        {b.name}
+      </text>
+    </g>
+  ))}
+  <circle class="dot" cx={x(moon.d)} cy={y(moon.a)} r="6"></circle>
+  <text class="signal halo" x={x(moon.d) - 10} y={y(moon.a) + 22} text-anchor="end">
+    the Moon: g / 60²
+  </text>
+
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+  {[1, 10, 60, 100].map((d) => (
+    <text x={x(d)} y={H - PAD.b + 16} text-anchor="middle">
+      {d}
+    </text>
+  ))}
+  <text x={W - PAD.r} y={H - 8} text-anchor="end">
+    distance from the Earth's centre, Earth radii
+  </text>
+</svg>
+
+<style>
+  .apple-moon .dot.small {
+    opacity: 0.75;
+  }
+
+  .apple-moon text.halo {
+    paint-order: stroke;
+    stroke: var(--ground);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+</style>

@@ -5,13 +5,14 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from . import fixtures, foundations, gwosc_data, kerr, synthetic
+from . import fixtures, foundations, gwosc_data, kerr, relativity, synthetic
 from .paths import (
     find_repo_root,
     fixtures_file,
     foundations_fixtures_file,
     kerr_fixtures_file,
     public_data,
+    relativity_fixtures_file,
 )
 
 
@@ -44,7 +45,7 @@ def main(argv: list[str] | None = None) -> None:
 
     commands.add_parser(
         "fixtures",
-        help="write reference outputs to tests/fixtures/{dsp,kerr,foundations}.json",
+        help="write reference outputs to tests/fixtures/{dsp,kerr,foundations,relativity}.json",
     )
 
     args = parser.parse_args(argv)
@@ -69,6 +70,7 @@ def main(argv: list[str] | None = None) -> None:
             (fixtures_file(root), fixtures),
             (kerr_fixtures_file(root), kerr),
             (foundations_fixtures_file(root), foundations),
+            (relativity_fixtures_file(root), relativity),
         ):
             module.write(path)
             print(f"fixtures: {path.relative_to(root)}")

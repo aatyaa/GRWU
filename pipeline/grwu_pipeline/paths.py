@@ -28,3 +28,7 @@ def kerr_fixtures_file(root: Path) -> Path:
 
 def foundations_fixtures_file(root: Path) -> Path:
     return root / "tests" / "fixtures" / "foundations.json"
+
+
+def relativity_fixtures_file(root: Path) -> Path:
+    return root / "tests" / "fixtures" / "relativity.json"
