@@ -43,7 +43,7 @@ const Content = article ? (await render(article)).Content : null;
       noindex
     >
       <p>{sealed.summary}</p>
-      <CodeForm slug={sealed.slug} />
+      <CodeForm slug={sealed.slug} title={sealed.title} />
     </ArticleLayout>
   )
 )}

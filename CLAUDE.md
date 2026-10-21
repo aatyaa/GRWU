@@ -128,6 +128,11 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundati
   track work inside `private/`, never in this repository. After changing the track run
   `pnpm seal:ringdown` and commit `public/ringdown-sealed/` and `public/ringdown-assets/`;
   `RINGDOWN_SEALED=1 pnpm build` serves the sealed shells locally, as the public site does.
+  Reading record (ADR 0011): before a code's first use the reader accepts the terms in
+  `src/lib/access-record.ts` in their own name; that acceptance is posted once to Web3Forms,
+  which emails the owner, and nothing opens until it has gone through. Opened chapters carry
+  the reader's name and code number as a notice and a watermark. Change the terms only with a
+  new `TERMS_VERSION`.
 
 ## Conventions
 

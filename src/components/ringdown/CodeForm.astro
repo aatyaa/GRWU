@@ -1,19 +1,30 @@
 ---
 /**
- * The access-code box of the ringdown track, inside <grwu-sealed> (elements/sealed.ts).
+ * The access-code box of the ringdown track, inside <grwu-sealed> (elements/sealed.ts), with
+ * the terms a reader accepts before their first chapter and the reading record (ADR 0011).
  * The element shows the parts that match its data-state.
  */
+import { TERMS } from '~/lib/access-record';
+import { requestFormKey } from '~/lib/ringdown';
 import { withBase } from '~/lib/url';
 
 interface Props {
   /** The article to open; omit on the index page, where the box only checks the code. */
   slug?: string;
+  /** The article's title, for the record. */
+  title?: string;
 }
-const { slug } = Astro.props;
+const { slug, title } = Astro.props;
 const id = `code-${slug ?? 'index'}`;
 ---
 
-<grwu-sealed class="sealed" data-slug={slug} data-state="checking">
+<grwu-sealed
+  class="sealed"
+  data-slug={slug}
+  data-title={title}
+  data-record-key={requestFormKey || undefined}
+  data-state="checking"
+>
   <p class="sealed__lead" data-when="locked wrong">
     This track is open by request. If you have an access code, enter it here.
     {slug && (
@@ -23,7 +34,7 @@ const id = `code-${slug ?? 'index'}`;
       </>
     )}
   </p>
-  <form class="sealed__form" data-when="locked wrong">
+  <form class="sealed__form" data-code data-when="locked wrong">
     <label for={id}>Access code</label>
     <div class="sealed__row">
       <input
@@ -40,9 +51,40 @@ const id = `code-${slug ?? 'index'}`;
   <p class="sealed__wrong" role="alert" data-when="wrong">
     That code does not open the track. Check it against the email you received.
   </p>
+  <form class="sealed__terms" data-terms data-when="terms" novalidate>
+    <p class="sealed__terms-title">Before you read</p>
+    <ul>
+      {TERMS.map((term) => (
+        <li>{term}</li>
+      ))}
+    </ul>
+    <label for={`${id}-name`}>Your full name</label>
+    <input id={`${id}-name`} name="name" autocomplete="name" required />
+    <label for={`${id}-email`}>Your email</label>
+    <input id={`${id}-email`} name="email" type="email" autocomplete="email" required />
+    <label class="sealed__accept">
+      <input type="checkbox" name="accept" required />I have read these terms and I accept them.
+    </label>
+    <p class="sealed__wrong" role="alert" data-terms-problem hidden>
+      Please give your full name and a valid email, and tick the box to accept the terms.
+    </p>
+    <button type="submit">Accept and open</button>
+  </form>
   <p class="sealed__status" data-when="checking" aria-live="polite">
     Checking your access…
   </p>
+  <p class="sealed__status" data-when="recording" aria-live="polite">
+    Recording your access…
+  </p>
+  <div class="sealed__unrecorded" role="alert" data-when="unrecorded">
+    <p>
+      This visit could not be recorded, so the chapter stays closed. Check your connection or turn
+      off any content blocker for this site, then try again.
+    </p>
+    <button type="button" data-retry>
+      Try again
+    </button>
+  </div>
   <p class="sealed__status" data-when="open">
     Your code works in this browser: every article below opens directly.
     <button type="button" class="sealed__forget" data-forget>
@@ -72,7 +114,10 @@ const id = `code-${slug ?? 'index'}`;
   .sealed[data-state='locked'] [data-when~='locked'],
   .sealed[data-state='wrong'] [data-when~='wrong'],
   .sealed[data-state='checking'] [data-when~='checking'],
-  .sealed[data-state='open'] [data-when~='open'] {
+  .sealed[data-state='open'] [data-when~='open'],
+  .sealed[data-state='terms'] [data-when~='terms'],
+  .sealed[data-state='recording'] [data-when~='recording'],
+  .sealed[data-state='unrecorded'] [data-when~='unrecorded'] {
     display: block;
   }
 
@@ -131,5 +176,77 @@ const id = `code-${slug ?? 'index'}`;
   .sealed__status {
     margin: 0;
     color: var(--ink-soft);
+  }
+
+  .sealed__terms-title {
+    margin: 0 0 var(--space-2);
+    font-weight: 600;
+  }
+
+  .sealed__terms ul {
+    margin: 0 0 var(--space-4);
+    padding-left: 1.2rem;
+    font-size: var(--text-sm);
+    line-height: 1.55;
+  }
+
+  .sealed__terms > label {
+    display: block;
+    margin: var(--space-3) 0 var(--space-1);
+    font-size: var(--text-sm);
+    color: var(--ink-soft);
+  }
+
+  .sealed__terms input:not([type='checkbox']) {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-1);
+    background: var(--ground);
+    color: var(--ink);
+    font: inherit;
+    font-size: var(--text-sm);
+  }
+
+  .sealed__terms .sealed__accept {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: var(--space-4) 0;
+    color: var(--ink);
+  }
+
+  .sealed__terms .sealed__wrong {
+    margin: 0 0 var(--space-3);
+  }
+
+  .sealed__unrecorded p {
+    margin: 0 0 var(--space-3);
+    color: var(--bias);
+  }
+</style>
+
+<style is:global>
+  /* The reading record's marks on an opened chapter (sealed.ts, ADR 0011). */
+  .sealed-notice {
+    margin: 0 0 var(--space-6);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-1);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: var(--text-sm);
+  }
+
+  .sealed-watermark {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    opacity: 0.07;
+    pointer-events: none;
+    background-repeat: repeat;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 </style>
