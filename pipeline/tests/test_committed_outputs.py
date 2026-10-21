@@ -49,6 +49,11 @@ def compare(a, b, path, rtol):
                 compare(a[key], b[key], f"{path}.{key}", rtol)
     elif isinstance(b, list) and all(isinstance(v, float) for v in b):
         np.testing.assert_allclose(a, b, rtol=rtol, atol=1e-15, err_msg=path)
+    elif isinstance(b, list) and any(isinstance(v, (dict, list)) for v in b):
+        # A list of records: compare them one by one, with the same tolerance.
+        assert len(a) == len(b), f"{path}: lengths differ. {REGENERATE}"
+        for i, (x, y) in enumerate(zip(a, b, strict=True)):
+            compare(x, y, f"{path}[{i}]", rtol)
     elif isinstance(b, float):
         assert a == pytest.approx(b, rel=rtol, abs=1e-15), f"{path}: {a!r} != {b!r}. {REGENERATE}"
     else:
