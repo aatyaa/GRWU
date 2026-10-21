@@ -48,6 +48,7 @@ test('the home page lists the further articles', async ({ page }) => {
   await expect(more.getByRole('link', { name: /Almost None of It/ })).toBeVisible();
   await expect(more.getByRole('link', { name: /Laplace Closes the Circle/ })).toBeVisible();
   await expect(more.getByRole('link', { name: /A Peak Is Only a Candidate/ })).toBeVisible();
+  await expect(more.getByRole('link', { name: /Run It Yourself/ })).toBeVisible();
 });
 
 test('the home page presents the ringdown track', async ({ page }) => {

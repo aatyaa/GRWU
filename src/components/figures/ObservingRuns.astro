@@ -1,0 +1,113 @@
+---
+/**
+ * The observing runs (Run It Yourself): when each run took data, which detectors were in it,
+ * and when the catalogues that list its events were released. Dates from GWOSC and the
+ * GWTC releases, as given in the handbook.
+ */
+import { linear } from '~/lib/figure/svg';
+
+const year = (iso: string) => {
+  const d = new Date(`${iso}T00:00:00Z`);
+  const start = Date.UTC(d.getUTCFullYear(), 0, 1);
+  const end = Date.UTC(d.getUTCFullYear() + 1, 0, 1);
+  return d.getUTCFullYear() + (d.getTime() - start) / (end - start);
+};
+
+const runs = [
+  { name: 'O1', from: '2015-09-12', to: '2016-01-19', detectors: 'H1 L1' },
+  { name: 'O2', from: '2016-11-30', to: '2017-08-25', detectors: 'H1 L1 V1' },
+  { name: 'O3a', from: '2019-04-01', to: '2019-10-01', detectors: 'H1 L1 V1' },
+  { name: 'O3b', from: '2019-11-01', to: '2020-03-27', detectors: 'H1 L1 V1' },
+  { name: 'O4a', from: '2023-05-24', to: '2024-01-16', detectors: 'H1 L1' },
+  { name: 'O4b', from: '2024-04-10', to: '2025-01-28', detectors: 'H1 L1 V1' },
+];
+const catalogues = [
+  { name: 'GWTC-4.0', at: '2025-08-26', added: '+128 from O4a' },
+  { name: 'GWTC-5.0', at: '2026-05-26', added: '+161 from O4b' },
+];
+
+const W = 600;
+const H = 206;
+const PAD = { l: 16, r: 16 };
+const x = linear(2015, 2029, PAD.l, W - PAD.r);
+const BAR = { y: 96, h: 26 };
+---
+
+<svg
+  class="fig observing-runs"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`Observing runs from 2015 to 2025: ${runs.map((r) => `${r.name} with ${r.detectors.replaceAll(' ', ', ')}`).join('; ')}. Afterwards, the catalogue releases ${catalogues.map((c) => `${c.name} (${c.added})`).join(' and ')}.`}
+>
+  <text class="caps" x={PAD.l} y="16">
+    observing runs, and when their catalogues landed
+  </text>
+  {runs.map((r, i) => (
+    <g>
+      <rect
+        class="run"
+        x={x(year(r.from))}
+        y={BAR.y}
+        width={x(year(r.to)) - x(year(r.from))}
+        height={BAR.h}
+        rx="3"
+      />
+      <text
+        class="ink"
+        x={(x(year(r.from)) + x(year(r.to))) / 2}
+        y={BAR.y - 8 - (i % 2) * 13}
+        text-anchor="middle"
+      >
+        {r.name}
+      </text>
+      <text
+        x={(x(year(r.from)) + x(year(r.to))) / 2}
+        y={BAR.y + BAR.h + 16 + (i % 2) * 13}
+        text-anchor="middle"
+      >
+        {r.detectors}
+      </text>
+    </g>
+  ))}
+  {catalogues.map((c, i) => {
+    // The first release is labelled to the left of its line, the second to the right.
+    const side = i === 0 ? -6 : 6;
+    const anchor = i === 0 ? 'end' : 'start';
+    return (
+      <g>
+        <line
+          class="release"
+          x1={x(year(c.at))}
+          x2={x(year(c.at))}
+          y1={BAR.y - 60}
+          y2={BAR.y + BAR.h}
+        />
+        <text class="signal" x={x(year(c.at)) + side} y={BAR.y - 50} text-anchor={anchor}>
+          {c.name}
+        </text>
+        <text x={x(year(c.at)) + side} y={BAR.y - 37} text-anchor={anchor}>
+          {c.added}
+        </text>
+      </g>
+    );
+  })}
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - 30} y2={H - 30}></line>
+  {[2016, 2018, 2020, 2022, 2024, 2026, 2028].map((y) => (
+    <text x={x(y)} y={H - 14} text-anchor="middle">
+      {y}
+    </text>
+  ))}
+</svg>
+
+<style>
+  .observing-runs .run {
+    fill: var(--noise);
+    opacity: 0.55;
+  }
+
+  .observing-runs .release {
+    stroke: var(--signal);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+</style>

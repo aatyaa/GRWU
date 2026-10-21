@@ -1,0 +1,229 @@
+---
+title: Run It Yourself
+emphasis: Yourself
+headline: What does it take to go from the archive to a posterior you can defend?
+summary: The rest of From Strain to Source, with your hands on it. Where the data live and what a file contains, how to ask the archive for an event, how to set up parameter estimation without assuming its answer, and the notebook that shows a pipeline defending itself.
+track: capstone
+order: 2
+status: review
+level: core
+minutes: 25
+prerequisites:
+  - from-strain-to-source
+objectives:
+  - Say which detectors observed when, what a strain file holds, and the two traps hidden in it.
+  - Find an event by GPS time and fetch the data around it, with the noise and the analysis on separate stretches.
+  - Write down every prior of a parameter-estimation run, including the fixed ones, and read the posterior against them.
+updated: 2026-10-21
+sources:
+  - title: Gravitational Wave Open Science Center, data, catalogues and documentation
+    url: https://gwosc.org/
+  - title: GW Open Data Workshop tutorials
+    url: https://github.com/gw-odw/odw
+  - title: A guide to LIGO–Virgo detector noise and extraction of transient gravitational-wave signals, Class. Quantum Grav. 37, 055002 (2020)
+    url: https://doi.org/10.1088/1361-6382/ab685e
+  - title: The Data Guide notebook, GWOSC tutorials
+    url: https://github.com/gwosc-tutorial/Data_Guide
+  - title: 'G. Ashton et al., Bilby: a user-friendly Bayesian inference library for gravitational-wave astronomy, ApJS 241, 27 (2019)'
+    url: https://arxiv.org/abs/1811.02042
+---
+
+import Card from '~/components/editorial/Card.astro';
+import Code from '~/components/editorial/Code.astro';
+import Figure from '~/components/editorial/Figure.astro';
+import Pull from '~/components/editorial/Pull.astro';
+import CrossCorrelation from '~/components/figures/CrossCorrelation.astro';
+import FileAnatomy from '~/components/figures/FileAnatomy.astro';
+import FixedParameter from '~/components/figures/FixedParameter.svelte';
+import GpsClock from '~/components/figures/GpsClock.svelte';
+import ObservingRuns from '~/components/figures/ObservingRuns.astro';
+import PriorAgainstPosterior from '~/components/figures/PriorAgainstPosterior.astro';
+import TwoWindows from '~/components/figures/TwoWindows.astro';
+import * as code from '~/lib/articles/handbook-code';
+import { crossCorrelation } from '~/lib/articles/route';
+import { sampledPosteriors } from '~/lib/articles/yourself';
+
+export const xc = crossCorrelation();
+export const mc = sampledPosteriors().chirpMass;
+
+[From Strain to Source](../from-strain-to-source/) walked the route once, from a detector shaking in Louisiana to masses you can defend. This article is the same route with your hands on it. It covers where the data live and what a file contains, how to ask the archive for an event, how to set up a parameter-estimation run without assuming its answer, and the one notebook worth reading twice.
+
+Everything here runs in Google Colab with nothing installed. The workshop notebooks at [github.com/gw-odw/odw](https://github.com/gw-odw/odw) cover each step, and every block of code below comes from them. If you work on your own machine, use the workshop's pinned environment: this software has real version sensitivities, and the latest of everything is how an afternoon disappears into an error that is not yours. One warning greets everyone on the first day. Importing PyCBC or LALSuite prints a wall of messages about Wswiglal-redir-stdio. They are harmless, and the official notebooks silence them on their first line.
+
+<Code title="the first two lines of every notebook" code={code.silence} />
+
+## Five instruments, one measurement
+
+| code | instrument | note |
+| --- | --- | --- |
+| H1 | LIGO Hanford, Washington, 4 km arms | |
+| L1 | LIGO Livingston, Louisiana, 4 km arms | 3002 km from H1 |
+| V1 | Virgo, Cascina, Italy, 3 km arms | |
+| K1 | KAGRA, Kamioka, Japan, 3 km arms | underground, sapphire mirrors at 22 K |
+| G1 | GEO600, Hannover, Germany, 600 m arms | a technology testbed |
+
+A single detector cannot tell a signal from a glitch, and it cannot tell you where in the sky a wave came from. Two detectors give you coincidence and a ring on the sky. Three give you a patch. The network is not redundancy: it is the measurement.
+
+Virgo is the detector that most often turns a two-detector ring into a usable patch. Before you plan an analysis, check which detectors were actually running, because the difference is real. The first half of the fourth run was observed by the two LIGO detectors alone, and Virgo rejoined for the second half. KAGRA is the outlier worth knowing about: it was built underground to escape seismic motion, with mirrors of sapphire cooled to about 22 kelvin to quiet their thermal noise. It is a prototype for what comes next.
+
+<Figure kind="schematic" width="medium">
+  <ObservingRuns />
+  <Fragment slot="caption">
+    Each run, the detectors that observed it, and the catalogue releases that came afterwards.
+  </Fragment>
+</Figure>
+
+## What is in a file
+
+Calibrated strain is published in files of 4096 seconds, at two sample rates (4 and 16 kilohertz) and in two formats. GWF is the frame format the community uses internally; HDF5 is the one every language can open, so take HDF5 unless you have a reason not to. Four kilohertz is plenty for merging binaries.
+
+Each file carries three channels: the strain itself, a data-quality mask, and an injection mask. The quality mask has one bit per second for each test. DATA says the detector was observing at all. Then come CBC_CAT1, CBC_CAT2 and CBC_CAT3, each a stricter veto for compact-binary searches. A bit is one when the second passes.
+
+<Figure kind="schematic" width="medium">
+  <FileAnatomy />
+  <Fragment slot="caption">
+    One file and its masks. Read them before you trust a second of the strain.
+  </Fragment>
+</Figure>
+
+The file hides two traps, and both are silent. The first is gaps. A detector drops out all the time, and where DATA is zero the strain in that second is not small: it is meaningless. Check the mask before you trust a segment. The second is hardware injections. These are deliberate fake signals, pushed into the mirrors to test the pipelines, and the archive does not remove them. They match a template beautifully. The injection mask is how you find out that the discovery you just made is one of them.
+
+## Ask the archive
+
+There are now 390 confident detections, listed in the Gravitational-Wave Transient Catalog. The catalogue grows in versioned releases, each tied to part of an observing run, and for every event you get the inferred parameters, the posterior samples behind them and the calibrated strain around the trigger. You do not need to ask anyone for any of it.
+
+Start from GW150914 anyway. It is loud, it is short, and it is in every tutorial ever written, so when your code disagrees with the published answer you will know the fault is yours.
+
+Everything in the archive is indexed by GPS time: seconds since 6 January 1980, with none of the leap seconds that civil time has inserted since. You will convert to it constantly, so get comfortable with ten-digit numbers that mean nothing to you yet.
+
+<Figure kind="model" width="text">
+  <GpsClock client:visible />
+  <Fragment slot="caption">
+    Pick an event or type a time. GPS has run ahead of civil time by 18 seconds since 2017.
+  </Fragment>
+</Figure>
+
+The gwosc package is a thin client over the archive's public interface. Four functions cover almost everything you will want to ask before downloading anything. Notice what the last one does: it filters the whole catalogue on physical parameters. That is how you find, for instance, every event with a component light enough to be a neutron star.
+
+<Code title="gwosc: what is in the archive" code={code.find} />
+<Code title="gwosc: times, and filtered searches" code={code.times} output={code.timesOutput} />
+
+## Ten seconds of a real detector
+
+Two libraries fetch the same data with different objects. gwpy gives you a time series with plotting and spectral methods attached; PyCBC gives you one built for filtering. You will end up using both, and converting between them is routine.
+
+<Code title="gwpy: the route most people take" code={code.fetchGwpy} />
+<Code title="PyCBC: the same data, its own way" code={code.fetchPycbc} />
+
+Two arguments deserve a habit. With cache set, the library keeps the 4096-second file it downloaded; without it you fetch the same file again every time you re-run the cell, which is slow for you and rude to the archive. With verbose set, it prints which files it fetched, and when something is wrong it is usually visible there.
+
+Ask for the window you need, not the one you want. An event time plus five seconds is fine for a picture. It is not enough to estimate a noise spectrum from, and both matched filtering and parameter estimation need one.
+
+## Two stretches of data, for two jobs
+
+Parameter estimation measures the noise and analyses the signal on different stretches of data, on purpose. The ODW tutorial analyses four seconds around GW150914 and estimates the noise from the 128 seconds just before them.
+
+<Figure kind="schematic" width="medium">
+  <TwoWindows />
+  <Fragment slot="caption">
+    The noise is measured where the signal is not. The two stretches meet but never overlap.
+  </Fragment>
+</Figure>
+
+The separation is the point. If you estimated the noise from the same four seconds that contain the signal, the signal would count as part of the noise, and you would partly subtract it from itself before you began. The noise estimate takes the median over its segments again, so that one glitch anywhere in those 128 seconds cannot redefine the spectrum.
+
+<Code title="bilby: the analysis segment" code={code.analysisSegment} />
+<Code title="and a much longer one, for the noise" code={code.noiseSegment} />
+
+The last line matters more than it looks. Above about a kilohertz a binary of stellar-mass black holes has nothing to say, and every frequency bin you keep costs likelihood evaluations that buy no information. Leaving out the ceiling is the single easiest way to make a run take four times longer than it needs to.
+
+## Every parameter gets a prior, including the ones you fix
+
+A parameter-estimation run starts by writing down what you are willing to believe before the data speak: a prior for every parameter. The tutorial's priors are below. Read the fixed block at the end twice.
+
+<Code title="what you are willing to believe" code={code.priors} />
+
+Setting both spins to zero is not ignoring spin. It asserts, with complete certainty, that the spins are exactly zero: it is an infinitely strong prior. The same goes for the sky position, which was copied from the published result, so this run cannot discover where the event was. Fixing parameters is how a tutorial finishes in minutes, and it is also how an analysis quietly assumes part of its own answer.
+
+The damage is worst when the fixed parameter trades against one you report. Below, mass ratio and spin pull against each other, as they do in real events. Fix the spin and you get one slice through the cloud.
+
+<Figure kind="model" width="medium">
+  <FixedParameter client:visible />
+  <Fragment slot="caption">
+    A made-up posterior. Fixing the spin narrows the mass ratio, and moves it wherever the
+    slice falls.
+  </Fragment>
+</Figure>
+
+The fixed answer is always narrower, because a certainty has been added. It is right only if the fixed value happens to be right. The marginalisation options in the likelihood are the honest way to save time: the sampler integrates time, phase and distance out analytically rather than walking them, and they can be recovered afterwards.
+
+<Code title="the likelihood, with three parameters integrated out" code={code.likelihood} />
+
+## The answer is a column of numbers
+
+A sampler returns samples: rows of a table, one per accepted point, one column per parameter. Everything you report is a summary of those rows. Quote an interval, never a single number: the 5th and 95th percentiles give the 90% credible interval the field reports, and a median with no interval is not a measurement.
+
+<Code title="run the sampler, then read the posterior" code={code.runAndRead} />
+
+The most useful argument in that last line is the one that draws the prior. The gap between prior and posterior is exactly what the data told you. If they lie on top of each other, the data said nothing about that parameter, and you are reporting your own assumption back to yourself.
+
+<Figure kind="control" width="medium">
+  <PriorAgainstPosterior />
+  <Fragment slot="caption">
+    The practice chirp's chirp mass, and a phase the data cannot see. Switch between them.
+  </Fragment>
+</Figure>
+
+For the practice chirp, 90% of the chirp-mass samples lie between {mc.p5.toFixed(2)} and {mc.p95.toFixed(2)} solar masses, a small part of a prior that runs from {mc.lo} to {mc.hi}. The phase comes back exactly as it went in.
+
+The sampler settings in the tutorial deserve the same suspicion as its fixed priors. Two hundred and fifty live points and a loose stopping tolerance are there so that the cell finishes while you watch. A published analysis uses many more and a much tighter tolerance, and runs for days. Copy the tutorial's numbers into real work and your posterior will be under-resolved, in a way that is not obvious from looking at it.
+
+## The notebook worth reading twice
+
+Everything so far has been pieces. The GWOSC Data Guide notebook does the whole thing once, on GW150914, and it is not a teaching toy. It is the collaboration's own methods paper, made executable: it reproduces the paper's key figures from public data, using only numpy, scipy and h5py, so nothing is hidden inside a library call you have to trust.
+
+It exists for a reason worth knowing. After the first detection, published objections questioned whether the residuals left by the collaboration's subtraction of the signal were really consistent with noise. The paper is the answer, and the notebook is an answer you can run and check.
+
+Its whitening is eight lines: transform to frequency, divide by the square root of the noise power, transform back. Its matched filter is twenty, with the noise weighting written out. And when it runs, it prints this.
+
+<Code title="the Data Guide notebook, its stored output" code={code.guideOutput} />
+
+The signal-to-noise ratios are the headline, but they are not what makes this a detection. The lines under them are three independent chances for the claim to fall apart. The detectors are about 3000 kilometres apart, and light crosses that in about 10 milliseconds; the signal arrived 7.08 milliseconds apart, inside the limit. The two recovered amplitudes differ by a factor of 1.4, and the phases by 2.92 radians, both consistent with how differently the two detectors are oriented towards the source.
+
+The notebook also shows the two detectors agreeing with no template at all. Correlate whitened Hanford against whitened Livingston, shifting one against the other, and the event appears by itself.
+
+<Figure kind="measured" width="medium">
+  <CrossCorrelation />
+  <Fragment slot="caption">
+    GW150914 in both detectors, with no model involved. Noise earlier in the file shows no such
+    peak.
+  </Fragment>
+</Figure>
+
+Around the event, the correlation reaches {xc.peak.toFixed(2)} when Livingston leads by {xc.peakLag.toFixed(1)} milliseconds. It is negative because the two detectors are rotated relative to each other. Over noise a few seconds earlier, it never strays far from zero.
+
+The notebook ends where the argument lives. It subtracts the best-fit signal from each detector and correlates what is left. The discovery paper's figure had used a less careful subtraction, and its residuals did carry some correlation. Subtract by maximising the likelihood, as the notebook does, and the correlation in the residuals goes away.
+
+<Pull>A residual is the only place an analysis can tell you it was wrong, and how carefully you subtracted decides whether you can hear it.</Pull>
+
+The objection was not silly, and it was not dismissed. It was answered by a paper that showed its work, and by a notebook anyone can run in about ten minutes.
+
+## What to do this week
+
+<Card label="Five days, five steps">
+  Monday: open the workshop's first tutorial in Colab, fetch ten seconds of Livingston around
+  GW150914 and plot it. You will see nothing, and that is the correct result. Tuesday: make the
+  noise spectrum and the Q-transform, and see the event with your own eyes. Wednesday: generate a
+  waveform, change the masses and watch the chirp change shape. Thursday: run the
+  matched-filtering tutorial end to end and find the signal-to-noise ratio of 19.6 yourself.
+  Friday: run the parameter-estimation tutorial, and plot the chirp-mass posterior against its
+  prior.
+</Card>
+
+Then do the thing that separates you from a tutorial. Inject a signal you built yourself, with parameters you chose, into real noise. Run your whole pipeline on it, and see whether you get your own numbers back. [Fitting a Ring in Noise](../fitting-a-ring-in-noise/) does exactly this for a ringdown. Until you have done it, you have a pipeline that produces answers. Afterwards, you have one whose accuracy you know.
+
+<Card label="Then the harder question">
+  Everything here assumed the template was right. When it is not, the fit does not fail. It
+  quietly moves the error into the answer, and reports a small uncertainty on it.
+  [What the Wrong Model Knows →](../what-the-wrong-model-knows/)
+</Card>
