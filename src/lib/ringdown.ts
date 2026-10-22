@@ -16,6 +16,14 @@ export interface SealedArticle {
   updated: string;
 }
 
+/**
+ * Companion pages answer questions about the analysis and make no claims of their own; they
+ * are ordered from 10 on, after the chapters, and are listed apart from them.
+ */
+export const COMPANION_ORDER = 10;
+
+export const isCompanion = (article: { order: number }) => article.order >= COMPANION_ORDER;
+
 export function sealedArticles(): SealedArticle[] {
   const file = join(process.cwd(), 'public', 'ringdown-sealed', 'manifest.json');
   if (!existsSync(file)) return [];

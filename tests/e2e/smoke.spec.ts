@@ -59,10 +59,15 @@ test('the home page presents the ringdown track', async ({ page }) => {
   await page.goto('');
   const track = page.locator('#ringdown-track');
   await expect(track.getByRole('heading', { level: 2 })).toHaveText('Heavier Than Its Parents');
+  await expect(track.locator('.track__label')).toHaveText('A research track in 9 chapters');
   await expect(track.locator('.track__chapters > li')).toHaveCount(9);
   await expect(track.getByRole('link', { name: /Weighing the Ring/ })).toHaveAttribute(
     'href',
     /ringdown\/weighing-the-ring\/$/,
+  );
+  // Companion pages are listed apart from the chapters, without a chapter number.
+  await expect(track.getByRole('list', { name: 'With the chapters' }).getByRole('link')).toHaveText(
+    [/Anatomy of a Ringdown Fit/],
   );
   await track.getByRole('link', { name: 'I have a code' }).click();
   await expect(page).toHaveURL(/ringdown\/$/);
