@@ -1,0 +1,1 @@
+import{W as e}from"./client.CmY-rOsh.js";import{n as t,r as n,t as r}from"./motion.BFpYlcuJ.js";function i(i,a=650){let o=new t(i(),{duration:()=>r.current?0:a,easing:n});return e(()=>{o.target=i()}),o}export{i as t};
