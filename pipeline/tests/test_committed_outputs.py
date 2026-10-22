@@ -10,9 +10,10 @@ from dataclasses import asdict
 import numpy as np
 import pytest
 
-from grwu_pipeline import fixtures, foundations, kerr, relativity, synthetic
+from grwu_pipeline import blackholes, fixtures, foundations, kerr, relativity, synthetic
 from grwu_pipeline.dataset import read_channel, read_meta
 from grwu_pipeline.paths import (
+    blackholes_fixtures_file,
     find_repo_root,
     fixtures_file,
     foundations_fixtures_file,
@@ -85,3 +86,9 @@ def test_committed_relativity_fixtures_match_scipy():
     committed = json.loads(relativity_fixtures_file(ROOT).read_text())
     # Adaptive ODE solvers and quadrature converge to a tolerance, not to the last bit.
     compare(committed, relativity.build(), "relativity", rtol=1e-9)
+
+
+def test_committed_blackholes_fixtures_match_scipy():
+    committed = json.loads(blackholes_fixtures_file(ROOT).read_text())
+    # Adaptive ODE solvers and root-finders converge to a tolerance, not to the last bit.
+    compare(committed, blackholes.build(), "blackholes", rtol=1e-9)

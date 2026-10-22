@@ -1,0 +1,86 @@
+---
+/**
+ * The most efficient engines there are (Mass, Spin and Nothing Else): the share of rest mass
+ * turned into energy by burning, by fission, by fusion, and by matter spiralling into a black
+ * hole down to its last stable orbit, without spin, at the highest spin thought to be reached
+ * in nature (χ = 0.998, Thorne 1974), and at the limit χ = 1. Log scale.
+ */
+import { scientific } from '~/lib/format';
+import { log } from '~/lib/figure/svg';
+import { accretionEfficiency } from '~/lib/physics/blackhole';
+import { C } from '~/lib/physics/relativity';
+
+const MEV = 1.602_176_634e-13; // J
+const AMU_MEV = 931.494;
+const rows = [
+  // Methane burning releases 55.5 MJ per kg.
+  { label: 'burning gas', value: 55.5e6 / (C * C), accretion: false },
+  // 200 MeV from each uranium-235 nucleus.
+  { label: 'fission of uranium', value: 200 / (235.04 * AMU_MEV), accretion: false },
+  // 26.7 MeV from four protons becoming helium.
+  {
+    label: 'fusion, hydrogen to helium',
+    value: (26.73 * MEV) / (4 * 1.007_276 * AMU_MEV * MEV),
+    accretion: false,
+  },
+  { label: 'black hole, no spin', value: accretionEfficiency(0), accretion: true },
+  { label: 'spin 0.998', value: accretionEfficiency(0.998), accretion: true },
+  { label: 'spin 1', value: accretionEfficiency(1), accretion: true },
+];
+
+const W = 600;
+const H = 262;
+const PAD = { l: 196, r: 70, t: 34, b: 40 };
+const x = log(1e-10, 1, PAD.l, W - PAD.r);
+const rowY = (i: number) => PAD.t + 8 + i * 32;
+const pct = (v: number) =>
+  v >= 1e-4 ? `${(v * 100).toPrecision(2)} %` : `${scientific(v * 100, 0)} %`;
+---
+
+<svg
+  class="fig efficiency"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`Energy released as a share of rest mass, on a log scale: ${rows.map((r) => `${r.label}, ${pct(r.value)}`).join('; ')}.`}
+>
+  <text class="caps" x={PAD.l} y="16">
+    energy out, as a share of the mass in
+  </text>
+  {[1e-10, 1e-8, 1e-6, 1e-4, 1e-2, 1].map((t) => (
+    <line class="grid" x1={x(t)} x2={x(t)} y1={PAD.t - 4} y2={H - PAD.b} />
+  ))}
+  {rows.map((row, i) => (
+    <g>
+      <text class="ink" x={PAD.l - 12} y={rowY(i) + 4} text-anchor="end">
+        {row.label}
+      </text>
+      <rect
+        class={row.accretion ? 'bar hole' : 'bar'}
+        x={x(1e-10)}
+        y={rowY(i) - 9}
+        width={x(row.value) - x(1e-10)}
+        height="18"
+        rx="2"
+      />
+      <text x={x(row.value) + 8} y={rowY(i) + 4}>
+        {pct(row.value)}
+      </text>
+    </g>
+  ))}
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b}></line>
+  {[1e-10, 1e-8, 1e-6, 1e-4, 1e-2, 1].map((t) => (
+    <text x={x(t)} y={H - PAD.b + 16} text-anchor="middle">
+      {t === 1 ? '1' : `10${scientific(t, 0).split('10')[1]}`}
+    </text>
+  ))}
+</svg>
+
+<style>
+  .efficiency .bar {
+    fill: color-mix(in srgb, var(--noise) 35%, transparent);
+  }
+
+  .efficiency .bar.hole {
+    fill: var(--ink);
+  }
+</style>

@@ -88,5 +88,15 @@
     "minutes": 14,
     "status": "review",
     "updated": "2026-09-30"
+  },
+  {
+    "slug": "anatomy-of-a-fit",
+    "title": "Anatomy of a Ringdown Fit",
+    "headline": "What do the three numbers that name a black hole’s tone mean, why does one tone fitted at the peak weigh too much, what does a free fit know that a Kerr fit does not, and how is the whole analysis done?",
+    "summary": "Five questions a careful reader asked about this analysis, each answered from the physics, the paper’s data and its code. The labels (ℓ, m, n) on a quasinormal mode; the heavy fit at the peak taken apart into its frequency and its damping time; the free fit that finds the remnant’s pitch and still the wrong mass; the pipeline, file by file; and one start time followed from the strain to the claim.",
+    "order": 10,
+    "minutes": 34,
+    "status": "review",
+    "updated": "2026-10-21"
   }
 ]

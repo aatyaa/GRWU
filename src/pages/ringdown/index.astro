@@ -3,7 +3,7 @@ import BaseLayout from '~/layouts/BaseLayout.astro';
 import CodeForm from '~/components/ringdown/CodeForm.astro';
 import RequestForm from '~/components/ringdown/RequestForm.astro';
 import { getRingdownArticles } from '~/lib/content';
-import { sealedArticles, sealedMode } from '~/lib/ringdown';
+import { isCompanion, sealedArticles, sealedMode } from '~/lib/ringdown';
 import { withBase } from '~/lib/url';
 
 // The track's front page (ADR 0007): public teaser, access code box and request form.
@@ -11,6 +11,8 @@ const full = sealedMode ? [] : await getRingdownArticles();
 const articles = full.length
   ? full.map(({ id, data }) => ({ slug: id, ...data }))
   : sealedArticles();
+const chapters = articles.filter((a) => !isCompanion(a));
+const companions = articles.filter(isCompanion);
 ---
 
 <BaseLayout
@@ -34,13 +36,29 @@ const articles = full.length
     <CodeForm />
 
     <ol class="track__list">
-      {articles.map((a) => (
+      {chapters.map((a) => (
         <li>
           <a href={withBase(`ringdown/${a.slug}/`)}>{a.title}</a>
           <p>{a.summary}</p>
         </li>
       ))}
     </ol>
+
+    {companions.length > 0 && (
+      <section aria-labelledby="companions-title">
+        <h2 class="track__aside" id="companions-title">
+          With the chapters
+        </h2>
+        <ul class="track__list track__list--aside">
+          {companions.map((a) => (
+            <li>
+              <a href={withBase(`ringdown/${a.slug}/`)}>{a.title}</a>
+              <p>{a.summary}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     <RequestForm />
   </article>
@@ -76,6 +94,17 @@ const articles = full.length
     gap: var(--space-6);
     margin: var(--space-12) 0;
     padding-left: 1.4rem;
+  }
+
+  .track__aside {
+    margin: 0;
+    font-size: var(--text-lg);
+    font-weight: 600;
+  }
+
+  .track__list--aside {
+    margin-top: var(--space-4);
+    list-style: none;
   }
 
   .track__list a {

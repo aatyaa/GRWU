@@ -6,11 +6,11 @@ import HowToDemo from '~/components/figures/HowToDemo.svelte';
 import Thumb from '~/components/site/Thumb.astro';
 import { tex } from '~/components/math/tex';
 import { getArticles, getRingdownArticles } from '~/lib/content';
-import { sealedArticles, sealedMode } from '~/lib/ringdown';
+import { isCompanion, sealedArticles, sealedMode } from '~/lib/ringdown';
 import { foundations, tracks } from '~/lib/tracks';
 import { withBase } from '~/lib/url';
 
-type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map' | 'bell' | 'orbit';
+type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map' | 'bell' | 'orbit' | 'hole';
 
 interface Card {
   id: string;
@@ -105,6 +105,7 @@ const moreThumbs: Record<string, Kind> = {
   'a-peak-is-only-a-candidate': 'chirp',
   'run-it-yourself': 'spectrum',
   'the-straightest-path': 'orbit',
+  'mass-spin-and-nothing-else': 'hole',
 };
 const more = articles.filter(
   (a) => !planned.some((p) => p.id === a.id) && a.data.track !== 'foundations',
@@ -120,6 +121,8 @@ const trackSource = sealedMode ? [] : await getRingdownArticles();
 const track = (
   trackSource.length ? trackSource.map(({ id, data }) => ({ slug: id, ...data })) : sealedArticles()
 ).filter((a) => a.status !== 'draft');
+const chapters = track.filter((a) => !isCompanion(a));
+const companions = track.filter(isCompanion);
 
 // Every track on the site (ADR 0009): the foundations series, the flagship tracks, the open ones.
 const codeTrack = tracks.find((t) => t.id === 'code');
@@ -267,7 +270,7 @@ const envelope = (sign: 1 | -1) =>
           <path class="track__wave" d={ringPath} />
         </svg>
         <div class="track__intro">
-          <p class="track__label">A research track in {track.length} chapters</p>
+          <p class="track__label">A research track in {chapters.length} chapters</p>
           <h2 id="track-title">Heavier Than Its Parents</h2>
           <p class="track__lede">
             Fit a single tone to the ringdown of GW250114 and the black hole it describes weighs
@@ -295,25 +298,50 @@ const envelope = (sign: 1 | -1) =>
             </div>
           )}
         </div>
-        <ol class="track__chapters">
-          {track.map((a, i) => (
-            <li>
-              <a href={withBase(`ringdown/${a.slug}/`)}>
-                <span class="track__n" aria-hidden="true">
-                  {i + 1}
-                </span>
-                <span class="track__text">
-                  <span class="track__title">{a.title}</span>
-                  {a.headline && <span class="track__q">{a.headline}</span>}
-                </span>
-                <svg class="track__lock" viewBox="0 0 16 16" aria-hidden="true">
-                  <rect x="3" y="7" width="10" height="7" rx="1.5" />
-                  <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
-                </svg>
-              </a>
-            </li>
-          ))}
-        </ol>
+        <div class="track__contents">
+          <ol class="track__chapters">
+            {chapters.map((a, i) => (
+              <li>
+                <a href={withBase(`ringdown/${a.slug}/`)}>
+                  <span class="track__n" aria-hidden="true">
+                    {i + 1}
+                  </span>
+                  <span class="track__text">
+                    <span class="track__title">{a.title}</span>
+                    {a.headline && <span class="track__q">{a.headline}</span>}
+                  </span>
+                  <svg class="track__lock" viewBox="0 0 16 16" aria-hidden="true">
+                    <rect x="3" y="7" width="10" height="7" rx="1.5" />
+                    <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+                  </svg>
+                </a>
+              </li>
+            ))}
+          </ol>
+          {companions.length > 0 && (
+            <>
+              <p class="track__aside-label" id="track-companions">
+                With the chapters
+              </p>
+              <ul class="track__companions" aria-labelledby="track-companions">
+                {companions.map((a) => (
+                  <li>
+                    <a href={withBase(`ringdown/${a.slug}/`)}>
+                      <span class="track__text">
+                        <span class="track__title">{a.title}</span>
+                        {a.headline && <span class="track__q">{a.headline}</span>}
+                      </span>
+                      <svg class="track__lock" viewBox="0 0 16 16" aria-hidden="true">
+                        <rect x="3" y="7" width="10" height="7" rx="1.5" />
+                        <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+                      </svg>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
       </div>
     </section>
   )}
@@ -723,8 +751,36 @@ const envelope = (sign: 1 | -1) =>
   }
 
   .track__chapters a:hover,
-  .track__chapters a:focus-visible {
+  .track__chapters a:focus-visible,
+  .track__companions a:hover,
+  .track__companions a:focus-visible {
     background: rgb(231 237 245 / 0.06);
+  }
+
+  .track__aside-label {
+    margin: var(--space-6) 0 0.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--space-signal);
+  }
+
+  .track__companions {
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--space-line);
+    list-style: none;
+  }
+
+  .track__companions a {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.9rem;
+    align-items: start;
+    padding: 0.8rem 0.4rem 0.8rem calc(2rem + 1.3rem);
+    border: 0;
+    border-radius: 8px;
+    color: var(--space-ink);
+    transition: background var(--dur-fast) var(--ease);
   }
 
   .track__n {

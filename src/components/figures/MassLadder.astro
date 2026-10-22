@@ -1,0 +1,96 @@
+---
+/**
+ * Three populations of black holes (Mass, Spin and Nothing Else), on one log axis of mass:
+ * the stellar-mass holes the detectors hear, the thinly populated intermediate range, and the
+ * supermassive holes at the centres of galaxies. Masses: the remnants of GW250114 and
+ * GW190521 (LIGO–Virgo–KAGRA), Sagittarius A* (from stellar orbits) and M87* (EHT 2019).
+ */
+import { log } from '~/lib/figure/svg';
+
+const W = 600;
+const H = 210;
+const PAD = { l: 20, r: 20 };
+const x = log(1, 1e10, PAD.l, W - PAD.r);
+const BAND = { y: 92, h: 30 };
+const bands = [
+  { from: 3, to: 100, label: 'stellar-mass' },
+  { from: 100, to: 1e5, label: 'intermediate' },
+  { from: 1e5, to: 1e10, label: 'supermassive' },
+];
+const marks = [
+  { label: 'GW250114', mass: 63, up: true },
+  { label: 'GW190521', mass: 142, up: false },
+  { label: 'Sagittarius A*', mass: 4.3e6, up: true },
+  { label: 'M87*', mass: 6.5e9, up: false },
+];
+---
+
+<svg
+  class="fig mass-ladder"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Black-hole masses on a log scale from one to ten billion suns. Stellar-mass holes, from about 3 to 100 suns, include GW250114's remnant of about 63. The intermediate range, from about a hundred to a hundred thousand suns, is thinly populated; GW190521 left a remnant of about 142. Supermassive holes run from a hundred thousand to ten billion suns, among them Sagittarius A* at 4.3 million and M87* at 6.5 billion."
+>
+  <text class="caps" x={PAD.l} y="16">
+    black holes, by mass
+  </text>
+  {bands.map((b, i) => (
+    <g>
+      <rect
+        class={`band band-${i}`}
+        x={x(b.from)}
+        y={BAND.y}
+        width={x(b.to) - x(b.from)}
+        height={BAND.h}
+        rx="3"
+      />
+      <text class="ink" x={(x(b.from) + x(b.to)) / 2} y={BAND.y + BAND.h + 18} text-anchor="middle">
+        {b.label}
+      </text>
+    </g>
+  ))}
+  {marks.map((m) => (
+    <g>
+      <line
+        class="mark"
+        x1={x(m.mass)}
+        x2={x(m.mass)}
+        y1={m.up ? BAND.y - 26 : BAND.y + BAND.h}
+        y2={m.up ? BAND.y : BAND.y + BAND.h + 34}
+      />
+      <circle class="dot" cx={x(m.mass)} cy={BAND.y + BAND.h / 2} r="5" />
+      <text
+        class="signal"
+        x={x(m.mass)}
+        y={m.up ? BAND.y - 32 : BAND.y + BAND.h + 46}
+        text-anchor={m.mass > 1e9 ? 'end' : 'middle'}
+      >
+        {m.label}
+      </text>
+    </g>
+  ))}
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - 30} y2={H - 30}></line>
+  {[1, 1e2, 1e4, 1e6, 1e8, 1e10].map((m, i) => (
+    <text x={x(m)} y={H - 14} text-anchor={i === 0 ? 'start' : i === 5 ? 'end' : 'middle'}>
+      {['1', '10²', '10⁴', '10⁶', '10⁸', '10¹⁰'][i]}
+    </text>
+  ))}
+  <text x={W / 2} y={H - 2} text-anchor="middle">
+    solar masses
+  </text>
+</svg>
+
+<style>
+  .mass-ladder .band {
+    fill: color-mix(in srgb, var(--noise) 30%, transparent);
+  }
+
+  .mass-ladder .band-1 {
+    fill: color-mix(in srgb, var(--noise) 12%, transparent);
+  }
+
+  .mass-ladder .mark {
+    stroke: var(--signal);
+    stroke-width: 1;
+  }
+</style>

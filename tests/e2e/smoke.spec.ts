@@ -49,17 +49,25 @@ test('the home page lists the further articles', async ({ page }) => {
   await expect(more.getByRole('link', { name: /Laplace Closes the Circle/ })).toBeVisible();
   await expect(more.getByRole('link', { name: /A Peak Is Only a Candidate/ })).toBeVisible();
   await expect(more.getByRole('link', { name: /Run It Yourself/ })).toBeVisible();
-  await expect(more.getByRole('link', { name: /The Straightest Path/ })).toBeVisible();
+  await expect(
+    more.getByRole('heading', { name: 'The Straightest Path', exact: true }),
+  ).toBeVisible();
+  await expect(more.getByRole('heading', { name: 'Mass, Spin and Nothing Else' })).toBeVisible();
 });
 
 test('the home page presents the ringdown track', async ({ page }) => {
   await page.goto('');
   const track = page.locator('#ringdown-track');
   await expect(track.getByRole('heading', { level: 2 })).toHaveText('Heavier Than Its Parents');
+  await expect(track.locator('.track__label')).toHaveText('A research track in 9 chapters');
   await expect(track.locator('.track__chapters > li')).toHaveCount(9);
   await expect(track.getByRole('link', { name: /Weighing the Ring/ })).toHaveAttribute(
     'href',
     /ringdown\/weighing-the-ring\/$/,
+  );
+  // Companion pages are listed apart from the chapters, without a chapter number.
+  await expect(track.getByRole('list', { name: 'With the chapters' }).getByRole('link')).toHaveText(
+    [/Anatomy of a Ringdown Fit/],
   );
   await track.getByRole('link', { name: 'I have a code' }).click();
   await expect(page).toHaveURL(/ringdown\/$/);
