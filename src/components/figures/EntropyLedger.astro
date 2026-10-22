@@ -1,0 +1,102 @@
+---
+/**
+ * GW250114's entropy ledger (Only Ever Forwards), from the horizon areas: the two holes before
+ * (33.6 and 32.2 solar masses, taken as not spinning, which their small spins allow), the hole
+ * after (62.7 solar masses, spin 0.68; LVK 2025), and the most the waves could carry: the
+ * radiated energy counted in quanta at 200 Hz, each given the entropy of thermal radiation.
+ */
+import { scientific } from '~/lib/format';
+import { linear } from '~/lib/figure/svg';
+import { M_SUN_KG } from '~/lib/physics/blackhole';
+import { entropySun } from '~/lib/physics/horizon';
+import { C } from '~/lib/physics/relativity';
+import { THERMAL_ENTROPY_PER_QUANTUM, quanta } from '~/lib/physics/waves';
+
+const M1 = 33.6;
+const M2 = 32.2;
+const MF = 62.7;
+const CHI_F = 0.68;
+const WAVE_HZ = 200;
+
+const s1 = entropySun(M1);
+const s2 = entropySun(M2);
+const sf = entropySun(MF, CHI_F);
+const radiated = (M1 + M2 - MF) * M_SUN_KG * C * C;
+const waves = quanta(radiated, WAVE_HZ) * THERMAL_ENTROPY_PER_QUANTUM;
+const gain = sf - s1 - s2;
+
+const W = 600;
+const H = 214;
+const PAD = { l: 150, r: 28, t: 30 };
+const x = linear(0, 5e80, PAD.l, W - PAD.r);
+const rows = [
+  { label: 'before, two horizons', y: PAD.t + 26 },
+  { label: 'after, one horizon', y: PAD.t + 74 },
+  { label: 'the waves, at most', y: PAD.t + 122 },
+];
+---
+
+<svg
+  class="fig entropy-ledger"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`GW250114's entropy, in units of k_B. Before: ${scientific(s1, 2)} and ${scientific(s2, 2)}, together ${scientific(s1 + s2, 2)}. After: ${scientific(sf, 2)}, a gain of ${scientific(gain, 2)}. The waves could carry at most ${scientific(waves, 1)}.`}
+>
+  <text class="caps" x={PAD.l} y="16">
+    entropy, k_B
+  </text>
+  {rows.map((row) => (
+    <text class="ink" x={PAD.l - 12} y={row.y + 4} text-anchor="end">
+      {row.label}
+    </text>
+  ))}
+  <rect class="hole" x={x(0)} y={rows[0].y - 10} width={x(s1) - x(0) - 1} height="20" rx="2" />
+  <rect
+    class="hole two"
+    x={x(s1)}
+    y={rows[0].y - 10}
+    width={x(s1 + s2) - x(s1)}
+    height="20"
+    rx="2"
+  />
+  <text x={x(s1 + s2) + 8} y={rows[0].y + 4}>
+    {scientific(s1 + s2, 2)}
+  </text>
+  <rect class="hole" x={x(0)} y={rows[1].y - 10} width={x(s1 + s2) - x(0)} height="20" rx="2" />
+  <rect
+    class="gain"
+    x={x(s1 + s2)}
+    y={rows[1].y - 10}
+    width={x(sf) - x(s1 + s2)}
+    height="20"
+    rx="2"
+  />
+  <text x={x(sf) + 8} y={rows[1].y + 4}>
+    {scientific(sf, 2)}
+  </text>
+  <text class="signal" x={(x(s1 + s2) + x(sf)) / 2} y={rows[1].y + 26} text-anchor="middle">
+    gained {scientific(gain, 2)}
+  </text>
+  <rect class="waves" x={x(0)} y={rows[2].y - 10} width={x(waves) - x(0)} height="20" rx="2" />
+  <text x={x(waves) + 8} y={rows[2].y + 4}>
+    {scientific(waves, 1)}, if thermal
+  </text>
+</svg>
+
+<style>
+  .entropy-ledger .hole {
+    fill: var(--ink);
+  }
+
+  .entropy-ledger .hole.two {
+    fill: var(--ink-soft);
+  }
+
+  .entropy-ledger .gain {
+    fill: var(--signal);
+  }
+
+  .entropy-ledger .waves {
+    fill: color-mix(in srgb, var(--noise) 45%, transparent);
+  }
+</style>

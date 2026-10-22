@@ -1,0 +1,78 @@
+---
+/**
+ * The Page curve, schematically (Only Ever Forwards). A hole evaporating from entropy S₀: its
+ * own entropy falls as (1 − t/t_evap)^(2/3), since M ∝ (1 − t/t_evap)^(1/3) and S ∝ M². Hawking's
+ * calculation gives radiation whose entanglement entropy only rises, here as S₀ minus what the
+ * hole has left. If no information is lost, the radiation's entropy can never exceed the hole's,
+ * so it must turn over at the Page time, when the hole has lost half its entropy, and fall to
+ * zero. The real radiation carries somewhat more entropy than the hole loses; schematic.
+ */
+import { linear } from '~/lib/figure/svg';
+
+const W = 600;
+const H = 270;
+const PAD = { l: 40, r: 24, t: 30, b: 40 };
+const x = linear(0, 1, PAD.l, W - PAD.r);
+const y = linear(0, 1.05, H - PAD.b, PAD.t);
+const hole = (t: number) => (1 - t) ** (2 / 3);
+const hawking = (t: number) => 1 - hole(t);
+const page = (t: number) => Math.min(hawking(t), hole(t));
+const pageTime = 1 - 2 ** -1.5;
+const path = (f: (t: number) => number) =>
+  Array.from({ length: 201 }, (_, i) => {
+    const t = i / 200;
+    return `${i ? 'L' : 'M'}${x(t).toFixed(1)},${y(f(t)).toFixed(1)}`;
+  }).join('');
+---
+
+<svg
+  class="fig page-curve"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="A schematic of entropy against time for an evaporating black hole. The hole's own entropy falls to zero. Hawking's calculation gives radiation whose entropy only rises. If no information is lost, the radiation's entropy must rise, turn over at the Page time, when the hole has lost half its entropy, and fall back to zero."
+>
+  <text class="caps" x={PAD.l} y="16">
+    entropy, as a share of the hole's at the start
+  </text>
+  <path class="model" d={path(hole)} />
+  <text class="halo" x={x(0.06)} y={y(hole(0.06)) - 10}>
+    the hole's own entropy, A/4
+  </text>
+  <path class="bias" d={path(hawking)} />
+  <text class="bias halo" x={x(0.97)} y={y(0.93)} text-anchor="end">
+    Hawking's radiation: only rises
+  </text>
+  <path class="page" d={path(page)} />
+  <text class="ink halo" x={x(0.95)} y={y(0.07)} text-anchor="end">
+    no information lost: rises, then turns over
+  </text>
+  <line class="grid" x1={x(pageTime)} x2={x(pageTime)} y1={y(0)} y2={y(page(pageTime))} />
+  <text x={x(pageTime)} y={H - PAD.b + 16} text-anchor="middle">
+    Page time
+  </text>
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={H - PAD.b} y2={H - PAD.b} />
+  <text x={PAD.l} y={H - PAD.b + 16} text-anchor="middle">
+    0
+  </text>
+  <text x={W - PAD.r} y={H - PAD.b + 16} text-anchor="end">
+    evaporated
+  </text>
+  <text x={W - PAD.r} y={H - 4} text-anchor="end">
+    time
+  </text>
+</svg>
+
+<style>
+  .page-curve text.halo {
+    paint-order: stroke;
+    stroke: var(--ground);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+
+  .page-curve .page {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2;
+  }
+</style>

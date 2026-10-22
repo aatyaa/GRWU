@@ -10,7 +10,7 @@ from dataclasses import asdict
 import numpy as np
 import pytest
 
-from grwu_pipeline import blackholes, fixtures, foundations, kerr, relativity, synthetic
+from grwu_pipeline import blackholes, fixtures, foundations, kerr, relativity, synthetic, waves
 from grwu_pipeline.dataset import read_channel, read_meta
 from grwu_pipeline.paths import (
     blackholes_fixtures_file,
@@ -20,6 +20,7 @@ from grwu_pipeline.paths import (
     kerr_fixtures_file,
     public_data,
     relativity_fixtures_file,
+    waves_fixtures_file,
 )
 
 ROOT = find_repo_root()
@@ -92,3 +93,9 @@ def test_committed_blackholes_fixtures_match_scipy():
     committed = json.loads(blackholes_fixtures_file(ROOT).read_text())
     # Adaptive ODE solvers and root-finders converge to a tolerance, not to the last bit.
     compare(committed, blackholes.build(), "blackholes", rtol=1e-9)
+
+
+def test_committed_waves_fixtures_match_scipy_and_lalsuite():
+    committed = json.loads(waves_fixtures_file(ROOT).read_text())
+    # Matrix exponentials and polynomial roots agree to rounding, not to the last bit.
+    compare(committed, waves.build(), "waves", rtol=1e-9)

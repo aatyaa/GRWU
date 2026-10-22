@@ -1,0 +1,96 @@
+---
+/**
+ * What a merger of two non-spinning holes leaves (Only Ever Forwards), against the mass ratio,
+ * from the numerical-relativity fits of Jiménez-Forteza, Keitel, Husa et al. (UIB2016): the
+ * spin of the final hole, and the share of the mass radiated, beside the most the area theorem
+ * would allow a hole of that spin to radiate.
+ */
+import { linear } from '~/lib/figure/svg';
+import { maximumRadiated } from '~/lib/physics/horizon';
+import { finalSpin, radiatedFraction } from '~/lib/physics/waves';
+
+const W = 600;
+const H = 380;
+const PAD = { l: 52, r: 24 };
+const x = linear(0, 1, PAD.l, W - PAD.r);
+const top = { t: 30, b: 160 };
+const bottom = { t: 210, b: 340 };
+const ySpin = linear(0, 0.8, top.b, top.t);
+const yRad = linear(0, 30, bottom.b, bottom.t);
+const qs = Array.from({ length: 96 }, (_, i) => 0.05 + (0.95 * i) / 95);
+const path = (f: (q: number) => number, y: (v: number) => number) =>
+  qs.map((q, i) => `${i ? 'L' : 'M'}${x(q).toFixed(1)},${y(f(q)).toFixed(1)}`).join('');
+const allowed = (q: number) => 100 * maximumRadiated(1, q, 0, 0, finalSpin(q));
+const actual = (q: number) => 100 * radiatedFraction(q);
+const equal = { spin: finalSpin(1), rad: actual(1), allowed: allowed(1) };
+---
+
+<svg
+  class="fig remnant-fits"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label={`What two non-spinning black holes leave when they merge, against the mass ratio, from numerical-relativity fits. The final spin rises to ${equal.spin.toFixed(3)} for equal masses. The share of the mass radiated rises to ${equal.rad.toFixed(1)} per cent, while the area theorem would allow up to ${equal.allowed.toFixed(0)} per cent.`}
+>
+  <text class="caps" x={PAD.l} y="16">
+    spin of the final hole
+  </text>
+  {[0.2, 0.4, 0.6, 0.8].map((v) => (
+    <>
+      <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={ySpin(v)} y2={ySpin(v)} />
+      <text x={PAD.l - 8} y={ySpin(v) + 4} text-anchor="end">
+        {v.toFixed(1)}
+      </text>
+    </>
+  ))}
+  <path class="model" d={path(finalSpin, ySpin)} />
+  <circle class="dot ink" cx={x(1)} cy={ySpin(equal.spin)} r="4" />
+  <text class="ink halo" x={x(1) - 8} y={ySpin(equal.spin) - 10} text-anchor="end">
+    equal masses: {equal.spin.toFixed(3)}
+  </text>
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={top.b} y2={top.b} />
+
+  <text class="caps" x={PAD.l} y={bottom.t - 14}>
+    share of the mass radiated, %
+  </text>
+  {[10, 20, 30].map((v) => (
+    <>
+      <line class="grid" x1={PAD.l} x2={W - PAD.r} y1={yRad(v)} y2={yRad(v)} />
+      <text x={PAD.l - 8} y={yRad(v) + 4} text-anchor="end">
+        {v}
+      </text>
+    </>
+  ))}
+  <path class="limit" d={path(allowed, yRad)} />
+  <text class="halo" x={x(0.5)} y={yRad(allowed(0.5)) + 18} text-anchor="middle">
+    the most the area theorem allows
+  </text>
+  <path class="model" d={path(actual, yRad)} />
+  <text class="ink halo" x={x(1) - 8} y={yRad(equal.rad) - 10} text-anchor="end">
+    what is radiated: {equal.rad.toFixed(1)} %
+  </text>
+  <circle class="dot ink" cx={x(1)} cy={yRad(equal.rad)} r="4" />
+  <line class="axis" x1={PAD.l} x2={W - PAD.r} y1={bottom.b} y2={bottom.b} />
+  {[0, 0.25, 0.5, 0.75, 1].map((q) => (
+    <text x={x(q)} y={bottom.b + 16} text-anchor="middle">
+      {q}
+    </text>
+  ))}
+  <text x={W - PAD.r} y={H - 6} text-anchor="end">
+    mass ratio, lighter over heavier
+  </text>
+</svg>
+
+<style>
+  .remnant-fits text.halo {
+    paint-order: stroke;
+    stroke: var(--ground);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+
+  .remnant-fits .limit {
+    fill: none;
+    stroke: var(--ink-soft);
+    stroke-width: 1.4;
+  }
+</style>

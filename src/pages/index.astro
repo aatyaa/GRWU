@@ -10,7 +10,8 @@ import { isCompanion, sealedArticles, sealedMode } from '~/lib/ringdown';
 import { foundations, tracks } from '~/lib/tracks';
 import { withBase } from '~/lib/url';
 
-type Kind = 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map' | 'bell' | 'orbit' | 'hole';
+type Kind =
+  'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map' | 'bell' | 'orbit' | 'hole' | 'merge';
 
 interface Card {
   id: string;
@@ -106,6 +107,7 @@ const moreThumbs: Record<string, Kind> = {
   'run-it-yourself': 'spectrum',
   'the-straightest-path': 'orbit',
   'mass-spin-and-nothing-else': 'hole',
+  'only-ever-forwards': 'merge',
 };
 const more = articles.filter(
   (a) => !planned.some((p) => p.id === a.id) && a.data.track !== 'foundations',

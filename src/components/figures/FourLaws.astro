@@ -1,0 +1,88 @@
+---
+/**
+ * The four laws of black-hole mechanics beside the four laws of thermodynamics (Only Ever
+ * Forwards), as Bardeen, Carter and Hawking set them out in 1973. Line by line the dictionary
+ * is forced: energy and mass, temperature and surface gravity, entropy and area.
+ */
+const rows = [
+  {
+    law: 'Zeroth',
+    heat: 'Temperature is the same everywhere in a body at equilibrium.',
+    hole: 'Surface gravity κ is the same everywhere on a settled horizon.',
+  },
+  {
+    law: 'First',
+    heat: 'dE = T dS + work',
+    hole: 'dM = (κ/8π) dA + Ω dJ',
+  },
+  {
+    law: 'Second',
+    heat: 'Entropy S never decreases.',
+    hole: 'Horizon area A never decreases.',
+  },
+  {
+    law: 'Third',
+    heat: 'No process reaches T = 0 in finitely many steps.',
+    hole: 'No process reaches κ = 0, the fastest possible spin.',
+  },
+];
+---
+
+<div class="four-laws">
+  <table>
+    <caption class="visually-hidden">
+      The four laws of thermodynamics beside the four laws of black-hole mechanics
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">law</th>
+        <th scope="col">thermodynamics</th>
+        <th scope="col">black holes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map((row) => (
+        <tr>
+          <th scope="row">{row.law}</th>
+          <td>{row.heat}</td>
+          <td>{row.hole}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .four-laws {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  th,
+  td {
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--rule-soft);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead th {
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  tbody th {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+</style>
