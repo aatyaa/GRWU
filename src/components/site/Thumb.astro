@@ -4,7 +4,7 @@
  * pointing at the host replays it: the main curve draws itself and the squares grow.
  */
 interface Props {
-  kind: 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map' | 'bell' | 'orbit' | 'hole';
+  kind: 'squares' | 'chirp' | 'ringdown' | 'spectrum' | 'map' | 'bell' | 'orbit' | 'hole' | 'merge';
 }
 
 const { kind } = Astro.props;
@@ -150,6 +150,16 @@ const points = [
       <ellipse cx="160" cy="90" rx="96" ry="22" class="thumb-area" />
       <circle cx="160" cy="90" r="40" class="thumb-hole" />
       <circle cx="160" cy="90" r="52" class="thumb-signal thumb-draw" pathLength="1" />
+    </g>
+  )}
+  {kind === 'merge' && (
+    <g>
+      <circle cx="62" cy="90" r="22" class="thumb-hole" />
+      <circle cx="112" cy="90" r="20" class="thumb-hole" />
+      <line x1="146" y1="90" x2="178" y2="90" class="thumb-ink" />
+      <path d="M170,82L180,90L170,98" class="thumb-ink" />
+      <circle cx="240" cy="90" r="34" class="thumb-hole" />
+      <circle cx="240" cy="90" r="48" class="thumb-signal thumb-draw" pathLength="1" />
     </g>
   )}
   {kind === 'orbit' && (

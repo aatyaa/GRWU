@@ -29,7 +29,7 @@ Data pipeline (Python, uv), run from `pipeline/`:
 uv run pytest                     # tests, including "committed outputs are current"
 uv run ruff check . && uv run ruff format --check .
 uv run grwu-pipeline synthetic    # regenerate public/data/synthetic/toy-chirp/
-uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundations,relativity,blackholes}.json
+uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundations,relativity,blackholes,waves}.json
 ```
 
 - `grwu-pipeline fetch` needs gwosc.org, which Claude Code on the web blocks by default.
@@ -127,6 +127,12 @@ uv run grwu-pipeline fixtures     # regenerate tests/fixtures/{dsp,kerr,foundati
     Oppenheimer–Snyder collapse on two clocks, Eddington–Finkelstein light cones, Kerr horizons,
     ergosphere, ISCO, photon orbits and efficiency, light rays traced past a hole, tides. Checked
     against scipy through `tests/fixtures/blackholes.json` (and `relativity.json` for the rays).
+  - `physics/horizon.ts`, `physics/waves.ts`, `physics/hyperbolic.ts` (Only Ever Forwards): Kerr
+    horizon area, entropy, surface gravity and Hawking temperature, the area theorem's bound on a
+    merger; a ring of particles in the two polarisations, the quadrupole power, and the remnant of
+    two non-spinning holes (the UIB2016 fits); a weakly and a strongly hyperbolic toy system.
+    Checked against Smarr's relation and the first law, and through `tests/fixtures/waves.json`
+    against scipy and LALSuite's own implementation of the fits (`lalinference.imrtgr.nrutils`).
 - `src/lib/quality/readability.ts` and `tests/unit/quality.test.ts`: every article's prose stays
   readable (Flesch–Kincaid grade ≤ 12 for `level: beginner`, ≤ 14 otherwise), every `<Term>`
   names a glossary entry, and each beginner article links at least three terms.

@@ -1,0 +1,67 @@
+---
+/**
+ * Apparent horizons through a merger, schematically (Only Ever Forwards): two horizons, a
+ * common horizon that appears around both while they still exist, a peanut that relaxes, and a
+ * settled Kerr hole. The shapes are Cassini ovals, a one-parameter family that goes from a
+ * peanut to a circle, not horizons computed by a simulation.
+ */
+const W = 600;
+const H = 168;
+const FRAMES = 5;
+const fw = W / FRAMES;
+const cy = 74;
+
+/** A Cassini oval with foci at ±a and product of distances b², for b ≥ a, as an SVG path. */
+function cassini(cx: number, a: number, b: number, scale: number): string {
+  return (
+    Array.from({ length: 181 }, (_, i) => {
+      const t = (2 * Math.PI * i) / 180;
+      const r = Math.sqrt(
+        a * a * Math.cos(2 * t) + Math.sqrt(b ** 4 - a ** 4 * Math.sin(2 * t) ** 2),
+      );
+      return `${i ? 'L' : 'M'}${(cx + r * Math.cos(t) * scale).toFixed(1)},${(cy - r * Math.sin(t) * scale).toFixed(1)}`;
+    }).join('') + 'Z'
+  );
+}
+
+const centre = (k: number) => fw * k + fw / 2;
+const labels = ['two holes', 'closer', 'common horizon', 'settling', 'Kerr'];
+---
+
+<svg
+  class="fig horizon-frames"
+  viewBox={`0 0 ${W} ${H}`}
+  role="img"
+  aria-label="Five schematic frames of a merger: two separate horizons; the two closer together; a common horizon shaped like a peanut appearing around both while they still exist; the peanut relaxing to an oval; and a single round, settled horizon."
+>
+  <circle class="hole" cx={centre(0) - 26} cy={cy} r="15" />
+  <circle class="hole" cx={centre(0) + 26} cy={cy} r="15" />
+  <circle class="hole" cx={centre(1) - 17} cy={cy} r="15" />
+  <circle class="hole" cx={centre(1) + 17} cy={cy} r="15" />
+  <path class="common" d={cassini(centre(2), 1, 1.06, 28)} />
+  <circle class="hole" cx={centre(2) - 17} cy={cy} r="12" />
+  <circle class="hole" cx={centre(2) + 17} cy={cy} r="12" />
+  <path class="hole" d={cassini(centre(3), 1, 1.45, 23)} />
+  <circle class="hole" cx={centre(4)} cy={cy} r="27" />
+  {labels.map((label, k) => (
+    <text x={centre(k)} y={H - 34} text-anchor="middle" class={k === 2 ? 'ink' : ''}>
+      {label}
+    </text>
+  ))}
+  <line class="axis" x1="16" x2={W - 16} y1={H - 16} y2={H - 16} />
+  <text x={W - 16} y={H - 2} text-anchor="end">
+    time →
+  </text>
+</svg>
+
+<style>
+  .horizon-frames .hole {
+    fill: var(--ink);
+  }
+
+  .horizon-frames .common {
+    fill: color-mix(in srgb, var(--ink) 18%, transparent);
+    stroke: var(--ink);
+    stroke-width: 2;
+  }
+</style>
