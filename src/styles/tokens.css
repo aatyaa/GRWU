@@ -64,6 +64,11 @@
   --f-display: 'Instrument Serif', Georgia, 'Times New Roman', serif;
   --f-body: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --f-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* Arabic fonts (ADR 0012). @font-face declarations are added in Phase 2 once
+     the subsetted font files are produced; until then these fall back to system
+     Arabic fonts.  --f-arabic-display is TBD (Noto Naskh or similar). */
+  --f-arabic-ui: 'IBM Plex Sans Arabic', 'Arial', sans-serif;
+  --f-arabic-prose: 'Noto Naskh Arabic', 'Arial', sans-serif;
   --text-xs: 0.72rem; /* mono labels */
   --text-sm: 0.875rem;
   --text-base: 1.0625rem;

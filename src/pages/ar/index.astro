@@ -1,0 +1,26 @@
+---
+/**
+ * Arabic home page placeholder (ADR 0012).
+ * Arabic content is built in phases; this page announces the language version
+ * is coming and links back to English.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { withBase } from '~/lib/url';
+---
+
+<BaseLayout
+  title="GRWU بالعربية"
+  description="الإصدار العربي من موقع GRWU قيد الإعداد."
+  lang="ar"
+  canonicalPath=""
+>
+  <article style="max-width: var(--measure); margin: 0 auto; padding: var(--space-12) var(--gutter);">
+    <h1>GRWU بالعربية</h1>
+    <p>
+      الإصدار العربي من المقالات قيد الإعداد.
+      <br />
+      في الوقت الحالي، المحتوى متاح
+      <a href={withBase('')}>بالإنجليزية فقط</a>.
+    </p>
+  </article>
+</BaseLayout>

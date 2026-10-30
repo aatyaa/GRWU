@@ -246,8 +246,8 @@
   }
 
   .claim.wrong {
-    padding-left: 0.6rem;
-    border-left: 3px solid var(--bias);
+    padding-inline-start: 0.6rem;
+    border-inline-start: 3px solid var(--bias);
   }
 
   .claim b {

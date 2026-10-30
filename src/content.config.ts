@@ -15,11 +15,11 @@ export const TRACKS = [
   'ringdown',
 ] as const;
 
-const articleLoader = (base: string) =>
+const articleLoader = (base: string, ar = false) =>
   glob({
-    pattern: '*/index.mdx',
+    pattern: ar ? '*/index.ar.mdx' : '*/index.mdx',
     base,
-    generateId: ({ entry }) => entry.replace(/\/index\.mdx$/, ''),
+    generateId: ({ entry }) => entry.replace(/\/index(?:\.ar)?\.mdx$/, ''),
   });
 
 const articleSchema = z.object({
@@ -71,6 +71,24 @@ const articles = defineCollection({
 });
 
 /**
+ * Arabic versions of articles (ADR 0012). Files live alongside their English
+ * originals as `index.ar.mdx`; the slug is identical to the English slug.
+ * The collection is empty until Phase 3 of the translation plan.
+ */
+const articleSchemaAr = articleSchema.extend({
+  /** The `updated` date of the English article this was translated from. */
+  translatedFrom: z.coerce.date(),
+  translators: z.array(z.string()).min(1),
+  translationReviewers: z.array(z.string()).default([]),
+  translationStatus: z.enum(['draft', 'review', 'published']).default('draft'),
+});
+
+const articlesAr = defineCollection({
+  loader: articleLoader('./src/content/articles', true),
+  schema: articleSchemaAr,
+});
+
+/**
  * The access-gated ringdown track (ADR 0007). Its sources live in the private companion
  * repository, cloned at private/ and ignored by git; without it the collection is empty.
  */
@@ -89,7 +107,21 @@ const glossary = defineCollection({
     definition: z.string(),
     /** Absent for concepts without a unit (a posterior, a mode's label). */
     unit: z.string().optional(),
+    // Arabic fields (ADR 0012, plan § 3.8). All optional until Phase 1.
+    arName: z.string().optional(),
+    arDefinition: z.string().optional(),
+    arStatus: z.enum(['approved', 'proposed', 'arabized', 'keep-en']).optional(),
+    arSource: z.enum(['alecso-physics', 'cairo-academy', 'textbooks', 'popular']).optional(),
+    arRejected: z.array(z.object({ word: z.string(), reason: z.string() })).default([]),
+    arDerivatives: z
+      .object({
+        verb: z.string().optional(),
+        adjective: z.string().optional(),
+        plural: z.string().optional(),
+      })
+      .optional(),
+    arNote: z.string().optional(),
   }),
 });
 
-export const collections = { articles, ringdown, glossary };
+export const collections = { articles, articlesAr, ringdown, glossary };

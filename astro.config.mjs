@@ -15,6 +15,13 @@ export default defineConfig({
   site: 'https://aatyaa.github.io',
   base,
   trailingSlash: 'always',
+  // ADR 0012: Arabic as second language. prefixDefaultLocale: false keeps all
+  // existing English URLs unchanged; Arabic routes live under /ar/.
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'ar'],
+    routing: { prefixDefaultLocale: false },
+  },
   build: {
     // GitHub Pages runs Jekyll unless the branch root has .nojekyll, and Jekyll drops
     // folders starting with "_". A PR preview can land before any root deploy exists,

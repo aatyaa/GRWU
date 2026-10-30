@@ -4,6 +4,7 @@ import '~/styles/base.css';
 import Header from '~/components/site/Header.astro';
 import Footer from '~/components/site/Footer.astro';
 import { withBase } from '~/lib/url';
+import { type Lang, dirFor, localePath } from '~/lib/i18n';
 
 interface Props {
   title?: string;
@@ -12,6 +13,13 @@ interface Props {
   noindex?: boolean;
   /** Running title in the header rail (article pages). */
   running?: string;
+  /** Interface language; defaults to the current Astro locale (ADR 0012). */
+  lang?: Lang;
+  /**
+   * Site-relative path of this page without a locale prefix, e.g. "articles/foo/".
+   * When provided, hreflang alternate links are emitted for both languages.
+   */
+  canonicalPath?: string;
 }
 
 const {
@@ -19,21 +27,36 @@ const {
   description = 'Visual, interactive explanations of gravitational-wave data analysis.',
   noindex = false,
   running,
+  lang: langProp,
+  canonicalPath,
 } = Astro.props;
 
+const lang: Lang = langProp ?? ((Astro.currentLocale ?? 'en') as Lang);
+const dir = dirFor(lang);
 const fullTitle = title ? `${title} · GRWU` : 'GRWU: gravitational-wave data analysis, explained';
 // PR previews share the production domain, so they must never be indexed.
 const isPreview = import.meta.env.BASE_URL.includes('/pr-preview/');
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang} dir={dir}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {(noindex || isPreview) && <meta name="robots" content="noindex" />}
+    {canonicalPath && (
+      <>
+        <link rel="alternate" hreflang="en" href={withBase(localePath('en', canonicalPath))} />
+        <link rel="alternate" hreflang="ar" href={withBase(localePath('ar', canonicalPath))} />
+        <link
+          rel="alternate"
+          hreflang="x-default"
+          href={withBase(localePath('en', canonicalPath))}
+        />
+      </>
+    )}
     <link rel="icon" href={withBase('favicon.svg')} type="image/svg+xml" />
     <meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0c121b" media="(prefers-color-scheme: dark)" />

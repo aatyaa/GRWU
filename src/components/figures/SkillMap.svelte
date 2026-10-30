@@ -264,7 +264,7 @@
     background: var(--surface-2);
     font: inherit;
     font-size: 0.93rem;
-    text-align: left;
+    text-align: start;
     color: var(--ink);
     cursor: pointer;
     transition:
@@ -321,7 +321,7 @@
 
   .tag {
     display: inline-block;
-    margin-left: 0.5rem;
+    margin-inline-start: 0.5rem;
     padding: 0.1rem 0.5rem;
     border-radius: 999px;
     background: var(--surface-2);

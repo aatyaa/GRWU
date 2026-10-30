@@ -124,7 +124,7 @@
   }
 
   .choice__verdict.right {
-    padding-left: 0.7rem;
+    padding-inline-start: 0.7rem;
     border-left: 3px solid var(--ok);
   }
 
