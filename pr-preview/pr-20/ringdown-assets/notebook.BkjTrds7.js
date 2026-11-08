@@ -1,0 +1,1 @@
+import{t as e}from"./persistent.CnSMFL5K.js";var t=e(`grwu-ringdown-notebook`,{},{encode:JSON.stringify,decode:e=>{try{let t=JSON.parse(e);return t&&typeof t==`object`?t:{}}catch{return{}}}});function n(e,n){t.set({...t.get(),[e]:{...n,at:new Date().toISOString()}})}function r(e){if(!e)return t.set({});let n={...t.get()};delete n[e],t.set(n)}export{n,t as r,r as t};
