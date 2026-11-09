@@ -1,0 +1,1 @@
+import{t as e}from"./atom.HIphgfyt.js";var t=(t={})=>{let n=e(t);return n.eqKey=Object.is,n.setKey=function(e,t){let r=n.value;t===void 0&&e in n.value?(n.value={...n.value},delete n.value[e],n.notify(r,e)):n.eqKey(n.value[e],t,e)||(n.value={...n.value,[e]:t},n.notify(r,e))},n};export{t};
