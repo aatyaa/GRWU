@@ -1,22 +1,47 @@
 ---
 import Mark from '~/components/brand/Mark.astro';
 import { withBase } from '~/lib/url';
+import { type Lang, localePath } from '~/lib/i18n';
 
+interface Props {
+  running?: string;
+  lang?: Lang;
+  /** URL of the counterpart page in the other language (ADR 0012). */
+  counterpartUrl?: string;
+}
+
+const { running, lang = 'en', counterpartUrl } = Astro.props;
 const current = Astro.url.pathname;
-const links = [
-  { href: withBase(), label: 'Articles' },
-  { href: withBase('start/'), label: 'Start' },
-  { href: withBase('ringdown/'), label: 'Ringdown' },
-  { href: withBase('about/'), label: 'About' },
-];
+const isAr = lang === 'ar';
+
+const links = isAr
+  ? [
+      { href: withBase(localePath('ar', '')), label: 'المقالات' },
+      { href: withBase(localePath('ar', 'start/')), label: 'ابدأ هنا' },
+      { href: withBase('about/'), label: 'عن الموقع' },
+    ]
+  : [
+      { href: withBase(), label: 'Articles' },
+      { href: withBase('start/'), label: 'Start' },
+      { href: withBase('ringdown/'), label: 'Ringdown' },
+      { href: withBase('about/'), label: 'About' },
+    ];
+
+const otherLangLabel = isAr ? 'EN' : 'AR';
+const otherLangHref = counterpartUrl ?? (isAr ? withBase('') : withBase(localePath('ar', '')));
 ---
 
 <header class="site-header">
-  <a class="brand" href={withBase()}>
+  <a class="brand" href={isAr ? withBase(localePath('ar', '')) : withBase()}>
     <Mark size={26} />
     <span>GRWU</span>
   </a>
-  <nav aria-label="Main">
+  {running && (
+    <p class="running" aria-label="Running title">
+      {running}
+    </p>
+  )}
+  <nav aria-label={isAr ? 'الرئيسية' : 'Main'}>
     <ul>
       {links.map((link) => (
         <li>
@@ -25,6 +50,16 @@ const links = [
           </a>
         </li>
       ))}
+      <li>
+        <a
+          href={otherLangHref}
+          class="lang-toggle"
+          lang={isAr ? 'en' : 'ar'}
+          hreflang={isAr ? 'en' : 'ar'}
+        >
+          {otherLangLabel}
+        </a>
+      </li>
       <li>
         <grwu-theme-toggle>
           <button type="button" class="theme">
@@ -94,6 +129,28 @@ const links = [
 
   nav a[aria-current='page'] {
     font-weight: 600;
+  }
+
+  .lang-toggle {
+    padding: 0.1rem 0.45rem;
+    border: 1px solid var(--rule-soft);
+    border-radius: 4px;
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+  }
+
+  .lang-toggle:hover {
+    border-color: var(--ink-soft);
+    color: var(--ink);
+  }
+
+  .running {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.88rem;
+    color: var(--ink-soft);
   }
 
   /* On a phone the links get a row of their own, spread across it, instead of wrapping

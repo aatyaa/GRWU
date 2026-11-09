@@ -1,0 +1,115 @@
+---
+/**
+ * Arabic start / glossary page (ADR 0012, Phase 2 placeholder).
+ * Shows the same glossary as /start/, with Arabic names where available.
+ * The foundations series section is added in Phase 3 when articles exist.
+ */
+import 'katex/dist/katex.min.css';
+import { getCollection } from 'astro:content';
+import BaseLayout from '~/layouts/BaseLayout.astro';
+import { tex } from '~/components/math/tex';
+import { withBase } from '~/lib/url';
+import { localePath } from '~/lib/i18n';
+
+const glossary = (await getCollection('glossary')).sort((a, b) =>
+  (a.data.arName ?? a.data.name).localeCompare(b.data.arName ?? b.data.name, 'ar'),
+);
+---
+
+<BaseLayout
+  title="ابدأ هنا"
+  description="مسرد المصطلحات والرموز المستخدمة في مقالات GRWU."
+  lang="ar"
+  canonicalPath="start/"
+>
+  <div class="start">
+    <h1>ابدأ هنا</h1>
+    <p class="lead">
+      المسرد قيد الإعداد. المقالات العربية ستتوفر في مراحل لاحقة.
+      <br />
+      في الوقت الحالي، تصفّح
+      <a href={withBase(localePath('en', 'start/'))}>النسخة الإنجليزية</a>.
+    </p>
+
+    <h2 id="glossary">الرموز والمصطلحات</h2>
+    <p>كل مقالة تستخدم هذه الرموز بالمعنى نفسه.</p>
+    <dl class="glossary">
+      {glossary.map(({ id, data }) => (
+        <div id={`term-${id}`}>
+          <dt>
+            <span class="glossary__symbol" set:html={tex(data.symbol, false)} />
+            <span>{data.arName ?? data.name}</span>
+            {data.arName && (
+              <span class="glossary__en" lang="en">
+                {data.name}
+              </span>
+            )}
+          </dt>
+          <dd>
+            {data.arDefinition ?? data.definition}
+            {data.unit && (
+              <span class="glossary__unit">
+                الوحدة: <span dir="ltr">{data.unit}</span>.
+              </span>
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</BaseLayout>
+
+<style>
+  .start {
+    width: 100%;
+    max-width: calc(var(--measure) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding: clamp(2.5rem, 7vh, 5rem) var(--gutter) var(--space-16);
+    color: var(--ink-soft);
+  }
+
+  h2 {
+    margin-top: var(--space-12);
+    font-size: clamp(1.6rem, 3.4vw, 2.2rem);
+    color: var(--ink);
+  }
+
+  .glossary {
+    margin: var(--space-6) 0 0;
+  }
+
+  .glossary > div {
+    padding: 0.8rem 0;
+    border-top: 1px solid var(--rule-soft);
+    scroll-margin-top: 5rem;
+  }
+
+  .glossary dt {
+    display: flex;
+    gap: 0.8rem;
+    align-items: baseline;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .glossary__symbol {
+    min-width: 5.5rem;
+  }
+
+  .glossary__en {
+    font-size: 0.88rem;
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+
+  .glossary dd {
+    margin: 0.25rem 0 0;
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .glossary__unit {
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+</style>
