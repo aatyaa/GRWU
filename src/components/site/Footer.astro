@@ -6,7 +6,25 @@ import Mark from '~/components/brand/Mark.astro';
   <div class="container site-footer__inner">
     <p class="site-footer__by">
       <Mark size={22} />
-      <span>GRWU · visual essays by Attia A. Gadallah</span>
+      <span>
+        GRWU · visual essays by Attia A. Gadallah
+        <span class="site-footer__contact" aria-label="Contact and profile links">
+          <a href="https://orcid.org/0009-0006-3460-5819" target="_blank" rel="noopener noreferrer">
+            ORCID
+          </a>
+          <a
+            href="https://www.linkedin.com/in/attia-a-gadallah-b30885118/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            LinkedIn
+          </a>
+          <a href="https://github.com/aatyaa" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+          <a href="mailto:attia150096@fci.bu.edu.eg">Email</a>
+        </span>
+      </span>
     </p>
     <p>
       Strain data from the <a href="https://gwosc.org/">Gravitational Wave Open Science Center</a> ·{' '}
@@ -40,6 +58,29 @@ import Mark from '~/components/brand/Mark.astro';
     display: flex;
     align-items: center;
     gap: 0.6rem;
+    color: var(--ink);
+  }
+
+  .site-footer__contact {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+
+  .site-footer__contact a {
+    color: inherit;
+    text-transform: uppercase;
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+  }
+
+  .site-footer__contact a + a::before {
+    content: ' · ';
+  }
+
+  .site-footer__contact a:hover {
     color: var(--ink);
   }
 </style>

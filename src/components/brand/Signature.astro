@@ -4,9 +4,28 @@ import Mark from './Mark.astro';
 interface Props {
   role?: string;
   ruled?: boolean;
+  /** Contact links shown as a row under the name (ADR 0012 omits; added for about page). */
+  links?: {
+    orcid?: string;
+    linkedin?: string;
+    github?: string;
+    email?: string;
+  };
 }
 
-const { role = 'Gravitational-wave data analysis', ruled = false } = Astro.props;
+const { role = 'Gravitational-wave data analysis', ruled = false, links } = Astro.props;
+
+type ContactLink = { href: string; label: string; external: boolean };
+const contactLinks: ContactLink[] = links
+  ? (
+      [
+        links.orcid ? { href: links.orcid, label: 'ORCID', external: true } : null,
+        links.linkedin ? { href: links.linkedin, label: 'LinkedIn', external: true } : null,
+        links.github ? { href: links.github, label: 'GitHub', external: true } : null,
+        links.email ? { href: `mailto:${links.email}`, label: 'Email', external: false } : null,
+      ] as (ContactLink | null)[]
+    ).filter((x): x is ContactLink => x !== null)
+  : [];
 ---
 
 <div class:list={['signature', { ruled }]}>
@@ -14,6 +33,20 @@ const { role = 'Gravitational-wave data analysis', ruled = false } = Astro.props
   <div>
     <div class="signature__name">Attia A. Gadallah</div>
     <div class="signature__role">{role}</div>
+    {contactLinks.length > 0 && (
+      <ul class="signature__links" aria-label="Contact and profile links">
+        {contactLinks.map((link) => (
+          <li>
+            <a
+              href={link!.href}
+              {...(link!.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            >
+              {link!.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
   </div>
 </div>
 
@@ -45,5 +78,28 @@ const { role = 'Gravitational-wave data analysis', ruled = false } = Astro.props
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--ink-faint);
+  }
+
+  .signature__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.1rem 0.6rem;
+    margin: 0.55rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .signature__links a {
+    font-family: var(--f-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .signature__links a:hover {
+    color: var(--ink);
+    border-bottom-color: var(--ink-soft);
   }
 </style>
