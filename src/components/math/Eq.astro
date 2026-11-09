@@ -36,8 +36,9 @@ for (const term of terms) {
 ---
 
 <grwu-eq class:list={['eq', size]}>
-  {/* Focusable so a wide equation can be scrolled from the keyboard on a narrow screen. */}
-  <div class="eq__math" tabindex="0" set:html={html} />
+  {/* dir=ltr keeps KaTeX left-to-right inside RTL pages (ADR 0012). Focusable so
+      a wide equation can be scrolled from the keyboard on a narrow screen. */}
+  <div class="eq__math" tabindex="0" dir="ltr" style="unicode-bidi:isolate" set:html={html} />
   {terms.length > 0 && (
     <ul class="eq__where" aria-label="Terms in this equation">
       {terms.map((term) => (
@@ -73,11 +74,11 @@ for (const term of terms) {
 
   .eq .katex-display {
     margin: 0;
-    text-align: left;
+    text-align: start;
   }
 
   .eq .katex-display > .katex {
-    text-align: left;
+    text-align: start;
   }
 
   .eq.large .katex {
@@ -116,7 +117,7 @@ for (const term of terms) {
     padding: 0;
     border: 0;
     background: none;
-    text-align: left;
+    text-align: start;
     cursor: default;
   }
 

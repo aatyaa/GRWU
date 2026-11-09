@@ -253,7 +253,7 @@
   }
 
   .levels legend {
-    float: left;
+    float: left; /* figure legend; LTR axis layout is intentional (ADR 0012) */
     margin-right: 0.5rem;
     color: var(--ink-soft);
   }

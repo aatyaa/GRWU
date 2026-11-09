@@ -237,7 +237,7 @@ table {
 
 th,
 td {
-  text-align: left;
+  text-align: start;
   padding: 0.55rem 0.9rem 0.55rem 0;
   border-bottom: 1px solid var(--rule-soft);
   font-family: var(--f-mono);

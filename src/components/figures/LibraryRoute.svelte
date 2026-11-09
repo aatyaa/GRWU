@@ -204,7 +204,7 @@ result.plot_corner(prior=True)`,
     background: var(--surface);
     font: inherit;
     font-size: 0.9rem;
-    text-align: left;
+    text-align: start;
     color: var(--ink);
     cursor: pointer;
   }
@@ -253,7 +253,7 @@ result.plot_corner(prior=True)`,
 
   .lib {
     display: inline-block;
-    margin-right: 0.4rem;
+    margin-inline-end: 0.4rem;
     padding: 0.1rem 0.55rem;
     border-radius: 999px;
     background: var(--signal-bg);
@@ -272,8 +272,8 @@ result.plot_corner(prior=True)`,
   }
 
   .trap {
-    padding-left: 0.8rem;
-    border-left: 3px solid var(--bias);
+    padding-inline-start: 0.8rem;
+    border-inline-start: 3px solid var(--bias);
     font-size: 0.93rem;
   }
 

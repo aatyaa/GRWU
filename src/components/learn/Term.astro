@@ -8,6 +8,7 @@ import 'katex/dist/katex.min.css';
 import { getEntry } from 'astro:content';
 import { tex } from '~/components/math/tex';
 import { withBase } from '~/lib/url';
+import { type Lang, localePath } from '~/lib/i18n';
 
 interface Props {
   id: string;
@@ -18,9 +19,11 @@ const entry = await getEntry('glossary', id);
 if (!entry) throw new Error(`Term: "${id}" is not in src/content/glossary.json`);
 const { symbol, name, definition } = entry.data;
 const hasText = Astro.slots.has('default');
+const lang = (Astro.currentLocale ?? 'en') as Lang;
+const termHref = withBase(localePath(lang, `start/#term-${id}`));
 ---
 
-<a class="term" href={withBase(`start/#term-${id}`)} title={`${name}: ${definition}`}>
+<a class="term" href={termHref} title={`${name}: ${definition}`}>
   {hasText ? <slot /> : <span set:html={tex(symbol, false)} />}
 </a>
 

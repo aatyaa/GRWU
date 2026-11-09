@@ -203,8 +203,8 @@
   }
 
   .numbers dd.heavier {
-    padding-left: 0.4rem;
-    border-left: 3px solid var(--bias);
+    padding-inline-start: 0.4rem;
+    border-inline-start: 3px solid var(--bias);
   }
 
   .note {
