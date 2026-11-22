@@ -1,0 +1,1 @@
+function e(e,t,n,r){let i=Math.log10(e),a=(r-n)/(Math.log10(t)-i);return e=>n+(Math.log10(e)-i)*a}export{e as t};
