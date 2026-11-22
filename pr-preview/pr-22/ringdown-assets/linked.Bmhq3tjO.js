@@ -1,0 +1,1 @@
+import{t as e}from"./map.DIDRhxwD.js";var t=e({});function n(e,n){return t.subscribe(t=>{let r=t[e];r!==void 0&&n(r)})}function r(e,n){t.get()[e]!==n&&t.setKey(e,n)}export{r as n,n as t};
